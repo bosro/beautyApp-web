@@ -132,7 +132,7 @@ import { BeauticianProfile } from '../../../core/models';
               <div class="flex items-center gap-1">
                 <i class="ri-star-fill text-yellow-400 text-xs"></i>
                 <span class="text-xs font-bold" style="color: var(--color-text-primary)">
-                  {{ salon.rating?.toFixed(1) || '0.0' }}
+                  {{ salon.rating.toFixed(1) || '0.0' }}
                 </span>
                 <span class="text-xs" style="color: var(--color-text-secondary)">
                   ({{ salon.totalReviews || 0 }})

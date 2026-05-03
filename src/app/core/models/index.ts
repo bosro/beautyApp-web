@@ -1,10 +1,12 @@
 // ========== User & Auth ==========
-export type UserRole = 'CUSTOMER' | 'BEAUTICIAN';
+export type UserRole = "CUSTOMER" | "BEAUTICIAN";
 
 export interface User {
   id: string;
   name: string;
-  email: string;
+  firstName?: string; // ← add
+  lastName: string;
+  email?: string;
   phone?: string;
   avatar?: string;
   role: UserRole;
@@ -87,7 +89,7 @@ export interface BeautyService {
 }
 
 // ========== Booking ==========
-export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+export type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
 
 export interface Booking {
   id: string;
@@ -190,7 +192,7 @@ export interface Promotion {
   code: string;
   title: string;
   description: string;
-  discountType: 'PERCENTAGE' | 'FIXED';
+  discountType: "PERCENTAGE" | "FIXED";
   discountValue: number;
   minPurchase: number;
   maxDiscount?: number;
@@ -228,7 +230,7 @@ export interface Referral {
   id: string;
   referrerId: string;
   refereeId: string;
-  status: 'pending' | 'completed' | 'rewarded';
+  status: "pending" | "completed" | "rewarded";
   reward: number;
   createdAt: string;
   updatedAt: string;
@@ -308,7 +310,7 @@ export interface CustomerDetails {
 }
 
 // ========== Toast ==========
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastType = "success" | "error" | "warning" | "info";
 
 export interface ToastMessage {
   id: string;
@@ -318,4 +320,4 @@ export interface ToastMessage {
 }
 
 // ========== Theme ==========
-export type ThemeMode = 'light' | 'dark' | 'system';
+export type ThemeMode = "light" | "dark" | "system";

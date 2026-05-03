@@ -166,7 +166,9 @@ type TabType = 'about' | 'services' | 'reviews';
 
             <!-- ===== SERVICES ===== -->
             <div *ngIf="activeTab === 'services'" class="space-y-3">
-              <div *ngIf="loadingServices" class="skeleton h-20 rounded-xl" *ngFor="let _ of [1,2,3]"></div>
+              <ng-container *ngIf="loadingServices">
+                <div class="skeleton h-20 rounded-xl" *ngFor="let _ of [1,2,3]"></div>
+              </ng-container>
               <div
                 *ngFor="let svc of services"
                 (click)="selectService(svc)"
@@ -194,7 +196,7 @@ type TabType = 'about' | 'services' | 'reviews';
                   <span><i class="ri-calendar-event-line mr-1"></i>{{ svc.totalBookings }} bookings</span>
                 </div>
                 <p class="text-lg font-bold" style="color: var(--color-primary)">
-                  GHS {{ svc.price?.toFixed(2) }}
+                  GHS {{ svc.price.toFixed(2) }}
                 </p>
               </div>
 
@@ -280,7 +282,7 @@ type TabType = 'about' | 'services' | 'reviews';
                 <div *ngFor="let svc of getSelectedServiceObjects()"
                   class="flex items-center justify-between text-sm">
                   <span style="color: var(--color-text-primary)">{{ svc.name }}</span>
-                  <span class="font-semibold" style="color: var(--color-primary)">GHS {{ svc.price?.toFixed(2) }}</span>
+                  <span class="font-semibold" style="color: var(--color-primary)">GHS {{ svc.price.toFixed(2) }}</span>
                 </div>
               </div>
               <div class="flex items-center justify-between py-3 border-t mb-4"

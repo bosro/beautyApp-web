@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { environment } from '@environments/environment';
 import { AuthService } from '@core/services/auth.service';
 import { ToastService } from '@core/services/toast.service';
+import { User } from '@core/models';
 
 @Component({
   selector: 'app-profile',
@@ -128,7 +129,7 @@ export class ProfileComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.auth.user$.subscribe(user => {
+   this.auth.user$.subscribe((user: User | null) => {
       if (user) {
         this.user = user;
         this.form.patchValue({

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { User, AuthTokens, AuthState } from '../models';
 import { ApiService } from './api.service';
@@ -21,6 +21,7 @@ export class AuthService {
   });
 
   state$ = this._state.asObservable();
+  user$ = this.state$.pipe(map(s => s.user)); 
 
   get user(): User | null {
     return this._state.value.user;

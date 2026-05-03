@@ -110,7 +110,7 @@ import { environment } from '@environments/environment';
                   />
                   <p class="text-sm font-semibold text-[var(--color-text-primary)]">{{ booking.client?.firstName }} {{ booking.client?.lastName }}</p>
                 </div>
-                <p class="text-xs text-[var(--color-text-secondary)]">{{ booking.services | map:'service.name' | join:' + ' }}</p>
+                <p class="text-xs text-[var(--color-text-secondary)]">{{ getServiceNames(booking.services) }}</p>
                 <p class="text-xs font-semibold text-[var(--color-primary)] mt-1">GH₵ {{ booking.totalAmount | number:'1.2-2' }}</p>
               </div>
               <!-- Status + action -->
@@ -217,4 +217,11 @@ export class BeauticianDashboardComponent implements OnInit {
       next: () => booking.status = 'CONFIRMED'
     });
   }
+
+  getServiceNames(services: any[]): string {
+  return (services || [])
+    .map(s => s?.service?.name || s?.name || '')
+    .filter(Boolean)
+    .join(' + ');
+}
 }

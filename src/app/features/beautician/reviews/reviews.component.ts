@@ -27,7 +27,7 @@ import { ToastService } from '@core/services/toast.service';
               <p class="text-5xl font-black text-[var(--color-primary)]">{{ summary?.averageRating | number:'1.1-1' }}</p>
               <div class="flex items-center gap-0.5 justify-center mt-1">
                 <i *ngFor="let s of [1,2,3,4,5]" class="text-lg"
-                   [ngClass]="s <= (summary?.averageRating | number:'1.0-0') ? 'ri-star-fill text-amber-400' : 'ri-star-line text-gray-300'"></i>
+                   [ngClass]="s <= (summary?.averageRating ?? 0) ?  'ri-star-fill text-amber-400' : 'ri-star-line text-gray-300'"></i>
               </div>
               <p class="text-xs text-[var(--color-text-muted)] mt-1">{{ summary?.totalReviews }} reviews</p>
             </div>

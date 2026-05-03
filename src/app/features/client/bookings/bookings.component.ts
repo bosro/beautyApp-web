@@ -74,17 +74,17 @@ type Tab = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
             </div>
             <div class="flex-1 min-w-0">
               <p class="font-bold text-sm truncate" style="color: var(--color-text-primary)">
-                {{ booking.beautician?.businessName || 'Salon' }}
+                {{ booking.beautician.businessName || 'Salon' }}
               </p>
               <p class="text-xs mt-0.5 truncate" style="color: var(--color-text-secondary)">
                 <i class="ri-map-pin-2-line"></i>
-                {{ booking.beautician?.businessAddress }}
+                {{ booking.beautician.businessAddress }}
               </p>
               <p class="text-xs mt-1" style="color: var(--color-primary)">
-                {{ booking.service?.name }}
+                {{ booking.service.name }}
               </p>
               <p class="text-sm font-bold mt-1" style="color: var(--color-text-primary)">
-                GHS {{ booking.price?.toFixed(2) }}
+                GHS {{ booking.price.toFixed(2) }}
               </p>
             </div>
           </div>
