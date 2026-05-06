@@ -19,7 +19,7 @@ import { ToastService } from '../../../core/services/toast.service';
 
       <div class="mb-7">
         <h2 class="text-2xl font-bold mb-1" style="color: var(--color-text-primary)">Create account</h2>
-        <p class="text-sm" style="color: var(--color-text-secondary)">Join BeautyHub as a client</p>
+        <p class="text-sm" style="color: var(--color-text-secondary)">Join Bigluxx as a client</p>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">

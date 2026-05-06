@@ -180,8 +180,9 @@ export class BeauticianProfileComponent implements OnInit {
     this.auth.user$.subscribe((u) => {
       if (u) {
         this.user = u;
-        this.firstName = u.firstName ?? "";
-        this.lastName = u.lastName ?? "";
+        const parts = (u.name || "").split(" ");
+        this.firstName = parts[0] || "";
+        this.lastName = parts.slice(1).join(" ") || "";
         this.phone = u.phone ?? "";
       }
     });
@@ -208,7 +209,7 @@ export class BeauticianProfileComponent implements OnInit {
     this.uploading = true;
     const fd = new FormData();
     fd.append("avatar", this.selectedFile);
-    this.http.post<any>(`${environment.apiUrl}/users/avatar`, fd).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/users/profile/avatar`, fd).subscribe({
       next: (res) => {
         this.auth.updateUser(res.data);
         this.uploading = false;

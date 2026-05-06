@@ -1,3 +1,4 @@
+// profile.component.ts - complete fixed version
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -12,12 +13,10 @@ import { User } from '@core/models';
   template: `
     <div class="min-h-screen bg-[var(--color-background)] pb-24 lg:pb-8">
 
-      <!-- Header -->
       <div class="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 py-4">
         <h1 class="text-lg font-semibold text-[var(--color-text-primary)]">My Profile</h1>
       </div>
 
-      <!-- Loading -->
       <div *ngIf="loading" class="p-4 space-y-4 max-w-2xl mx-auto">
         <div class="skeleton h-32 rounded-2xl"></div>
         <div class="skeleton h-64 rounded-2xl"></div>
@@ -29,17 +28,17 @@ import { User } from '@core/models';
         <div class="card p-6 flex flex-col items-center gap-3">
           <div class="relative">
             <img
-              [src]="previewUrl || user?.avatar || 'https://ui-avatars.com/api/?name=' + user?.firstName + '+' + user?.lastName + '&size=100'"
+              [src]="previewUrl || user?.avatar || avatarUrl"
               alt="Profile"
               class="w-24 h-24 rounded-full object-cover border-4 border-[var(--color-primary)]"
             />
-            <label class="absolute bottom-0 right-0 w-8 h-8 bg-[var(--color-primary)] rounded-full flex items-center justify-center cursor-pointer hover:bg-[var(--color-primary-dark)] transition-colors">
+            <label class="absolute bottom-0 right-0 w-8 h-8 bg-[var(--color-primary)] rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
               <i class="ri-camera-line text-white text-sm"></i>
               <input type="file" accept="image/*" class="hidden" (change)="onFileChange($event)" />
             </label>
           </div>
           <div class="text-center">
-            <h2 class="font-semibold text-lg text-[var(--color-text-primary)]">{{ user?.firstName }} {{ user?.lastName }}</h2>
+            <h2 class="font-semibold text-lg text-[var(--color-text-primary)]">{{ user?.name }}</h2>
             <p class="text-sm text-[var(--color-text-secondary)]">{{ user?.email }}</p>
           </div>
           <button *ngIf="selectedFile" (click)="uploadAvatar()" [disabled]="uploading" class="btn-primary text-sm px-4 py-2">
@@ -72,7 +71,7 @@ import { User } from '@core/models';
               <p class="text-xs text-[var(--color-text-muted)] mt-1">Email cannot be changed</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Location</label>
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">City</label>
               <input formControlName="city" type="text" class="form-input" placeholder="City" />
             </div>
             <button type="submit" [disabled]="saving || form.invalid" class="btn-primary w-full">
@@ -85,7 +84,7 @@ import { User } from '@core/models';
         <!-- Stats -->
         <div class="grid grid-cols-3 gap-3">
           <div class="card p-3 text-center">
-            <p class="text-2xl font-bold text-[var(--color-primary)]">{{ stats.totalBookings }}</p>
+            <p class="text-2xl font-bold text-[var(--color-primary)]">{{ stats.bookings }}</p>
             <p class="text-xs text-[var(--color-text-muted)] mt-0.5">Bookings</p>
           </div>
           <div class="card p-3 text-center">
@@ -109,7 +108,11 @@ export class ProfileComponent implements OnInit {
   uploading = false;
   selectedFile: File | null = null;
   previewUrl: string | null = null;
-  stats = { totalBookings: 0, favorites: 0, reviews: 0 };
+  stats = { bookings: 0, favorites: 0, reviews: 0 };
+
+  get avatarUrl(): string {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.user?.name || 'U')}&size=100`;
+  }
 
   form: FormGroup;
 
@@ -129,20 +132,31 @@ export class ProfileComponent implements OnInit {
   }
 
   ngOnInit() {
-   this.auth.user$.subscribe((user: User | null) => {
+    this.auth.user$.subscribe((user: User | null) => {
       if (user) {
         this.user = user;
+        // Split name into first/last for the form
+        const parts = (user.name || '').split(' ');
         this.form.patchValue({
-          firstName: user.firstName,
-          lastName: user.lastName,
-          phone: user.phone,
-          email: user.email,
-          city: user.city,
+          firstName: parts[0] || '',
+          lastName: parts.slice(1).join(' ') || '',
+          phone: user.phone || '',
+          email: user.email || '',
+          city: (user as any).city || '',
         });
       }
     });
+
     this.http.get<any>(`${environment.apiUrl}/users/stats`).subscribe({
-      next: (res) => { this.stats = res.data; this.loading = false; },
+      next: (res) => {
+        // Backend returns { bookings, reviews, favorites }
+        this.stats = {
+          bookings: res.data?.bookings ?? 0,
+          favorites: res.data?.favorites ?? 0,
+          reviews: res.data?.reviews ?? 0,
+        };
+        this.loading = false;
+      },
       error: () => this.loading = false
     });
   }
@@ -161,11 +175,12 @@ export class ProfileComponent implements OnInit {
     this.uploading = true;
     const fd = new FormData();
     fd.append('avatar', this.selectedFile);
-    this.http.post<any>(`${environment.apiUrl}/users/avatar`, fd).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/users/profile/avatar`, fd).subscribe({
       next: (res) => {
-        this.auth.updateUser(res.data);
+        this.auth.updateUser(res.data?.user || res.data);
         this.uploading = false;
         this.selectedFile = null;
+        this.previewUrl = null;
         this.toast.success('Profile photo updated!');
       },
       error: () => { this.uploading = false; this.toast.error('Upload failed'); }
@@ -175,9 +190,18 @@ export class ProfileComponent implements OnInit {
   save() {
     if (this.form.invalid) return;
     this.saving = true;
-    this.http.put<any>(`${environment.apiUrl}/users/profile`, this.form.getRawValue()).subscribe({
+
+    const { firstName, lastName, phone, city } = this.form.getRawValue();
+    const payload = {
+      firstName,  // backend updateProfile maps these to 'name'
+      lastName,
+      phone,
+      city,
+    };
+
+    this.http.put<any>(`${environment.apiUrl}/users/profile`, payload).subscribe({
       next: (res) => {
-        this.auth.updateUser(res.data);
+        this.auth.updateUser(res.data?.user || res.data);
         this.saving = false;
         this.toast.success('Profile updated!');
       },

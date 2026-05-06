@@ -14,7 +14,7 @@ import { environment } from '@environments/environment';
         <div class="flex items-start justify-between gap-4">
           <div>
             <p class="text-sm text-[var(--color-text-muted)]">Good {{ greeting }},</p>
-            <h1 class="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">{{ user?.businessName || user?.firstName }} 👋</h1>
+            <h1 class="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">{{ user?.name || user?.firstName }} </h1>
           </div>
           <div class="text-right">
             <p class="text-xs text-[var(--color-text-muted)]">Today</p>
@@ -225,3 +225,6 @@ export class BeauticianDashboardComponent implements OnInit {
     .join(' + ');
 }
 }
+
+
+

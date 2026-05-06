@@ -57,10 +57,10 @@ import { environment } from "../../../../environments/environment";
       <!-- ===== GREETING ===== -->
       <div class="px-4 lg:px-6 pb-4">
         <h1 class="text-2xl font-bold" style="color: var(--color-text-primary)">
-          Hello, {{ firstName }} 👋
+          Hello, {{ firstName }} 
         </h1>
         <p class="text-sm mt-0.5" style="color: var(--color-text-secondary)">
-          What beauty service do you need today?
+          What service do you need today?
         </p>
       </div>
 
@@ -203,18 +203,20 @@ import { environment } from "../../../../environments/environment";
               >
                 <div
                   class="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style="background-color: color-mix(in srgb, var(--color-primary) 15%, transparent)"
+                  [ngStyle]="{ 'background-color': cat.color + '20' }"
                 >
                   <i
-                    class="ri-scissors-2-line text-lg"
-                    style="color: var(--color-primary)"
-                  ></i>
+                    [class]="cat.icon + ' text-lg'"
+                    [ngStyle]="{ color: cat.color }"
+                  >
+                  </i>
                 </div>
                 <span
                   class="text-xs font-medium text-center leading-tight"
                   style="color: var(--color-text-primary)"
-                  >{{ cat.name }}</span
                 >
+                  {{ cat.name }}
+                </span>
               </button>
             </div>
           </section>
@@ -514,7 +516,7 @@ export class HomeComponent implements OnInit {
       icon: "ri-gift-2-line",
       route: "/client/referral",
     },
-    { label: "My Wallet", icon: "ri-wallet-3-line", route: "/client/wallet" },
+    // { label: "My Wallet", icon: "ri-wallet-3-line", route: "/client/wallet" },
   ];
 
   get firstName(): string {

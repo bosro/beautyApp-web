@@ -123,7 +123,7 @@ import { environment } from '@environments/environment';
         </div>
 
         <!-- Version -->
-        <p class="text-center text-xs text-[var(--color-text-muted)]">BeautyHub v1.0.0</p>
+        <p class="text-center text-xs text-[var(--color-text-muted)]">Bigluxx v1.0.0</p>
 
       </div>
 

@@ -116,7 +116,7 @@ export class BeauticianVerificationComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.auth.verifyEmail(this.email, this.code.join('')).subscribe({
       next: () => {
-        this.toast.success('Account verified! Welcome to BeautyHub!');
+        this.toast.success('Account verified! Welcome to Bigluxx!');
         this.router.navigate(['/beautician/dashboard']);
       },
       error: (err) => {

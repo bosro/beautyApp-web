@@ -47,3 +47,5 @@ export class BeauticianService {
     return this.api.get('/beauticians/featured');
   }
 }
+
+

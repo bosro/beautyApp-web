@@ -53,3 +53,5 @@ export class BookingService {
     return this.api.post('/bookings/check-availability', params);
   }
 }
+
+

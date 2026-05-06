@@ -37,12 +37,12 @@ import { environment } from '@environments/environment';
           (click)="viewClient(client.id)">
 
           <img
-            [src]="client.avatar || 'https://ui-avatars.com/api/?name=' + client.firstName + '+' + client.lastName + '&size=40'"
+            [src]="client.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(client.name || 'U') + '&size=40'"
             class="w-11 h-11 rounded-full object-cover flex-shrink-0"
           />
 
           <div class="flex-1 min-w-0">
-            <p class="font-semibold text-sm text-[var(--color-text-primary)]">{{ client.firstName }} {{ client.lastName }}</p>
+            <p class="font-semibold text-sm text-[var(--color-text-primary)]">{{ client.name }}</p>
             <p class="text-xs text-[var(--color-text-secondary)]">{{ client.phone || client.email }}</p>
           </div>
 
@@ -68,7 +68,11 @@ export class ClientsComponent implements OnInit {
 
   ngOnInit() {
     this.http.get<any>(`${environment.apiUrl}/beauticians/clients`).subscribe({
-      next: (res) => { this.clients = res.data || []; this.filtered = [...this.clients]; this.loading = false; },
+      next: (res) => {
+        this.clients = res.data?.customers || [];
+        this.filtered = [...this.clients];
+        this.loading = false;
+      },
       error: () => this.loading = false
     });
   }
@@ -76,9 +80,11 @@ export class ClientsComponent implements OnInit {
   filterClients() {
     const q = this.search.toLowerCase();
     this.filtered = this.clients.filter(c =>
-      `${c.firstName} ${c.lastName} ${c.email} ${c.phone}`.toLowerCase().includes(q)
+      `${c.name} ${c.email} ${c.phone}`.toLowerCase().includes(q)
     );
   }
+
+  encodeURIComponent(val: string) { return encodeURIComponent(val); }
 
   viewClient(id: string) { this.router.navigate(['/beautician/clients', id]); }
 }

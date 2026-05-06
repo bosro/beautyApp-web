@@ -21,12 +21,7 @@ import { ThemeService } from '../../../core/services/theme.service';
 
         <!-- Logo -->
         <div class="relative z-10">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-              <i class="ri-scissors-line text-white text-xl"></i>
-            </div>
-            <span class="text-white text-2xl font-bold tracking-tight">BeautyHub</span>
-          </div>
+          <img src="assets/images/logo-dark.png" alt="Bigluxx" class="h-10 w-auto object-contain" />
         </div>
 
         <!-- Center content -->
@@ -63,7 +58,7 @@ import { ThemeService } from '../../../core/services/theme.service';
 
         <!-- Footer text -->
         <div class="relative z-10">
-          <p class="text-white/50 text-xs">© 2025 BeautyHub · Accra, Ghana</p>
+          <p class="text-white/50 text-xs">© 2025 Bigluxx · Accra, Ghana</p>
         </div>
       </div>
 
@@ -72,10 +67,9 @@ import { ThemeService } from '../../../core/services/theme.service';
         <!-- Top bar mobile logo + theme toggle -->
         <div class="flex items-center justify-between px-6 pt-6 lg:justify-end lg:px-10 lg:pt-8">
           <div class="flex items-center gap-2 lg:hidden">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: var(--color-primary)">
-              <i class="ri-scissors-line text-white text-sm"></i>
-            </div>
-            <span class="font-bold text-lg" style="color: var(--color-text-primary)">BeautyHub</span>
+            <!-- theme-aware logo -->
+            <img src="assets/images/logo.png" alt="Bigluxx" class="logo-light h-8 w-auto object-contain" />
+            <img src="assets/images/logo-dark.png" alt="Bigluxx" class="logo-dark h-8 w-auto object-contain" />
           </div>
 
           <!-- Theme toggle -->
