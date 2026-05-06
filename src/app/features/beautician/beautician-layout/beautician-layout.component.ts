@@ -341,7 +341,7 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
       icon: "ri-money-dollar-circle-line",
       badge: null,
     },
-    { path: "more", label: "More", icon: "ri-menu-line", badge: null },
+    { path: "more", label: "More", icon: "ri-settings-line", badge: null },
   ];
 
   moreItems = [

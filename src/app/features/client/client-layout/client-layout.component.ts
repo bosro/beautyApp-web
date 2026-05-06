@@ -369,8 +369,8 @@ export class ClientLayoutComponent implements OnInit {
     },
     {
       label: "More",
-      icon: "ri-more-line",
-      activeIcon: "ri-more-fill",
+      icon: "ri-settings-line",
+      activeIcon: "ri-settings-fill",
       route: "more",
     },
   ];
