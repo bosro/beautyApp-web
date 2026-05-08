@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salon App - Reviews</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Poppins', sans-serif; background: #e2e2e2; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px 0; }
+  .phone { width: 390px; background: #fff; border-radius: 50px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.28); border: 10px solid #1a1a1a; display: flex; flex-direction: column; }
+  .top-section { padding: 20px 16px 0; }
+  .stylists { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 14px; }
+  .stylists::-webkit-scrollbar { display: none; }
+  .stylist-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+  .stylist-avatar { width: 54px; height: 54px; border-radius: 50%; overflow: hidden; border: 2px solid #eee; }
+  .stylist-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .stylist-name { font-size: 10px; color: #444; text-align: center; }
+  .tabs { display: flex; border-bottom: 1px solid #eee; }
+  .tab { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; color: #999; cursor: pointer; font-weight: 500; }
+  .tab.active { color: #2a8a93; background: #e8f5f6; border-radius: 20px; margin: 6px 8px; padding: 6px 0; font-weight: 600; }
+  .reviews-section { padding: 16px 16px 0; flex: 1; overflow-y: auto; }
+  .reviews-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .reviews-title { font-size: 16px; font-weight: 700; color: #1a1a1a; }
+  .view-all { font-size: 13px; color: #2a8a93; font-weight: 600; }
+  .rating-overview { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+  .big-rating { font-size: 42px; font-weight: 700; color: #1a1a1a; line-height: 1; }
+  .out-of { font-size: 13px; color: #888; }
+  .stars-bars { flex: 1; }
+  .star-row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+  .star-row i { color: #f5a623; font-size: 10px; }
+  .star-bar { flex: 1; height: 5px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .star-bar-fill { height: 100%; background: #f5a623; border-radius: 3px; }
+  .write-review { margin-bottom: 16px; }
+  .write-review-label { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px; }
+  .star-rating { display: flex; gap: 6px; }
+  .star-rating i { font-size: 22px; color: #e0e0e0; }
+  .review-card { display: flex; gap: 12px; margin-bottom: 16px; }
+  .reviewer-avatar { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; overflow: hidden; }
+  .reviewer-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .review-content { flex: 1; }
+  .reviewer-name { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .review-text { font-size: 12px; color: #555; line-height: 1.5; margin-top: 3px; }
+  .review-date { font-size: 11px; color: #aaa; margin-top: 4px; }
+  .book-btn { background: #2a8a93; color: #fff; text-align: center; padding: 18px; font-size: 16px; font-weight: 600; border-radius: 14px; margin: 16px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top-section">
+    <div class="stylists">
+      <div class="stylist-item">
+        <div class="stylist-avatar"><img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=120&h=120&fit=crop&crop=face" alt="Kirean"></div>
+        <div class="stylist-name">Kirean Dely</div>
+      </div>
+      <div class="stylist-item">
+        <div class="stylist-avatar"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face" alt="Maria"></div>
+        <div class="stylist-name">Maria</div>
+      </div>
+      <div class="stylist-item">
+        <div class="stylist-avatar"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&h=120&fit=crop&crop=face" alt="William"></div>
+        <div class="stylist-name">William</div>
+      </div>
+      <div class="stylist-item">
+        <div class="stylist-avatar"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&h=120&fit=crop&crop=face" alt="Seman"></div>
+        <div class="stylist-name">Seman</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab">About</div>
+      <div class="tab active">Reviews</div>
+      <div class="tab">Photos</div>
+    </div>
+  </div>
+
+  <div class="reviews-section">
+    <div class="reviews-header">
+      <span class="reviews-title">Rating & Reviews</span>
+      <span class="view-all">View All</span>
+    </div>
+    <div class="rating-overview">
+      <div>
+        <div class="big-rating">4.5</div>
+        <div class="out-of">out of 5</div>
+      </div>
+      <div class="stars-bars">
+        <div class="star-row">
+          <i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i>
+          <div class="star-bar"><div class="star-bar-fill" style="width:72%"></div></div>
+        </div>
+        <div class="star-row">
+          <i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-line" style="color:#ddd"></i>
+          <div class="star-bar"><div class="star-bar-fill" style="width:50%"></div></div>
+        </div>
+        <div class="star-row">
+          <i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i>
+          <div class="star-bar"><div class="star-bar-fill" style="width:30%"></div></div>
+        </div>
+        <div class="star-row">
+          <i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i>
+          <div class="star-bar"><div class="star-bar-fill" style="width:15%"></div></div>
+        </div>
+        <div class="star-row">
+          <i class="ri-star-fill"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i>
+          <div class="star-bar"><div class="star-bar-fill" style="width:5%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="write-review">
+      <div class="write-review-label">Write A Review</div>
+      <div class="star-rating">
+        <i class="ri-star-line"></i><i class="ri-star-line"></i><i class="ri-star-line"></i><i class="ri-star-line"></i><i class="ri-star-line"></i>
+      </div>
+    </div>
+
+    <div class="review-card">
+      <div class="reviewer-avatar"><img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&h=100&fit=crop&crop=face" alt="Maria"></div>
+      <div class="review-content">
+        <div class="reviewer-name">Maria Sana</div>
+        <div class="review-text">"I Was A vrey First To Pleased With This app using and get great experiance</div>
+        <div class="review-date">20 june 2019</div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="reviewer-avatar"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" alt="Leslie"></div>
+      <div class="review-content">
+        <div class="reviewer-name">Leslie Alexander</div>
+        <div class="review-text">"Thank You For Your Services That Save My Time Very Much".</div>
+        <div class="review-date">15 April 2022</div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="reviewer-avatar"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=face" alt="Jenny"></div>
+      <div class="review-content">
+        <div class="reviewer-name">Jenny Wilson</div>
+        <div class="review-text">"This app is very usefull for all the person in around, so thank you so much for this all".</div>
+        <div class="review-date">10 May 2022</div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="reviewer-avatar"><img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=100&h=100&fit=crop&crop=face" alt="Esther"></div>
+      <div class="review-content">
+        <div class="reviewer-name">Esther Howard</div>
+        <div class="review-text">"Thank you so mach, that save my lots of time every time i need it"</div>
+        <div class="review-date">10 May 2022</div>
+      </div>
+    </div>
+  </div>
+  <div class="book-btn">Book Appointment</div>
+</div>
+</body>
+</html>

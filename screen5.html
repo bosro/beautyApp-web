@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salon App - Select Time</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Poppins', sans-serif; background: #e2e2e2; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px 0; }
+  .phone { width: 390px; min-height: 844px; background: #f8f8f8; border-radius: 50px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.28); border: 10px solid #1a1a1a; display: flex; flex-direction: column; }
+  .status-bar { color: #333; display: flex; justify-content: space-between; align-items: center; padding: 14px 24px 8px; font-size: 12px; font-weight: 600; background: #f8f8f8; }
+  .status-bar .icons { display: flex; gap: 5px; }
+  .status-bar .icons i { font-size: 16px; }
+  .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 4px 20px 16px; background: #f8f8f8; }
+  .top-nav i { font-size: 22px; color: #333; cursor: pointer; }
+  .page-title { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+  .content { flex: 1; padding: 16px; }
+  .stylist-selector { background: #fff; border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .stylist-info { display: flex; align-items: center; gap: 12px; }
+  .stylist-avatar { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+  .stylist-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .stylist-name { font-size: 16px; font-weight: 700; color: #1a1a1a; }
+  .stylist-selector > i { font-size: 20px; color: #bbb; }
+  .calendar-card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .month-year { font-size: 16px; font-weight: 700; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
+  .month-year i { font-size: 16px; color: #aaa; }
+  .month-arrows { display: flex; gap: 8px; }
+  .month-arrows i { font-size: 20px; color: #aaa; cursor: pointer; }
+  .days-row { display: flex; gap: 8px; overflow-x: auto; }
+  .days-row::-webkit-scrollbar { display: none; }
+  .day-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+  .day-num { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: #333; background: #f5f5f5; border: 1px solid #eee; cursor: pointer; }
+  .day-num.selected { background: #e8682a; color: #fff; border-color: #e8682a; }
+  .day-num.strikethrough { color: #ccc; text-decoration: line-through; }
+  .day-label { font-size: 11px; color: #aaa; font-weight: 500; }
+  .booked-notice { display: flex; gap: 14px; align-items: center; background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .booked-avatar { width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0; overflow: hidden; }
+  .booked-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .booked-title { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+  .booked-sub { font-size: 13px; color: #999; margin-top: 3px; }
+  .next-btn { background: #e8682a; color: #fff; text-align: center; padding: 18px; font-size: 15px; font-weight: 600; border-radius: 16px; margin-bottom: 12px; cursor: pointer; }
+  .waitlist-btn { background: #efefef; color: #333; text-align: center; padding: 18px; font-size: 15px; font-weight: 600; border-radius: 16px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="icons"><i class="ri-signal-wifi-fill"></i><i class="ri-battery-fill"></i></div>
+  </div>
+  <div class="top-nav">
+    <i class="ri-arrow-left-s-line"></i>
+    <span class="page-title">Select time</span>
+    <i class="ri-calendar-schedule-line"></i>
+  </div>
+
+  <div class="content">
+    <div class="stylist-selector">
+      <div class="stylist-info">
+        <div class="stylist-avatar">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face" alt="Kingsley">
+        </div>
+        <span class="stylist-name">Kingsley</span>
+      </div>
+      <i class="ri-arrow-right-s-line"></i>
+    </div>
+
+    <div class="calendar-card">
+      <div class="calendar-header">
+        <div class="month-year">September 2024 <i class="ri-expand-up-down-line"></i></div>
+        <div class="month-arrows">
+          <i class="ri-arrow-left-s-line"></i>
+          <i class="ri-arrow-right-s-line"></i>
+        </div>
+      </div>
+      <div class="days-row">
+        <div class="day-item"><div class="day-num selected">7</div><div class="day-label">Mon</div></div>
+        <div class="day-item"><div class="day-num">8</div><div class="day-label">Tue</div></div>
+        <div class="day-item"><div class="day-num">9</div><div class="day-label">Wed</div></div>
+        <div class="day-item"><div class="day-num strikethrough">10</div><div class="day-label">Thu</div></div>
+        <div class="day-item"><div class="day-num strikethrough">11</div><div class="day-label">Fri</div></div>
+        <div class="day-item"><div class="day-num strikethrough">12</div><div class="day-label">Sat</div></div>
+        <div class="day-item"><div class="day-num strikethrough">13</div><div class="day-label">Sun</div></div>
+      </div>
+    </div>
+
+    <div class="booked-notice">
+      <div class="booked-avatar">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face" alt="Kingsley">
+      </div>
+      <div>
+        <div class="booked-title">Kingsley is fully booked on this date</div>
+        <div class="booked-sub">Available from fri, Oct 4</div>
+      </div>
+    </div>
+
+    <div class="next-btn">Go to next available date</div>
+    <div class="waitlist-btn">Join the waitlist</div>
+  </div>
+</div>
+</body>
+</html>

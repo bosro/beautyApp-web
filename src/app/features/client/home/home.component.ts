@@ -56,9 +56,9 @@ import { environment } from "../../../../environments/environment";
 
       <!-- ===== GREETING ===== -->
       <div class="px-4 lg:px-6 pb-4">
-        <h1 class="text-2xl font-bold" style="color: var(--color-text-primary)">
+        <!-- <h1 class="text-2xl font-bold" style="color: var(--color-text-primary)">
           Hello, {{ firstName }} 
-        </h1>
+        </h1> -->
         <p class="text-sm mt-0.5" style="color: var(--color-text-secondary)">
           What service do you need today?
         </p>
@@ -113,8 +113,9 @@ import { environment } from "../../../../environments/environment";
 
             <!-- Promo cards horizontal scroll -->
             <div
-              class="flex gap-3 overflow-x-auto px-4 lg:px-0 pb-2 snap-x snap-mandatory
-                        lg:grid lg:grid-cols-2 lg:overflow-visible lg:pb-0"
+              class="flex gap-3 overflow-x-auto px-4 lg:px-0 pb-2 snap-x snap-mandatory scrollbar-hide
+          lg:grid lg:grid-cols-2 lg:overflow-visible lg:pb-0"
+              style="-ms-overflow-style: none; scrollbar-width: none;"
             >
               <div
                 *ngIf="loading.featured"
@@ -127,7 +128,7 @@ import { environment } from "../../../../environments/environment";
 
               <div
                 *ngFor="let salon of featuredSalons.slice(0, 4)"
-                class="relative flex-shrink-0 w-64 h-40 rounded-xl overflow-hidden cursor-pointer snap-start lg:w-full"
+                class="relative flex-shrink-0 w-64 h-40 rounded-xl overflow-hidden cursor-pointer lg:w-full"
                 (click)="goToSalon(salon.id)"
               >
                 <img

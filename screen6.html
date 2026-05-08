@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumé - Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Poppins', sans-serif; background: #e2e2e2; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px 0; }
+  .phone { width: 390px; min-height: 844px; background: #fff; border-radius: 50px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.28); border: 10px solid #1a1a1a; display: flex; flex-direction: column; }
+  .status-bar { color: #333; display: flex; justify-content: space-between; align-items: center; padding: 14px 24px 8px; font-size: 12px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 5px; }
+  .status-bar .icons i { font-size: 16px; }
+  .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 4px 20px 16px; }
+  .top-nav i { font-size: 24px; color: #333; cursor: pointer; }
+  .app-title { font-size: 22px; font-weight: 700; color: #1a1a1a; letter-spacing: 0.5px; }
+  .content { flex: 1; overflow-y: auto; }
+  .categories { display: flex; gap: 16px; padding: 0 16px 16px; overflow-x: auto; }
+  .categories::-webkit-scrollbar { display: none; }
+  .category-item { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
+  .cat-circle { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 2px solid #f0f0f0; }
+  .cat-circle img { width: 100%; height: 100%; object-fit: cover; }
+  .cat-name { font-size: 12px; color: #333; font-weight: 500; }
+  .section-title { font-size: 18px; font-weight: 700; color: #1a1a1a; padding: 0 16px 12px; }
+  .deals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px 16px; }
+  .deal-card { border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 0.75; cursor: pointer; }
+  .deal-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .deal-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(transparent, rgba(0,0,0,0.6)); }
+  .deal-name { font-size: 13px; font-weight: 700; color: #fff; }
+  .deal-price { font-size: 12px; color: #fff; margin-top: 3px; }
+  .deal-original { text-decoration: line-through; opacity: 0.65; margin-left: 4px; font-size: 11px; }
+  .bottom-nav { background: #fff; display: flex; justify-content: space-around; align-items: center; padding: 12px 0 22px; border-top: 1px solid #f0f0f0; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: #aaa; cursor: pointer; font-weight: 500; }
+  .nav-item i { font-size: 24px; }
+  .nav-item.active { color: #e8682a; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="icons"><i class="ri-signal-wifi-fill"></i><i class="ri-battery-fill"></i></div>
+  </div>
+  <div class="top-nav">
+    <i class="ri-notification-3-line"></i>
+    <span class="app-title">Lumé</span>
+    <i class="ri-menu-line"></i>
+  </div>
+
+  <div class="content">
+    <div class="categories">
+      <div class="category-item">
+        <div class="cat-circle"><img src="https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=150&h=150&fit=crop&crop=face" alt="Lashes"></div>
+        <span class="cat-name">Lashes</span>
+      </div>
+      <div class="category-item">
+        <div class="cat-circle"><img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=150&h=150&fit=crop&crop=center" alt="Hair"></div>
+        <span class="cat-name">Hair</span>
+      </div>
+      <div class="category-item">
+        <div class="cat-circle"><img src="https://images.unsplash.com/photo-1604654894610-df63bc536371?w=150&h=150&fit=crop&crop=center" alt="Nails"></div>
+        <span class="cat-name">Nails</span>
+      </div>
+      <div class="category-item">
+        <div class="cat-circle"><img src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=150&h=150&fit=crop&crop=face" alt="Makeup"></div>
+        <span class="cat-name">Makeup</span>
+      </div>
+      <div class="category-item">
+        <div class="cat-circle"><img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=150&h=150&fit=crop&crop=face" alt="Barb"></div>
+        <span class="cat-name">Barb...</span>
+      </div>
+    </div>
+
+    <div class="section-title">Deals</div>
+    <div class="deals-grid">
+      <div class="deal-card">
+        <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=530&fit=crop&crop=top" alt="Munachi Ilo">
+        <div class="deal-overlay">
+          <div class="deal-name">Munachi Ilo</div>
+          <div class="deal-price">NGN5,000 <span class="deal-original">NGN15,000</span></div>
+        </div>
+      </div>
+      <div class="deal-card">
+        <img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=530&fit=crop&crop=top" alt="Tosin Olajide">
+        <div class="deal-overlay">
+          <div class="deal-name">Tosin Olajide</div>
+          <div class="deal-price">NGN7,500 <span class="deal-original">NGN25,000</span></div>
+        </div>
+      </div>
+      <div class="deal-card">
+        <img src="https://images.unsplash.com/photo-1596635552087-5e8dc4e9d0a4?w=400&h=530&fit=crop&crop=top" alt="Queen Sandra">
+        <div class="deal-overlay">
+          <div class="deal-name">Queen Sandra</div>
+          <div class="deal-price">NGN4,000 <span class="deal-original">NGN12,000</span></div>
+        </div>
+      </div>
+      <div class="deal-card">
+        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=530&fit=crop&crop=top" alt="Jerry Williams">
+        <div class="deal-overlay">
+          <div class="deal-name">Jerry Williams</div>
+          <div class="deal-price">NGN8,000 <span class="deal-original">NGN15,000</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active"><i class="ri-home-5-fill"></i><span>Home</span></div>
+    <div class="nav-item"><i class="ri-heart-line"></i><span>Saved</span></div>
+    <div class="nav-item"><i class="ri-search-line"></i><span>Search</span></div>
+    <div class="nav-item"><i class="ri-calendar-schedule-line"></i><span>Bookings</span></div>
+    <div class="nav-item"><i class="ri-user-line"></i><span>Account</span></div>
+  </div>
+</div>
+</body>
+</html>

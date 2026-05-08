@@ -120,11 +120,30 @@ import { User } from "../../../core/models";
       <!-- Main Content -->
       <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <!-- Mobile top bar -->
+        <!-- Mobile top bar -->
         <header
-          class="lg:hidden flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
+          class="lg:hidden flex items-center justify-between px-4 py-3 border-b flex-shrink-0 relative"
           style="background-color: var(--color-bg-primary); border-color: var(--color-border-light)"
         >
-          <div class="flex items-center gap-2">
+          <!-- Left: User avatar -->
+          <a routerLink="/client/profile" class="flex items-center">
+            <img
+              *ngIf="user?.avatar"
+              [src]="user!.avatar"
+              [alt]="user?.name"
+              class="w-9 h-9 rounded-full object-cover flex-shrink-0"
+            />
+            <div
+              *ngIf="!user?.avatar"
+              class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+              style="background-color: var(--color-primary)"
+            >
+              {{ user?.name?.charAt(0)?.toUpperCase() }}
+            </div>
+          </a>
+
+          <!-- Center: Logo (absolutely centered) -->
+          <div class="absolute left-1/2 -translate-x-1/2 flex items-center">
             <img
               src="assets/images/logo.png"
               alt="Bigluxx"
@@ -136,6 +155,8 @@ import { User } from "../../../core/models";
               class="logo-dark h-8 w-auto object-contain"
             />
           </div>
+
+          <!-- Right: Notifications + theme toggle -->
           <div class="flex items-center gap-2">
             <a
               routerLink="/client/notifications"

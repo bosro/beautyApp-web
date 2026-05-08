@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salon App - Filters</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Poppins', sans-serif; background: #e2e2e2; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px 0; }
+  .phone { width: 390px; min-height: 844px; background: #fff; border-radius: 50px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.28); border: 10px solid #1a1a1a; display: flex; flex-direction: column; }
+  .status-bar { color: #333; display: flex; justify-content: space-between; align-items: center; padding: 14px 24px 8px; font-size: 12px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 5px; }
+  .status-bar .icons i { font-size: 16px; }
+  .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 4px 20px 16px; border-bottom: 1px solid #f0f0f0; }
+  .top-nav i { font-size: 22px; color: #333; cursor: pointer; }
+  .page-title { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+  .content { flex: 1; padding: 20px; overflow-y: auto; }
+  .section-label { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 14px; }
+  .sort-options { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+  .sort-btn { padding: 10px 18px; border-radius: 30px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; background: #f5f5f5; color: #888; font-family: 'Poppins', sans-serif; }
+  .sort-btn.active { background: #e8682a; color: #fff; font-weight: 600; }
+  .price-section { background: #fff; border: 1px solid #f0f0f0; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .price-label { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 16px; }
+  .price-graph { height: 50px; margin-bottom: 10px; }
+  .price-graph svg { width: 100%; height: 100%; }
+  .slider-container { position: relative; height: 28px; margin-bottom: 16px; }
+  .slider-track { position: absolute; top: 50%; transform: translateY(-50%); left: 0; right: 0; height: 3px; background: #eee; border-radius: 2px; }
+  .slider-fill { position: absolute; top: 0; left: 0; width: 65%; height: 100%; background: #333; border-radius: 2px; }
+  .slider-thumb { position: absolute; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer; }
+  .thumb-left { left: 0; }
+  .thumb-right { left: 63%; }
+  .thumb-tooltip { position: absolute; background: #e8682a; color: #fff; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; top: -34px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+  .thumb-tooltip::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid #e8682a; }
+  .price-minmax { display: flex; justify-content: space-between; }
+  .price-val-wrap { display: flex; flex-direction: column; align-items: center; }
+  .price-val-label { font-size: 10px; color: #aaa; font-weight: 400; margin-bottom: 4px; }
+  .price-val { background: #f5f5f5; border-radius: 10px; padding: 8px 14px; font-size: 13px; color: #333; font-weight: 600; }
+  .filter-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #f5f5f5; }
+  .filter-row:last-child { border-bottom: none; }
+  .filter-label { font-size: 14px; color: #333; }
+  .filter-value { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #333; }
+  .filter-value i { color: #bbb; font-size: 16px; }
+  .filter-value.muted { font-weight: 400; color: #aaa; }
+  .bottom-actions { display: flex; gap: 12px; padding: 16px 20px 24px; border-top: 1px solid #f0f0f0; }
+  .clear-btn { flex: 1; padding: 16px; text-align: center; font-size: 15px; font-weight: 600; color: #bbb; background: #fff; border: none; border-radius: 14px; cursor: pointer; font-family: 'Poppins', sans-serif; }
+  .apply-btn { flex: 1; padding: 16px; text-align: center; font-size: 15px; font-weight: 700; color: #fff; background: #e8682a; border: none; border-radius: 14px; cursor: pointer; font-family: 'Poppins', sans-serif; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="icons"><i class="ri-signal-wifi-fill"></i><i class="ri-battery-fill"></i></div>
+  </div>
+  <div class="top-nav">
+    <i class="ri-arrow-left-s-line"></i>
+    <span class="page-title">Filters</span>
+    <i class="ri-notification-3-line"></i>
+  </div>
+
+  <div class="content">
+    <div class="section-label">Sort by</div>
+    <div class="sort-options">
+      <button class="sort-btn active">Best Match</button>
+      <button class="sort-btn">Nearest</button>
+      <button class="sort-btn">Top-rated</button>
+      <button class="sort-btn">Price</button>
+    </div>
+
+    <div class="price-section">
+      <div class="price-label">Price Range</div>
+      <div class="price-graph">
+        <svg viewBox="0 0 300 50" preserveAspectRatio="none">
+          <path d="M0,45 C20,45 30,30 50,28 C70,26 80,20 100,15 C120,10 130,8 150,12 C170,16 180,5 200,8 C220,11 230,18 250,20 C270,22 280,30 300,45 Z" fill="#e8e8e8" opacity="0.8"/>
+        </svg>
+      </div>
+      <div class="slider-container">
+        <div class="slider-track"><div class="slider-fill"></div></div>
+        <div class="slider-thumb thumb-left"></div>
+        <div class="slider-thumb thumb-right"><div class="thumb-tooltip">₦25,000</div></div>
+      </div>
+      <div class="price-minmax">
+        <div class="price-val-wrap">
+          <div class="price-val-label">min. price</div>
+          <div class="price-val">₦0</div>
+        </div>
+        <div class="price-val-wrap">
+          <div class="price-val-label">max. price</div>
+          <div class="price-val">₦25,000</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="filter-row">
+        <span class="filter-label">Region</span>
+        <div class="filter-value">Lagos <i class="ri-arrow-right-s-line"></i></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Categories</span>
+        <div class="filter-value">Barbering <i class="ri-arrow-right-s-line"></i></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Verified Vendors</span>
+        <div class="filter-value">Verified <i class="ri-arrow-right-s-line"></i></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Discount</span>
+        <div class="filter-value muted">Any <i class="ri-arrow-right-s-line"></i></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Service venue</span>
+        <div class="filter-value">Home Service <i class="ri-arrow-right-s-line"></i></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Loyalty card</span>
+        <div class="filter-value">Available <i class="ri-arrow-right-s-line"></i></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Booking fee required</span>
+        <div class="filter-value">Not Required <i class="ri-arrow-right-s-line"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-actions">
+    <button class="clear-btn">Clear all</button>
+    <button class="apply-btn">Apply</button>
+  </div>
+</div>
+</body>
+</html>

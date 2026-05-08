@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salon App - Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Poppins', sans-serif; background: #e2e2e2; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px 0; }
+  .phone { width: 390px; height: 844px; background: #fff; border-radius: 50px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.28); border: 10px solid #1a1a1a; display: flex; flex-direction: column; position: relative; }
+  .map-area { flex: 1; position: relative; overflow: hidden; }
+  .map-img { width: 100%; height: 100%; object-fit: cover; }
+  .status-bar { position: absolute; top: 0; left: 0; right: 0; color: #333; display: flex; justify-content: space-between; align-items: center; padding: 14px 24px 8px; font-size: 12px; font-weight: 700; z-index: 10; background: linear-gradient(to bottom, rgba(255,255,255,0.7), transparent); }
+  .status-bar .icons { display: flex; gap: 5px; }
+  .status-bar .icons i { font-size: 16px; }
+  .search-bar-float { position: absolute; top: 50px; left: 16px; right: 16px; background: #fff; border-radius: 30px; display: flex; align-items: center; gap: 10px; padding: 14px 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.14); z-index: 5; }
+  .search-bar-float span { color: #bbb; font-size: 14px; }
+  .search-bar-float i { color: #aaa; font-size: 18px; }
+  .salon-popup { position: absolute; bottom: 16px; left: 16px; right: 16px; background: #fff; border-radius: 16px; padding: 14px; display: flex; gap: 14px; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.18); z-index: 5; }
+  .popup-img { width: 68px; height: 58px; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+  .popup-img img { width: 100%; height: 100%; object-fit: cover; }
+  .popup-name { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+  .popup-address { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #777; margin-top: 3px; }
+  .popup-address i { font-size: 12px; color: #aaa; }
+  .popup-meta { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+  .popup-rating { display: flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 600; color: #f5a623; }
+  .popup-rating i { font-size: 14px; }
+  .popup-dist { font-size: 12px; color: #555; display: flex; align-items: center; gap: 3px; }
+  .popup-dist i { font-size: 14px; }
+  .bottom-sheet { background: #fff; border-radius: 24px 24px 0 0; padding: 16px 20px 10px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
+  .sheet-handle { width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 16px; }
+  .location-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .location-row i { font-size: 22px; color: #333; }
+  .location-name { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+  .find-input { display: flex; align-items: center; gap: 10px; background: #f7f7f7; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+  .find-input i { color: #bbb; font-size: 18px; }
+  .find-input span { color: #bbb; font-size: 14px; }
+  .confirm-btn { background: #2a8a93; color: #fff; text-align: center; padding: 16px; font-size: 16px; font-weight: 600; border-radius: 14px; margin-bottom: 4px; cursor: pointer; }
+  .bottom-nav { background: #fff; display: flex; justify-content: space-around; align-items: center; padding: 10px 0 16px; border-top: 1px solid #f0f0f0; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #aaa; cursor: pointer; }
+  .nav-item i { font-size: 22px; }
+  .nav-item.active { background: #2a8a93; color: #fff; border-radius: 30px; padding: 8px 18px; flex-direction: row; gap: 6px; font-size: 12px; font-weight: 600; }
+  .nav-item.active i { font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="map-area">
+    <img class="map-img" src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&h=700&fit=crop" alt="map">
+    <div class="status-bar">
+      <span>4:20</span>
+      <div class="icons"><i class="ri-signal-wifi-fill"></i><i class="ri-battery-fill"></i></div>
+    </div>
+    <div class="search-bar-float">
+      <i class="ri-search-line"></i>
+      <span>Search your favourite salon</span>
+    </div>
+    <div class="salon-popup">
+      <div class="popup-img">
+        <img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=150&h=120&fit=crop" alt="Royalty">
+      </div>
+      <div>
+        <div class="popup-name">Royalty barbershop</div>
+        <div class="popup-address"><i class="ri-map-pin-line"></i> 8502 Preston Rd. Inglewood, Maine</div>
+        <div class="popup-meta">
+          <div class="popup-rating"><i class="ri-star-fill"></i> 4.9</div>
+          <div class="popup-dist"><i class="ri-walk-line"></i> 20 m</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="location-row">
+      <i class="ri-map-pin-2-fill"></i>
+      <span class="location-name">Austin</span>
+    </div>
+    <div class="find-input">
+      <i class="ri-search-line"></i>
+      <span>Find salon</span>
+    </div>
+    <div class="confirm-btn">Confirm Location</div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active"><i class="ri-home-5-fill"></i><span>Home</span></div>
+    <div class="nav-item"><i class="ri-map-pin-2-line"></i></div>
+    <div class="nav-item"><i class="ri-bookmark-line"></i></div>
+    <div class="nav-item"><i class="ri-message-3-line"></i></div>
+    <div class="nav-item"><i class="ri-user-line"></i></div>
+  </div>
+</div>
+</body>
+</html>
