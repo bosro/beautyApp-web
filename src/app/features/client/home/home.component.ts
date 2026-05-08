@@ -1,3 +1,4 @@
+// home.component.ts
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
@@ -29,11 +30,10 @@ import { environment } from "../../../../environments/environment";
             </p>
           </div>
         </div>
-        <!-- Desktop only: right actions shown in sidebar, mobile top bar shows them -->
         <div class="hidden lg:flex items-center gap-2">
           <a
             routerLink="/client/notifications"
-            class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+            class="w-9 h-9 rounded-xl flex items-center justify-center"
             style="background-color: var(--color-bg-secondary)"
           >
             <i
@@ -43,7 +43,7 @@ import { environment } from "../../../../environments/environment";
           </a>
           <a
             routerLink="/client/favorites"
-            class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+            class="w-9 h-9 rounded-xl flex items-center justify-center"
             style="background-color: var(--color-bg-secondary)"
           >
             <i
@@ -56,9 +56,6 @@ import { environment } from "../../../../environments/environment";
 
       <!-- ===== GREETING ===== -->
       <div class="px-4 lg:px-6 pb-4">
-        <!-- <h1 class="text-2xl font-bold" style="color: var(--color-text-primary)">
-          Hello, {{ firstName }} 
-        </h1> -->
         <p class="text-sm mt-0.5" style="color: var(--color-text-secondary)">
           What service do you need today?
         </p>
@@ -91,7 +88,6 @@ import { environment } from "../../../../environments/environment";
       </div>
 
       <div class="lg:grid lg:grid-cols-12 lg:gap-6 lg:px-6">
-        <!-- LEFT: Main content -->
         <div class="lg:col-span-8">
           <!-- ===== PROMOTIONS BANNER ===== -->
           <section class="mb-6">
@@ -106,15 +102,12 @@ import { environment } from "../../../../environments/environment";
                 routerLink="/client/promotions"
                 class="text-xs font-semibold"
                 style="color: var(--color-primary)"
+                >View all</a
               >
-                View all
-              </a>
             </div>
-
-            <!-- Promo cards horizontal scroll -->
             <div
-              class="flex gap-3 overflow-x-auto px-4 lg:px-0 pb-2 snap-x snap-mandatory scrollbar-hide
-          lg:grid lg:grid-cols-2 lg:overflow-visible lg:pb-0"
+              class="flex gap-3 overflow-x-auto px-4 lg:px-0 pb-2 snap-x snap-mandatory
+                     lg:grid lg:grid-cols-2 lg:overflow-visible lg:pb-0"
               style="-ms-overflow-style: none; scrollbar-width: none;"
             >
               <div
@@ -141,8 +134,7 @@ import { environment } from "../../../../environments/environment";
                   class="w-full h-full object-cover"
                 />
                 <div
-                  class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent
-                            flex flex-col justify-end p-3"
+                  class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-3"
                 >
                   <p class="text-white font-bold text-sm">
                     {{ salon.businessName }}
@@ -156,7 +148,6 @@ import { environment } from "../../../../environments/environment";
                 </div>
               </div>
 
-              <!-- Placeholder if empty -->
               <div
                 *ngIf="!loading.featured && featuredSalons.length === 0"
                 class="flex-shrink-0 w-64 h-40 rounded-xl flex items-center justify-center lg:w-full"
@@ -182,39 +173,70 @@ import { environment } from "../../../../environments/environment";
                 routerLink="/client/discover"
                 class="text-xs font-semibold"
                 style="color: var(--color-primary)"
+                >View all</a
               >
-                View all
-              </a>
             </div>
-            <div
-              class="grid grid-cols-4 gap-3 px-4 lg:px-0 lg:grid-cols-6 xl:grid-cols-8"
-            >
-              <ng-container *ngIf="loading.categories">
-                <div
-                  *ngFor="let _ of [1, 2, 3, 4]"
-                  class="skeleton h-20 rounded-xl"
-                ></div>
-              </ng-container>
 
+            <!-- Skeleton -->
+            <div
+              *ngIf="loading.categories"
+              class="flex gap-3 overflow-x-auto px-4 lg:px-0 pb-2"
+              style="-ms-overflow-style: none; scrollbar-width: none;"
+            >
+              <div
+                *ngFor="let _ of [1, 2, 3, 4, 5]"
+                class="flex flex-col items-center gap-2 flex-shrink-0"
+              >
+                <div
+                  class="skeleton rounded-xl"
+                  style="width: 72px; height: 62px;"
+                ></div>
+                <div class="skeleton h-3 w-12 rounded"></div>
+              </div>
+            </div>
+
+            <!-- Category tiles — rounded square image + label below, matching HTML reference -->
+            <div
+              *ngIf="!loading.categories"
+              class="flex gap-3 overflow-x-auto px-4 lg:px-0 pb-2"
+              style="-ms-overflow-style: none; scrollbar-width: none;"
+            >
               <button
                 *ngFor="let cat of categories.slice(0, 8)"
                 (click)="goToCategory(cat)"
-                class="flex flex-col items-center gap-2 p-3 rounded-xl transition-all active:scale-95 hover:opacity-80"
-                style="background-color: var(--color-bg-secondary)"
+                class="flex flex-col items-center gap-2 flex-shrink-0 active:scale-95 transition-all"
               >
+                <!-- Square rounded image tile -->
                 <div
-                  class="w-10 h-10 rounded-xl flex items-center justify-center"
-                  [ngStyle]="{ 'background-color': cat.color + '20' }"
+                  class="rounded-xl overflow-hidden flex-shrink-0"
+                  style="width: 72px; height: 62px;"
                 >
-                  <i
-                    [class]="cat.icon + ' text-lg'"
-                    [ngStyle]="{ color: cat.color }"
+                  <img
+                    *ngIf="cat.image"
+                    [src]="cat.image"
+                    [alt]="cat.name"
+                    class="w-full h-full object-cover"
+                  />
+                  <!-- Fallback: tinted icon tile when no image -->
+                  <div
+                    *ngIf="!cat.image"
+                    class="w-full h-full flex items-center justify-center"
+                    [ngStyle]="{
+                      'background-color':
+                        (cat.color || 'var(--color-primary)') + '22',
+                    }"
                   >
-                  </i>
+                    <i
+                      [class]="(cat.icon || 'ri-scissors-2-line') + ' text-2xl'"
+                      [ngStyle]="{ color: cat.color || 'var(--color-primary)' }"
+                    ></i>
+                  </div>
                 </div>
+
+                <!-- Category name -->
                 <span
-                  class="text-xs font-medium text-center leading-tight"
-                  style="color: var(--color-text-primary)"
+                  class="text-xs font-medium text-center"
+                  style="color: var(--color-text-primary); max-width: 72px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;"
                 >
                   {{ cat.name }}
                 </span>
@@ -235,97 +257,85 @@ import { environment } from "../../../../environments/environment";
                 routerLink="/client/discover"
                 class="text-xs font-semibold"
                 style="color: var(--color-primary)"
+                >View all</a
               >
-                View all
-              </a>
             </div>
 
-            <div *ngIf="loading.nearby" class="space-y-3 px-4 lg:px-0">
+            <div
+              *ngIf="loading.nearby"
+              class="grid grid-cols-2 gap-3 px-4 lg:px-0"
+            >
               <div
-                class="skeleton h-24 rounded-xl"
-                *ngFor="let _ of [1, 2, 3]"
+                *ngFor="let _ of [1, 2, 3, 4]"
+                class="skeleton rounded-2xl"
+                style="aspect-ratio: 0.75;"
               ></div>
             </div>
 
-            <div class="space-y-3 px-4 lg:px-0">
+            <div class="grid grid-cols-2 gap-3 px-4 lg:px-0">
               <div
-                *ngFor="let salon of nearbySalons.slice(0, 5)"
+                *ngFor="let salon of nearbySalons.slice(0, 6)"
                 (click)="goToSalon(salon.id)"
-                class="flex gap-3 p-3 rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
-                style="background-color: var(--color-bg-secondary)"
+                class="relative rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-all"
+                style="aspect-ratio: 0.75;"
               >
                 <img
                   [src]="
                     salon.profileImage ||
-                    'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400'
+                    salon.coverImage ||
+                    'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=530&fit=crop'
                   "
                   [alt]="salon.businessName"
-                  class="w-20 h-20 rounded-xl object-cover flex-shrink-0"
+                  class="w-full h-full object-cover block"
                 />
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-start justify-between">
-                    <p
-                      class="font-semibold text-sm truncate"
-                      style="color: var(--color-text-primary)"
-                    >
-                      {{ salon.businessName }}
-                    </p>
+                <div
+                  class="absolute inset-0 flex flex-col justify-end p-3"
+                  style="background: linear-gradient(transparent, rgba(0,0,0,0.65))"
+                >
+                  <p
+                    class="text-white font-semibold text-sm leading-tight truncate"
+                  >
+                    {{ salon.businessName }}
+                  </p>
+                  <div class="flex items-center justify-between mt-1">
+                    <div class="flex items-center gap-1">
+                      <i class="ri-star-fill text-yellow-400 text-xs"></i>
+                      <span class="text-white text-xs font-semibold">{{
+                        salon.rating.toFixed(1)
+                      }}</span>
+                      <span class="text-white/60 text-xs"
+                        >({{ salon.totalReviews || 0 }})</span
+                      >
+                    </div>
                     <button
                       (click)="toggleFavorite(salon, $event)"
-                      class="flex-shrink-0 ml-2"
+                      class="w-7 h-7 rounded-full flex items-center justify-center"
+                      style="background: rgba(255,255,255,0.2)"
                     >
-                      <i
-                        class="ri-heart-3-line text-base"
-                        style="color: var(--color-text-placeholder)"
-                      ></i>
+                      <i class="ri-heart-3-line text-white text-xs"></i>
                     </button>
                   </div>
                   <p
-                    class="text-xs mt-0.5 flex items-center gap-1"
-                    style="color: var(--color-text-secondary)"
+                    class="text-white/70 text-xs mt-1 flex items-center gap-1 truncate"
                   >
-                    <i class="ri-map-pin-2-line"></i>
+                    <i class="ri-map-pin-2-line text-xs"></i>
                     {{ salon.city }}, {{ salon.region }}
                   </p>
-                  <div class="flex items-center gap-3 mt-2">
-                    <div class="flex items-center gap-1">
-                      <i class="ri-star-fill text-yellow-400 text-xs"></i>
-                      <span
-                        class="text-xs font-semibold"
-                        style="color: var(--color-text-primary)"
-                      >
-                        {{ salon.rating.toFixed(1) || "0.0" }}
-                      </span>
-                      <span
-                        class="text-xs"
-                        style="color: var(--color-text-secondary)"
-                      >
-                        ({{ salon.totalReviews || 0 }})
-                      </span>
-                    </div>
-                    <span
-                      class="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style="background-color: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--color-success)"
-                    >
-                      Open
-                    </span>
-                  </div>
                 </div>
               </div>
-
-              <app-empty-state
-                *ngIf="!loading.nearby && nearbySalons.length === 0"
-                icon="ri-map-pin-2-line"
-                title="No salons nearby"
-                subtitle="Try expanding your search area"
-              ></app-empty-state>
             </div>
+
+            <app-empty-state
+              *ngIf="!loading.nearby && nearbySalons.length === 0"
+              icon="ri-map-pin-2-line"
+              title="No salons nearby"
+              subtitle="Try expanding your search area"
+            ></app-empty-state>
           </section>
         </div>
 
-        <!-- RIGHT: Desktop sidebar section -->
+        <!-- ===== DESKTOP SIDEBAR ===== -->
         <div class="hidden lg:block lg:col-span-4">
-          <!-- Quick stats -->
           <div
             class="rounded-xl p-5 mb-4"
             style="background-color: var(--color-bg-secondary)"
@@ -408,15 +418,13 @@ import { environment } from "../../../../environments/environment";
             </div>
           </div>
 
-          <!-- Latest promotion -->
           <div class="rounded-xl overflow-hidden mb-4" *ngIf="latestPromo">
             <div class="gradient-primary p-4">
               <div class="flex items-center justify-between mb-2">
                 <span
                   class="text-white text-xs font-semibold bg-white/20 px-2 py-0.5 rounded-full"
+                  >PROMO</span
                 >
-                  PROMO
-                </span>
                 <span class="text-white text-xs">{{
                   latestPromo.endDate | date: "MMM d"
                 }}</span>
@@ -446,7 +454,6 @@ import { environment } from "../../../../environments/environment";
             </div>
           </div>
 
-          <!-- Quick links -->
           <div
             class="rounded-xl p-4"
             style="background-color: var(--color-bg-secondary)"
@@ -487,7 +494,6 @@ import { environment } from "../../../../environments/environment";
         </div>
       </div>
 
-      <!-- Bottom spacer for mobile nav -->
       <div class="h-8 lg:h-4"></div>
     </div>
   `,
@@ -517,7 +523,6 @@ export class HomeComponent implements OnInit {
       icon: "ri-gift-2-line",
       route: "/client/referral",
     },
-    // { label: "My Wallet", icon: "ri-wallet-3-line", route: "/client/wallet" },
   ];
 
   get firstName(): string {
@@ -538,7 +543,6 @@ export class HomeComponent implements OnInit {
   private loadData(): void {
     const base = environment.apiUrl;
 
-    // Featured beauticians
     this.http.get<any>(`${base}/beauticians/featured`).subscribe({
       next: (res) => {
         this.featuredSalons = res?.data?.beauticians || res?.data || [];
@@ -549,7 +553,6 @@ export class HomeComponent implements OnInit {
       },
     });
 
-    // Categories
     this.http.get<any>(`${base}/categories`).subscribe({
       next: (res) => {
         this.categories =
@@ -561,7 +564,6 @@ export class HomeComponent implements OnInit {
       },
     });
 
-    // Nearby (fallback to general)
     this.http
       .get<any>(`${base}/beauticians`, { params: { limit: "5" } })
       .subscribe({
@@ -574,7 +576,6 @@ export class HomeComponent implements OnInit {
         },
       });
 
-    // User stats
     this.http.get<any>(`${base}/users/stats`).subscribe({
       next: (res) => {
         const d = res?.data || {};
@@ -588,26 +589,24 @@ export class HomeComponent implements OnInit {
       error: () => {},
     });
 
-    // Latest promotion
     this.http
       .get<any>(`${base}/promotions`, {
         params: { isActive: "true", limit: "1" },
       })
       .subscribe({
         next: (res) => {
-          const promos = res?.data?.promotions || [];
-          this.latestPromo = promos[0] || null;
+          this.latestPromo = (res?.data?.promotions || [])[0] || null;
         },
         error: () => {},
       });
   }
 
   search(): void {
-    if (this.searchQuery.trim()) {
-      this.router.navigate(["/client/search"], {
-        queryParams: { q: this.searchQuery },
-      });
-    }
+    this.router.navigate(["/client/map"], {
+      queryParams: this.searchQuery.trim()
+        ? { q: this.searchQuery.trim() }
+        : {},
+    });
   }
 
   goToSalon(id: string): void {

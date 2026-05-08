@@ -1,3 +1,5 @@
+// bookings.component.ts — replace your entire file with this
+
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -10,138 +12,142 @@ type Tab = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
 @Component({
   selector: 'app-bookings',
   template: `
-    <div class="page-enter px-4 lg:px-6 py-4">
+    <div class="bookings-page">
+
       <!-- Header -->
-      <div class="mb-5">
-        <h1 class="text-2xl font-bold mb-0.5" style="color: var(--color-text-primary)">My Bookings</h1>
-        <p class="text-sm" style="color: var(--color-text-secondary)">Manage your appointments</p>
+      <div class="bookings-header">
+        <h1 class="bookings-title">My Bookings</h1>
+        <p class="bookings-sub">Manage your appointments</p>
       </div>
 
       <!-- Tabs -->
-      <div class="flex gap-2 mb-5 overflow-x-auto pb-1">
-        <button
-          *ngFor="let tab of tabs"
-          (click)="switchTab(tab.value)"
-          class="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all"
-          [style.background-color]="activeTab === tab.value ? '#1a1a1a' : 'var(--color-bg-secondary)'"
-          [style.color]="activeTab === tab.value ? 'white' : 'var(--color-text-secondary)'"
-        >
-          {{ tab.label }}
-        </button>
+      <div class="tabs-wrap">
+        <div class="tabs-row">
+          <button
+            *ngFor="let tab of tabs"
+            (click)="switchTab(tab.value)"
+            class="tab-btn"
+            [class.tab-active]="activeTab === tab.value"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
       </div>
 
-      <!-- Loading -->
-      <div *ngIf="loading" class="space-y-3">
-        <div class="skeleton h-36 rounded-xl" *ngFor="let _ of [1,2,3]"></div>
-      </div>
-
-      <!-- Booking cards -->
-      <div *ngIf="!loading" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-        <div
-          *ngFor="let booking of bookings"
-          class="rounded-xl p-4 cursor-pointer hover:shadow-md transition-shadow"
-          style="background-color: var(--color-bg-secondary)"
-          (click)="goToDetail(booking.id)"
-        >
-          <!-- Status + Date -->
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <span
-                class="w-2 h-2 rounded-full"
-                [style.background-color]="statusColor(booking.status)"
-              ></span>
-              <span class="text-xs font-medium" style="color: var(--color-text-secondary)">
-                {{ booking.date | date:'MMM d' }} · {{ booking.time }}
-              </span>
+      <!-- Loading skeletons -->
+      <div *ngIf="loading" class="bookings-list">
+        <div *ngFor="let _ of [1,2,3]" class="booking-skeleton">
+          <div class="skel-top">
+            <div class="skel-line w-24"></div>
+            <div class="skel-badge"></div>
+          </div>
+          <div class="skel-body">
+            <div class="skel-img"></div>
+            <div class="skel-info">
+              <div class="skel-line w-40"></div>
+              <div class="skel-line w-28" style="margin-top:6px"></div>
+              <div class="skel-line w-20" style="margin-top:6px"></div>
             </div>
-            <span
-              class="badge text-xs"
-              [style.background-color]="statusColor(booking.status) + '20'"
-              [style.color]="statusColor(booking.status)"
-            >
-              {{ booking.status | titlecase }}
-            </span>
-          </div>
-
-          <!-- Salon info -->
-          <div class="flex gap-3">
-            <div class="w-16 h-16 rounded-xl flex-shrink-0 overflow-hidden">
-              <img
-                [src]="'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=200'"
-                alt="salon"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="font-bold text-sm truncate" style="color: var(--color-text-primary)">
-                {{ booking.beautician.businessName || 'Salon' }}
-              </p>
-              <p class="text-xs mt-0.5 truncate" style="color: var(--color-text-secondary)">
-                <i class="ri-map-pin-2-line"></i>
-                {{ booking.beautician.businessAddress }}
-              </p>
-              <p class="text-xs mt-1" style="color: var(--color-primary)">
-                {{ booking.service.name }}
-              </p>
-              <p class="text-sm font-bold mt-1" style="color: var(--color-text-primary)">
-                GHS {{ booking.price.toFixed(2) }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Booking number -->
-          <div class="mt-3 pt-3 border-t flex items-center justify-between"
-            style="border-color: var(--color-border-light)">
-            <p class="text-xs" style="color: var(--color-text-secondary)">
-              #{{ booking.bookingNumber }}
-            </p>
-            <span class="text-xs font-medium" style="color: var(--color-primary)">
-              View details →
-            </span>
-          </div>
-
-          <!-- Actions for PENDING -->
-          <div *ngIf="booking.status === 'PENDING'"
-            class="mt-3 grid grid-cols-2 gap-2" (click)="$event.stopPropagation()">
-            <button
-              (click)="cancel(booking)"
-              class="py-2 rounded-xl text-xs font-semibold border transition-all"
-              style="border-color: var(--color-primary); color: var(--color-primary)"
-              [disabled]="actionLoading[booking.id]"
-            >
-              <span class="spinner" *ngIf="actionLoading[booking.id]"></span>
-              Cancel
-            </button>
-            <button
-              (click)="reschedule(booking)"
-              class="py-2 rounded-xl text-xs font-semibold text-white"
-              style="background-color: #1a1a1a"
-            >
-              Reschedule
-            </button>
-          </div>
-
-          <!-- Leave review for COMPLETED -->
-          <div *ngIf="booking.status === 'COMPLETED' && !booking.review"
-            class="mt-3" (click)="$event.stopPropagation()">
-            <button
-              (click)="leaveReview(booking)"
-              class="w-full py-2 rounded-xl text-xs font-semibold text-white"
-              style="background-color: #1a1a1a"
-            >
-              <i class="ri-star-line mr-1"></i>Leave Review
-            </button>
-          </div>
-
-          <div *ngIf="booking.status === 'COMPLETED' && booking.review"
-            class="mt-3 flex items-center gap-2 p-2 rounded-lg"
-            style="background-color: color-mix(in srgb, var(--color-success) 10%, transparent)">
-            <i class="ri-checkbox-circle-fill text-green-500 text-sm"></i>
-            <span class="text-xs font-medium text-green-600">Review submitted</span>
           </div>
         </div>
       </div>
 
+      <!-- Booking cards -->
+      <div *ngIf="!loading && bookings.length > 0" class="bookings-list">
+        <div
+          *ngFor="let booking of bookings"
+          class="booking-card"
+          (click)="goToDetail(booking.id)"
+        >
+          <!-- Top row: date + status badge -->
+          <div class="booking-top">
+            <div class="booking-date-wrap">
+              <div class="booking-date-icon" [style.background-color]="statusColor(booking.status) + '18'">
+                <i class="ri-calendar-event-line" [style.color]="statusColor(booking.status)"></i>
+              </div>
+              <div>
+                <p class="booking-date">{{ booking.date | date:'EEE, MMM d' }}</p>
+                <p class="booking-time">{{ booking.time }}</p>
+              </div>
+            </div>
+            <span class="status-badge"
+              [style.background-color]="statusColor(booking.status) + '18'"
+              [style.color]="statusColor(booking.status)"
+            >
+              <span class="status-dot" [style.background-color]="statusColor(booking.status)"></span>
+              {{ booking.status | titlecase }}
+            </span>
+          </div>
+
+          <!-- Divider -->
+          <div class="booking-divider"></div>
+
+          <!-- Salon row -->
+          <div class="salon-row">
+            <div class="salon-img">
+              <img
+                [src]="booking.beautician?.profileImage ||
+                  'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=200'"
+                alt="salon"
+              />
+            </div>
+            <div class="salon-info">
+              <p class="salon-name">{{ booking.beautician?.businessName || 'Salon' }}</p>
+              <p class="salon-address">
+                <i class="ri-map-pin-2-line"></i>
+                {{ booking.beautician?.businessAddress || booking.beautician?.city }}
+              </p>
+              <div class="service-row">
+                <span class="service-chip">{{ booking.service?.name }}</span>
+                <span class="booking-price">GHS {{ booking.price?.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer: booking number + view -->
+          <div class="booking-footer">
+            <p class="booking-number">#{{ booking.bookingNumber }}</p>
+            <span class="view-link">View details <i class="ri-arrow-right-line"></i></span>
+          </div>
+
+          <!-- PENDING actions -->
+          <div *ngIf="booking.status === 'PENDING'"
+            class="booking-actions"
+            (click)="$event.stopPropagation()">
+            <button
+              (click)="cancel(booking)"
+              class="action-btn action-outline"
+              [disabled]="actionLoading[booking.id]"
+            >
+              <i class="ri-close-line"></i> Cancel
+            </button>
+            <button
+              (click)="reschedule(booking)"
+              class="action-btn action-dark"
+            >
+              <i class="ri-calendar-2-line"></i> Reschedule
+            </button>
+          </div>
+
+          <!-- COMPLETED — leave review -->
+          <div *ngIf="booking.status === 'COMPLETED' && !booking.review"
+            class="booking-actions"
+            (click)="$event.stopPropagation()">
+            <button (click)="leaveReview(booking)" class="action-btn action-dark w-full">
+              <i class="ri-star-line"></i> Leave a Review
+            </button>
+          </div>
+
+          <!-- COMPLETED — already reviewed -->
+          <div *ngIf="booking.status === 'COMPLETED' && booking.review"
+            class="review-done">
+            <i class="ri-checkbox-circle-fill"></i>
+            <span>Review submitted</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
       <app-empty-state
         *ngIf="!loading && bookings.length === 0"
         icon="ri-calendar-event-line"
@@ -162,9 +168,298 @@ type Tab = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
         (closed)="showCancelModal = false; selectedBooking = null"
       ></app-confirm-modal>
 
-      <div class="h-8"></div>
     </div>
   `,
+  styles: [`
+    .bookings-page {
+      min-height: 100vh;
+      background-color: var(--color-bg-primary);
+      padding-bottom: 100px;
+    }
+
+    /* ---- HEADER ---- */
+    .bookings-header {
+      padding: 20px 20px 4px;
+    }
+    .bookings-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+    .bookings-sub {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ---- TABS ---- */
+    .tabs-wrap {
+      padding: 12px 20px 0;
+      overflow-x: auto;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .tabs-wrap::-webkit-scrollbar { display: none; }
+    .tabs-row {
+      display: flex;
+      gap: 8px;
+      background-color: var(--color-bg-secondary);
+      border-radius: 16px;
+      padding: 4px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border-radius: 12px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: var(--color-text-secondary);
+      font-family: inherit;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-active {
+      background-color: #1a1a1a;
+      color: white;
+    }
+
+    /* ---- LIST ---- */
+    .bookings-list {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ---- SKELETON ---- */
+    .booking-skeleton {
+      border-radius: 20px;
+      background-color: var(--color-bg-secondary);
+      padding: 16px;
+    }
+    .skel-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .skel-body { display: flex; gap: 12px; }
+    .skel-img {
+      width: 72px; height: 72px; border-radius: 14px;
+      background: linear-gradient(90deg, #e8e8e8 25%, #d8d8d8 50%, #e8e8e8 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      flex-shrink: 0;
+    }
+    .skel-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 0; }
+    .skel-line {
+      height: 12px; border-radius: 6px;
+      background: linear-gradient(90deg, #e8e8e8 25%, #d8d8d8 50%, #e8e8e8 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+    }
+    .skel-badge { width: 80px; height: 26px; border-radius: 20px;
+      background: linear-gradient(90deg, #e8e8e8 25%, #d8d8d8 50%, #e8e8e8 75%);
+      background-size: 200% 100%; animation: shimmer 1.2s infinite;
+    }
+    .w-24 { width: 96px; }
+    .w-28 { width: 112px; }
+    .w-40 { width: 160px; }
+    .w-20 { width: 80px; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ---- BOOKING CARD ---- */
+    .booking-card {
+      background-color: var(--color-bg-secondary);
+      border-radius: 20px;
+      padding: 16px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .booking-card:active { transform: scale(0.985); }
+
+    /* top row */
+    .booking-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .booking-date-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .booking-date-icon {
+      width: 38px; height: 38px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .booking-date-icon i { font-size: 18px; }
+    .booking-date {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+    .booking-time {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-top: 1px;
+    }
+
+    /* status badge */
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* divider */
+    .booking-divider {
+      height: 1px;
+      background-color: var(--color-border-light);
+      margin-bottom: 14px;
+    }
+
+    /* salon row */
+    .salon-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .salon-img {
+      width: 72px; height: 72px;
+      border-radius: 14px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .salon-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .salon-info { flex: 1; min-width: 0; }
+    .salon-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .salon-address {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-top: 3px;
+    }
+    .salon-address i { font-size: 12px; }
+
+    .service-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .service-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background-color: color-mix(in srgb, var(--color-primary) 12%, transparent);
+      color: var(--color-primary);
+    }
+    .booking-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-left: auto;
+    }
+
+    /* footer */
+    .booking-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--color-border-light);
+    }
+    .booking-number {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+    .view-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .view-link i { font-size: 14px; }
+
+    /* actions */
+    .booking-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 11px 8px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      border: none;
+      transition: opacity 0.2s;
+    }
+    .action-btn:active { opacity: 0.75; }
+    .action-btn.w-full { flex: unset; width: 100%; }
+    .action-outline {
+      background-color: var(--color-bg-primary);
+      color: var(--color-text-primary);
+      border: 1.5px solid var(--color-border-light);
+    }
+    .action-dark {
+      background-color: #1a1a1a;
+      color: white;
+    }
+
+    /* reviewed */
+    .review-done {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background-color: rgba(76, 175, 80, 0.08);
+      font-size: 13px;
+      font-weight: 600;
+      color: #4CAF50;
+    }
+    .review-done i { font-size: 16px; }
+  `]
 })
 export class BookingsComponent implements OnInit {
   activeTab: Tab = 'PENDING';
@@ -175,7 +470,7 @@ export class BookingsComponent implements OnInit {
   actionLoading: Record<string, boolean> = {};
 
   tabs = [
-    { label: 'Pending', value: 'PENDING' as Tab },
+    { label: 'Pending',   value: 'PENDING'   as Tab },
     { label: 'Confirmed', value: 'CONFIRMED' as Tab },
     { label: 'Completed', value: 'COMPLETED' as Tab },
     { label: 'Cancelled', value: 'CANCELLED' as Tab },
@@ -187,9 +482,7 @@ export class BookingsComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit(): void {
-    this.loadBookings();
-  }
+  ngOnInit(): void { this.loadBookings(); }
 
   switchTab(tab: Tab): void {
     this.activeTab = tab;
@@ -211,7 +504,7 @@ export class BookingsComponent implements OnInit {
 
   statusColor(status: BookingStatus): string {
     const map: Record<string, string> = {
-      PENDING: '#FF9800',
+      PENDING:   '#FF9800',
       CONFIRMED: '#2196F3',
       COMPLETED: '#4CAF50',
       CANCELLED: '#F44336',
@@ -219,9 +512,7 @@ export class BookingsComponent implements OnInit {
     return map[status] || '#666';
   }
 
-  goToDetail(id: string): void {
-    this.router.navigate(['/client/bookings', id]);
-  }
+  goToDetail(id: string): void { this.router.navigate(['/client/bookings', id]); }
 
   cancel(booking: Booking): void {
     this.selectedBooking = booking;
@@ -233,7 +524,6 @@ export class BookingsComponent implements OnInit {
     const id = this.selectedBooking.id;
     this.actionLoading[id] = true;
     this.showCancelModal = false;
-
     this.http.put(`${environment.apiUrl}/bookings/${id}/status`, {
       status: 'CANCELLED',
       cancellationReason: 'Cancelled by customer',

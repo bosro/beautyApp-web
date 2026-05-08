@@ -1,3 +1,5 @@
+// settings.component.ts — replace your entire file with this
+
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
@@ -5,126 +7,143 @@ import { ThemeService } from '@core/services/theme.service';
 import { ToastService } from '@core/services/toast.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
+import { User } from '@core/models';
 
 @Component({
   selector: 'app-settings',
   standalone: false,
   template: `
-    <div class="min-h-screen bg-[var(--color-background)] pb-24 lg:pb-8">
+    <div class="settings-page">
 
-      <div class="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 py-4">
-        <h1 class="text-lg font-semibold text-[var(--color-text-primary)]">Settings</h1>
+      <!-- Header -->
+      <div class="settings-header">
+        <h1 class="settings-title">Profile</h1>
       </div>
 
-      <div class="p-4 lg:p-6 max-w-2xl mx-auto space-y-4">
+      <div class="settings-body">
 
-        <!-- Appearance -->
-        <div class="card p-4 space-y-1">
-          <h3 class="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Appearance</h3>
-
-          <div class="flex items-center justify-between py-2">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center">
-                <i class="ri-moon-line text-[var(--color-primary)]"></i>
-              </div>
-              <span class="text-sm font-medium text-[var(--color-text-primary)]">Theme</span>
+        <!-- Profile card -->
+        <div class="profile-card" (click)="navigate('/client/profile')">
+          <div class="profile-avatar">
+            <img *ngIf="user?.avatar" [src]="user!.avatar" [alt]="user?.name" />
+            <div *ngIf="!user?.avatar" class="avatar-fallback">
+              {{ user?.name?.charAt(0)?.toUpperCase() }}
             </div>
-            <div class="flex bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg p-0.5 gap-0.5">
-              <button *ngFor="let t of themes"
-                (click)="setTheme(t.value)"
-                class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-                [ngClass]="currentTheme === t.value
-                  ? 'bg-[var(--color-primary)] text-white'
-                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]'">
-                {{ t.label }}
-              </button>
-            </div>
+          </div>
+          <div class="profile-info">
+            <p class="profile-name">{{ user?.name || 'Guest' }}</p>
+            <p class="profile-email">{{ user?.email }}</p>
           </div>
         </div>
 
-        <!-- Notifications -->
-        <div class="card p-4 space-y-1">
-          <h3 class="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Notifications</h3>
-          <div *ngFor="let pref of notifPrefs" class="flex items-center justify-between py-2.5 border-b border-[var(--color-border)] last:border-0">
-            <div>
-              <p class="text-sm font-medium text-[var(--color-text-primary)]">{{ pref.label }}</p>
-              <p class="text-xs text-[var(--color-text-muted)]">{{ pref.desc }}</p>
-            </div>
-            <button
-              (click)="pref.enabled = !pref.enabled; saveNotifPrefs()"
-              class="relative w-11 h-6 rounded-full transition-colors duration-200"
-              [ngClass]="pref.enabled ? 'bg-[var(--color-primary)]' : 'bg-gray-300 dark:bg-gray-600'">
-              <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
-                [ngClass]="pref.enabled ? 'translate-x-5' : 'translate-x-0'"></span>
-            </button>
-          </div>
-        </div>
+        <!-- Menu rows -->
+        <div class="menu-list">
 
-        <!-- Account -->
-        <div class="card p-4 space-y-1">
-          <h3 class="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Account</h3>
-
-          <button (click)="navigate('/client/profile')" class="settings-row">
-            <div class="settings-row-left">
+          <button class="menu-row" (click)="navigate('/client/profile')">
+            <div class="menu-row-left">
               <i class="ri-user-line"></i>
-              <span>Edit Profile</span>
+              <span>Manage Profile</span>
             </div>
-            <i class="ri-arrow-right-s-line text-[var(--color-text-muted)]"></i>
+            <i class="ri-arrow-right-s-line menu-arrow"></i>
           </button>
 
-          <button class="settings-row">
-            <div class="settings-row-left">
+          <button class="menu-row">
+            <div class="menu-row-left">
               <i class="ri-lock-line"></i>
-              <span>Change Password</span>
+              <span>Password & Security</span>
             </div>
-            <i class="ri-arrow-right-s-line text-[var(--color-text-muted)]"></i>
+            <i class="ri-arrow-right-s-line menu-arrow"></i>
           </button>
 
-          <button class="settings-row">
-            <div class="settings-row-left">
+          <button class="menu-row" (click)="navigate('/client/notifications')">
+            <div class="menu-row-left">
+              <i class="ri-notification-3-line"></i>
+              <span>Notifications</span>
+            </div>
+            <i class="ri-arrow-right-s-line menu-arrow"></i>
+          </button>
+
+          <!-- Theme inline toggle -->
+          <div class="menu-row">
+            <div class="menu-row-left">
+              <i class="ri-contrast-2-line"></i>
+              <span>Theme</span>
+            </div>
+            <div class="theme-toggle">
+              <button
+                *ngFor="let t of themes"
+                (click)="setTheme(t.value)"
+                class="theme-btn"
+                [class.theme-btn-active]="currentTheme === t.value"
+              >{{ t.label }}</button>
+            </div>
+          </div>
+
+          <button class="menu-row" (click)="navigate('/client/bookings')">
+            <div class="menu-row-left">
+              <i class="ri-calendar-event-line"></i>
+              <span>Appointments</span>
+            </div>
+            <i class="ri-arrow-right-s-line menu-arrow"></i>
+          </button>
+
+          <button class="menu-row">
+            <div class="menu-row-left">
+              <i class="ri-information-line"></i>
+              <span>About Us</span>
+            </div>
+            <i class="ri-arrow-right-s-line menu-arrow"></i>
+          </button>
+
+          <button class="menu-row">
+            <div class="menu-row-left">
+              <i class="ri-question-line"></i>
+              <span>Help Center</span>
+            </div>
+            <i class="ri-arrow-right-s-line menu-arrow"></i>
+          </button>
+
+          <button class="menu-row">
+            <div class="menu-row-left">
+              <i class="ri-customer-service-2-line"></i>
+              <span>Contact Us</span>
+            </div>
+            <i class="ri-arrow-right-s-line menu-arrow"></i>
+          </button>
+
+          <button class="menu-row">
+            <div class="menu-row-left">
               <i class="ri-shield-check-line"></i>
               <span>Privacy Policy</span>
             </div>
-            <i class="ri-arrow-right-s-line text-[var(--color-text-muted)]"></i>
+            <i class="ri-arrow-right-s-line menu-arrow"></i>
           </button>
 
-          <button class="settings-row">
-            <div class="settings-row-left">
+          <button class="menu-row">
+            <div class="menu-row-left">
               <i class="ri-file-text-line"></i>
               <span>Terms of Service</span>
             </div>
-            <i class="ri-arrow-right-s-line text-[var(--color-text-muted)]"></i>
+            <i class="ri-arrow-right-s-line menu-arrow"></i>
           </button>
 
-          <button class="settings-row">
-            <div class="settings-row-left">
-              <i class="ri-question-line"></i>
-              <span>Help & Support</span>
-            </div>
-            <i class="ri-arrow-right-s-line text-[var(--color-text-muted)]"></i>
-          </button>
-        </div>
-
-        <!-- Danger Zone -->
-        <div class="card p-4 space-y-1">
-          <h3 class="text-xs font-semibold text-red-400 uppercase tracking-wider mb-3">Danger Zone</h3>
-          <button (click)="showLogoutModal = true" class="settings-row text-red-500">
-            <div class="settings-row-left text-red-500">
+          <button class="menu-row danger-row" (click)="showLogoutModal = true">
+            <div class="menu-row-left danger">
               <i class="ri-logout-box-r-line"></i>
               <span>Log Out</span>
             </div>
           </button>
-          <button (click)="showDeleteModal = true" class="settings-row text-red-500">
-            <div class="settings-row-left text-red-500">
+
+          <button class="menu-row danger-row" (click)="showDeleteModal = true">
+            <div class="menu-row-left danger">
               <i class="ri-delete-bin-line"></i>
               <span>Delete Account</span>
             </div>
           </button>
+
         </div>
 
-        <!-- Version -->
-        <p class="text-center text-xs text-[var(--color-text-muted)]">Bigluxx v1.0.0</p>
-
+        <p class="version-label">Bigluxx v1.0.0</p>
       </div>
 
       <!-- Logout Modal -->
@@ -153,12 +172,154 @@ import { environment } from '@environments/environment';
     </div>
   `,
   styles: [`
-    .settings-row {
-      @apply flex items-center justify-between w-full py-3 border-b border-[var(--color-border)] last:border-0 hover:opacity-70 transition-opacity;
+    .settings-page {
+      min-height: 100vh;
+      background-color: var(--color-bg-primary);
+      padding-bottom: 100px;
     }
-    .settings-row-left {
-      @apply flex items-center gap-3 text-sm font-medium text-[var(--color-text-primary)];
-      i { @apply text-lg; }
+
+    /* Header */
+    .settings-header {
+      padding: 20px 20px 12px;
+      background-color: var(--color-bg-primary);
+    }
+    .settings-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      text-align: center;
+    }
+
+    .settings-body {
+      padding: 8px 20px 0;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* Profile card */
+    .profile-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 20px;
+      background-color: var(--color-bg-secondary);
+      cursor: pointer;
+      margin-bottom: 24px;
+      transition: opacity 0.2s;
+    }
+    .profile-card:active { opacity: 0.75; }
+
+    .profile-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-fallback {
+      width: 100%;
+      height: 100%;
+      background-color: var(--color-primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .profile-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+    .profile-email {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Menu list */
+    .menu-list {
+      background-color: var(--color-bg-secondary);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .menu-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 16px 18px;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--color-border-light);
+      cursor: pointer;
+      transition: background 0.15s;
+      text-align: left;
+    }
+    .menu-row:last-child { border-bottom: none; }
+    .menu-row:active { background-color: var(--color-bg-primary); }
+
+    .menu-row-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+    .menu-row-left i {
+      font-size: 20px;
+      color: var(--color-text-primary);
+      width: 22px;
+      text-align: center;
+    }
+
+    .menu-arrow {
+      font-size: 20px;
+      color: var(--color-text-secondary);
+    }
+
+    /* Theme toggle inline */
+    .theme-toggle {
+      display: flex;
+      gap: 4px;
+      background-color: var(--color-bg-primary);
+      border-radius: 10px;
+      padding: 3px;
+    }
+    .theme-btn {
+      padding: 4px 10px;
+      border-radius: 7px;
+      border: none;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: var(--color-text-secondary);
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .theme-btn-active {
+      background-color: var(--color-primary);
+      color: white;
+    }
+
+    /* Danger rows */
+    .danger-row .menu-row-left { color: #ef4444; }
+    .danger-row .menu-row-left i { color: #ef4444; }
+
+    /* Version */
+    .version-label {
+      text-align: center;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-top: 20px;
+      opacity: 0.6;
     }
   `]
 })
@@ -167,18 +328,12 @@ export class SettingsComponent implements OnInit {
   showLogoutModal = false;
   showDeleteModal = false;
   deleting = false;
+  user: User | null = null;
 
   themes = [
     { label: 'Light', value: 'light' },
     { label: 'Dark', value: 'dark' },
     { label: 'Auto', value: 'system' },
-  ];
-
-  notifPrefs = [
-    { key: 'booking_reminders', label: 'Booking Reminders', desc: 'Get reminded before your appointments', enabled: true },
-    { key: 'promotions', label: 'Promotions', desc: 'Deals and discount notifications', enabled: true },
-    { key: 'reviews', label: 'Review Requests', desc: 'Reminded to rate after bookings', enabled: false },
-    { key: 'system', label: 'System Updates', desc: 'App updates and announcements', enabled: true },
   ];
 
   constructor(
@@ -191,6 +346,7 @@ export class SettingsComponent implements OnInit {
 
   ngOnInit() {
     this.currentTheme = this.themeService.getMode();
+    this.user = this.auth.user;
   }
 
   setTheme(mode: string) {
@@ -199,12 +355,6 @@ export class SettingsComponent implements OnInit {
   }
 
   navigate(path: string) { this.router.navigate([path]); }
-
-  saveNotifPrefs() {
-    const prefs: any = {};
-    this.notifPrefs.forEach(p => prefs[p.key] = p.enabled);
-    this.http.put(`${environment.apiUrl}/users/notification-preferences`, prefs).subscribe();
-  }
 
   logout() {
     this.auth.logout();

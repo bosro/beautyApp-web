@@ -8,7 +8,7 @@ export type ModalType = "success" | "error" | "warning" | "info";
   template: `
     <div
       *ngIf="visible"
-      class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/50"
+      class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/5"
       (click)="onOverlay($event)"
     >
       <div

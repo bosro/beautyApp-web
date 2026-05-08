@@ -127,6 +127,8 @@ export interface Booking {
       name: string;
       phone?: string;
     };
+    profileImage?: any;
+    city?: string;
   };
   service: {
     id: string;
@@ -165,6 +167,7 @@ export interface Category {
   slug: string;
   description?: string;
   icon?: string;
+  image?: any;
   color?: string;
   order: number;
   isActive: boolean;

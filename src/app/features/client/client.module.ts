@@ -16,6 +16,8 @@ import { PromotionsComponent } from './promotions/promotions.component';
 import { SearchResultsComponent } from './search-results/search-results.component';
 import { WalletComponent } from './wallet/wallet.component';
 import { SettingsComponent } from './settings/settings.component';
+import { ProfileSettingsComponent } from './profile-settings/profile-settings.component';
+import { MapComponent } from './map/map.component';
 
 const routes: Routes = [
   {
@@ -36,6 +38,7 @@ const routes: Routes = [
       { path: 'search', component: SearchResultsComponent },
       { path: 'wallet', component: WalletComponent },
       { path: 'settings', component: SettingsComponent },
+      { path: 'map', component: MapComponent },
     ],
   },
 ];
@@ -56,6 +59,8 @@ const routes: Routes = [
     SearchResultsComponent,
     WalletComponent,
     SettingsComponent,
+    ProfileSettingsComponent,
+    MapComponent,
   ],
   imports: [SharedModule, RouterModule.forChild(routes)],
 })
