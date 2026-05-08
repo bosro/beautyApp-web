@@ -185,8 +185,6 @@ import { BeauticianProfile } from "../../../core/models";
     </div>
 
     <!-- ===== FILTER BOTTOM SHEET ===== -->
-    <!-- Backdrop -->
-    <!-- ===== FILTER BOTTOM SHEET ===== -->
     <div
       *ngIf="showFilters"
       class="fixed inset-0 z-40 transition-opacity duration-300"
@@ -284,171 +282,83 @@ import { BeauticianProfile } from "../../../core/models";
             </span>
           </div>
 
-          <!-- Bar graph visual -->
-          <div class="mb-1" style="height: 48px;">
+          <!-- Bar graph -->
+          <div class="mb-3" style="height: 44px;">
             <svg
-              viewBox="0 0 300 48"
+              viewBox="0 0 300 44"
               preserveAspectRatio="none"
               style="width:100%;height:100%;"
             >
-              <defs>
-                <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="0%"
-                    stop-color="var(--color-primary)"
-                    stop-opacity="0.25"
-                  />
-                  <stop
-                    offset="100%"
-                    stop-color="var(--color-primary)"
-                    stop-opacity="0.04"
-                  />
-                </linearGradient>
-              </defs>
               <path
-                d="M0,44 C20,44 30,30 50,27 C70,24 80,18 100,13 C120,8 130,6 150,11 C170,16 180,4 200,7 C220,10 230,16 250,19 C270,22 280,29 300,44 Z"
-                fill="url(#barGrad)"
+                d="M0,40 C20,40 30,26 50,24 C70,22 80,16 100,12 C120,8 130,6 150,10 C170,14 180,4 200,6 C220,8 230,14 250,16 C270,18 280,26 300,40 Z"
+                fill="color-mix(in srgb, var(--color-primary) 15%, transparent)"
               />
               <path
-                d="M0,44 C20,44 30,30 50,27 C70,24 80,18 100,13 C120,8 130,6 150,11 C170,16 180,4 200,7 C220,10 230,16 250,19 C270,22 280,29 300,44"
+                d="M0,40 C20,40 30,26 50,24 C70,22 80,16 100,12 C120,8 130,6 150,10 C170,14 180,4 200,6 C220,8 230,14 250,16 C270,18 280,26 300,40"
                 fill="none"
                 stroke="var(--color-primary)"
                 stroke-width="1.5"
-                stroke-opacity="0.4"
+                stroke-opacity="0.5"
               />
             </svg>
           </div>
 
-          <!-- Custom dual range slider -->
-          <div class="relative mb-5" style="height: 36px; padding: 0 10px;">
-            <!-- Track background -->
-            <div
-              class="absolute rounded-full"
-              style="
-          top: 50%; transform: translateY(-50%);
-          left: 10px; right: 10px; height: 4px;
-          background-color: var(--color-border-light)"
-            ></div>
-            <!-- Active fill -->
-            <div
-              class="absolute rounded-full"
-              style="
-          top: 50%; transform: translateY(-50%);
-          height: 4px;
-          left: calc(10px + {{ (draftFilters.minPrice / maxPrice) * 100 }}%);
-          width: {{
-                ((draftFilters.maxPrice - draftFilters.minPrice) / maxPrice) *
+          <!-- Dual range slider with visible knobs -->
+          <div class="dual-range-wrap">
+            <div class="dual-track">
+              <div
+                class="dual-fill"
+                [style.left.%]="(draftFilters.minPrice / maxPrice) * 100"
+                [style.width.%]="
+                  ((draftFilters.maxPrice - draftFilters.minPrice) / maxPrice) *
                   100
-              }}%;
-          background-color: var(--color-primary)"
-            ></div>
-            <!-- Min thumb -->
-            <!-- Min thumb -->
-            <div
-              class="absolute flex items-center justify-center rounded-full shadow-md"
-              style="
-    top: 50%; transform: translate(-50%, -50%);
-    left: calc(10px + {{ (draftFilters.minPrice / maxPrice) * 100 }}%);
-    width: 26px; height: 26px;
-    background-color: var(--color-bg-primary);
-    border: 2.5px solid var(--color-primary);
-    z-index: 2; pointer-events: none;"
-            >
-              <div
-                class="rounded-full"
-                style="width:8px;height:8px;background-color:var(--color-primary)"
+                "
               ></div>
-              <!-- Nudge lines -->
-              <div
-                class="absolute flex gap-0.5"
-                style="top:50%;transform:translateY(-50%)"
-              >
-                <div
-                  style="width:1.5px;height:8px;border-radius:2px;background-color:var(--color-primary);opacity:0.5"
-                ></div>
-                <div
-                  style="width:1.5px;height:8px;border-radius:2px;background-color:var(--color-primary);opacity:0.5"
-                ></div>
-              </div>
             </div>
-
-            <!-- Max thumb -->
-            <div
-              class="absolute flex items-center justify-center rounded-full shadow-md"
-              style="
-    top: 50%; transform: translate(-50%, -50%);
-    left: calc(10px + {{ (draftFilters.maxPrice / maxPrice) * 100 }}%);
-    width: 26px; height: 26px;
-    background-color: var(--color-bg-primary);
-    border: 2.5px solid var(--color-primary);
-    z-index: 2; pointer-events: none;"
-            >
-              <div
-                class="rounded-full"
-                style="width:8px;height:8px;background-color:var(--color-primary)"
-              ></div>
-              <!-- Nudge lines -->
-              <div
-                class="absolute flex gap-0.5"
-                style="top:50%;transform:translateY(-50%)"
-              >
-                <div
-                  style="width:1.5px;height:8px;border-radius:2px;background-color:var(--color-primary);opacity:0.5"
-                ></div>
-                <div
-                  style="width:1.5px;height:8px;border-radius:2px;background-color:var(--color-primary);opacity:0.5"
-                ></div>
-              </div>
-            </div>
-            <!-- Invisible range inputs on top -->
             <input
               type="range"
               min="0"
               [max]="maxPrice"
-              step="100"
+              step="500"
               [(ngModel)]="draftFilters.minPrice"
               (input)="clampMin()"
-              class="absolute inset-0 w-full opacity-0 cursor-pointer"
-              style="z-index:3; height:100%"
+              class="dual-input dual-input-min"
             />
             <input
               type="range"
               min="0"
               [max]="maxPrice"
-              step="100"
+              step="500"
               [(ngModel)]="draftFilters.maxPrice"
               (input)="clampMax()"
-              class="absolute inset-0 w-full opacity-0 cursor-pointer"
-              style="z-index:4; height:100%"
+              class="dual-input dual-input-max"
             />
           </div>
 
-          <!-- Min / Max value boxes -->
-          <div class="grid grid-cols-2 gap-3">
-            <div
-              class="rounded-xl p-3 flex flex-col gap-1"
-              style="background-color: var(--color-bg-primary)"
-            >
-              <span class="text-xs" style="color: var(--color-text-secondary)"
-                >Min price</span
+          <!-- Min / Max labels -->
+          <div class="flex justify-between mt-5">
+            <div class="flex flex-col items-center">
+              <span
+                class="text-xs mb-1"
+                style="color: var(--color-text-secondary)"
+                >min. price</span
               >
               <span
-                class="text-sm font-bold"
-                style="color: var(--color-text-primary)"
+                class="text-sm font-semibold px-3 py-1.5 rounded-xl"
+                style="background-color: var(--color-bg-primary); color: var(--color-text-primary)"
               >
                 GHS {{ draftFilters.minPrice | number }}
               </span>
             </div>
-            <div
-              class="rounded-xl p-3 flex flex-col gap-1"
-              style="background-color: var(--color-bg-primary)"
-            >
-              <span class="text-xs" style="color: var(--color-text-secondary)"
-                >Max price</span
+            <div class="flex flex-col items-center">
+              <span
+                class="text-xs mb-1"
+                style="color: var(--color-text-secondary)"
+                >max. price</span
               >
               <span
-                class="text-sm font-bold"
-                style="color: var(--color-text-primary)"
+                class="text-sm font-semibold px-3 py-1.5 rounded-xl"
+                style="background-color: var(--color-bg-primary); color: var(--color-text-primary)"
               >
                 GHS {{ draftFilters.maxPrice | number }}
               </span>
@@ -926,6 +836,109 @@ import { BeauticianProfile } from "../../../core/models";
       </div>
     </div>
   `,
+  styles: [
+    `
+      .dual-range-wrap {
+        position: relative;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        margin: 0 4px;
+      }
+
+      .dual-track {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 4px;
+        border-radius: 4px;
+        background-color: var(--color-border-light);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .dual-fill {
+        position: absolute;
+        height: 100%;
+        border-radius: 4px;
+        background-color: var(--color-primary);
+      }
+
+      /* Both inputs share the full row */
+      .dual-input {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        top: 0;
+        background: transparent;
+        cursor: pointer;
+        margin: 0;
+        padding: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        outline: none;
+      }
+
+      /* Hide the browser's built-in track completely */
+      .dual-input::-webkit-slider-runnable-track {
+        -webkit-appearance: none;
+        background: transparent;
+        height: 4px;
+      }
+      .dual-input::-moz-range-track {
+        background: transparent;
+        height: 4px;
+        border: none;
+      }
+      .dual-input::-ms-track {
+        background: transparent;
+        border-color: transparent;
+        color: transparent;
+      }
+
+      /* ---- THE THUMB ---- */
+      .dual-input::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #fff;
+        border: 3px solid var(--color-primary);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        cursor: grab;
+        margin-top: -12px;
+        position: relative;
+        z-index: 10;
+        transition: transform 0.1s;
+      }
+      .dual-input::-moz-range-thumb {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #fff;
+        border: 3px solid var(--color-primary);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        cursor: grab;
+      }
+
+      .dual-input:active::-webkit-slider-thumb {
+        transform: scale(1.2);
+        cursor: grabbing;
+      }
+      .dual-input:active::-moz-range-thumb {
+        cursor: grabbing;
+      }
+
+      .dual-input-min {
+        z-index: 3;
+      }
+      .dual-input-max {
+        z-index: 4;
+      }
+    `,
+  ],
 })
 export class DiscoverComponent implements OnInit {
   query = "";
