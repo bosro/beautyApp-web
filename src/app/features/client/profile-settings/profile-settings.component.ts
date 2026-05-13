@@ -174,17 +174,17 @@ export class ProfileSettingsComponent implements OnInit {
         label: "Notifications",
         route: "/client/notifications",
       },
-      {
-        icon: "ri-global-line",
-        label: "Language",
-        value: "English",
-        route: "/client/settings/language",
-      },
-      {
-        icon: "ri-information-line",
-        label: "About Us",
-        route: "/client/about",
-      },
+      // {
+      //   icon: "ri-global-line",
+      //   label: "Language",
+      //   value: "English",
+      //   route: "/client/settings/language",
+      // },
+      // {
+      //   icon: "ri-information-line",
+      //   label: "About Us",
+      //   route: "/client/about",
+      // },
       {
         icon: this.themeService.isDark ? "ri-sun-line" : "ri-moon-line",
         label: "Theme",
@@ -215,7 +215,7 @@ export class ProfileSettingsComponent implements OnInit {
       { icon: "ri-gift-2-line", label: "Referral", route: "/client/referral" },
       {
         icon: "ri-logout-box-r-line",
-        label: "Log Out",
+        label: "Log",
         action: "logout",
         danger: true,
       },

@@ -86,20 +86,20 @@ type Tab = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
           <div class="salon-row">
             <div class="salon-img">
               <img
-                [src]="booking.beautician?.profileImage ||
+                [src]="booking.beautician.profileImage ||
                   'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=200'"
                 alt="salon"
               />
             </div>
             <div class="salon-info">
-              <p class="salon-name">{{ booking.beautician?.businessName || 'Salon' }}</p>
+              <p class="salon-name">{{ booking.beautician.businessName || 'Salon' }}</p>
               <p class="salon-address">
                 <i class="ri-map-pin-2-line"></i>
-                {{ booking.beautician?.businessAddress || booking.beautician?.city }}
+                {{ booking.beautician.businessAddress || booking.beautician.city }}
               </p>
               <div class="service-row">
-                <span class="service-chip">{{ booking.service?.name }}</span>
-                <span class="booking-price">GHS {{ booking.price?.toFixed(2) }}</span>
+                <span class="service-chip">{{ booking.service.name }}</span>
+                <span class="booking-price">GHS {{ booking.price.toFixed(2) }}</span>
               </div>
             </div>
           </div>

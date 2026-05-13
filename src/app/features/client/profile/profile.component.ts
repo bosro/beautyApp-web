@@ -6,6 +6,7 @@ import { environment } from '@environments/environment';
 import { AuthService } from '@core/services/auth.service';
 import { ToastService } from '@core/services/toast.service';
 import { User } from '@core/models';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
@@ -13,8 +14,12 @@ import { User } from '@core/models';
   template: `
     <div class="min-h-screen bg-[var(--color-background)] pb-24 lg:pb-8">
 
-      <div class="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 py-4">
-        <h1 class="text-lg font-semibold text-[var(--color-text-primary)]">My Profile</h1>
+       <div class="pp-header">
+        <button class="pp-back-btn" (click)="goBack()">
+          <i class="ri-arrow-left-line"></i>
+        </button>
+        <h1 class="pp-title">Profile</h1>
+        <div class="pp-spacer"></div>
       </div>
 
       <div *ngIf="loading" class="p-4 space-y-4 max-w-2xl mx-auto">
@@ -25,12 +30,12 @@ import { User } from '@core/models';
       <div *ngIf="!loading" class="p-4 lg:p-6 max-w-2xl mx-auto space-y-4">
 
         <!-- Avatar Section -->
-        <div class="card p-6 flex flex-col items-center gap-3">
+        <div class="card p-6 flex flex-col items-center gap-3 border-none bg-[var(--color-bg-secondary)]">
           <div class="relative">
             <img
               [src]="previewUrl || user?.avatar || avatarUrl"
               alt="Profile"
-              class="w-24 h-24 rounded-full object-cover border-4 border-[var(--color-primary)]"
+              class="w-24 h-24 rounded-full object-cover bg-[var(--color-bg-secondary)]"
             />
             <label class="absolute bottom-0 right-0 w-8 h-8 bg-[var(--color-primary)] rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
               <i class="ri-camera-line text-white text-sm"></i>
@@ -48,31 +53,31 @@ import { User } from '@core/models';
         </div>
 
         <!-- Edit Form -->
-        <div class="card p-4 space-y-4">
+        <div class="card p-4 space-y-4 border-none bg-[var(--color-bg-secondary)]">
           <h3 class="font-semibold text-[var(--color-text-primary)]">Personal Information</h3>
           <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">First Name</label>
-                <input formControlName="firstName" type="text" class="form-input" placeholder="First name" />
+                <input formControlName="firstName" type="text" class="form-input bg-[var(--color-bg-secondary)]" placeholder="First name" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Last Name</label>
-                <input formControlName="lastName" type="text" class="form-input" placeholder="Last name" />
+                <input formControlName="lastName" type="text" class="form-input bg-[var(--color-bg-secondary)]" placeholder="Last name" />
               </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Phone Number</label>
-              <input formControlName="phone" type="tel" class="form-input" placeholder="+233 XX XXX XXXX" />
+              <input formControlName="phone" type="tel" class="form-input bg-[var(--color-bg-secondary)]" placeholder="+233 XX XXX XXXX" />
             </div>
             <div>
               <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Email</label>
-              <input formControlName="email" type="email" class="form-input bg-[var(--color-background)] cursor-not-allowed" readonly />
+              <input formControlName="email" type="email" class="form-input bg-[var(--color-bg-secondary)] cursor-not-allowed" readonly />
               <p class="text-xs text-[var(--color-text-muted)] mt-1">Email cannot be changed</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">City</label>
-              <input formControlName="city" type="text" class="form-input" placeholder="City" />
+              <input formControlName="city" type="text" class="form-input bg-[var(--color-bg-secondary)]" placeholder="City" />
             </div>
             <button type="submit" [disabled]="saving || form.invalid" class="btn-primary w-full">
               <span *ngIf="!saving">Save Changes</span>
@@ -83,15 +88,15 @@ import { User } from '@core/models';
 
         <!-- Stats -->
         <div class="grid grid-cols-3 gap-3">
-          <div class="card p-3 text-center">
+          <div class="card p-3 text-center border-none bg-[var(--color-bg-secondary)]">
             <p class="text-2xl font-bold text-[var(--color-primary)]">{{ stats.bookings }}</p>
             <p class="text-xs text-[var(--color-text-muted)] mt-0.5">Bookings</p>
           </div>
-          <div class="card p-3 text-center">
+          <div class="card p-3 text-center border-none bg-[var(--color-bg-secondary)]">
             <p class="text-2xl font-bold text-[var(--color-primary)]">{{ stats.favorites }}</p>
             <p class="text-xs text-[var(--color-text-muted)] mt-0.5">Favourites</p>
           </div>
-          <div class="card p-3 text-center">
+          <div class="card p-3 text-center border-none bg-[var(--color-bg-secondary)]">
             <p class="text-2xl font-bold text-[var(--color-primary)]">{{ stats.reviews }}</p>
             <p class="text-xs text-[var(--color-text-muted)] mt-0.5">Reviews</p>
           </div>
@@ -100,6 +105,46 @@ import { User } from '@core/models';
       </div>
     </div>
   `,
+  styles: `
+   .pp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background-color: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .pp-back-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background-color: var(--color-bg-secondary, #f5f5f5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--color-text-primary);
+      transition: opacity 0.2s;
+    }
+
+    .pp-back-btn:hover { opacity: 0.7; }
+
+    .pp-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      flex: 1;
+      text-align: center;
+    }
+
+    .pp-spacer { width: 36px; }
+  `
 })
 export class ProfileComponent implements OnInit {
   user: any = null;
@@ -120,7 +165,8 @@ export class ProfileComponent implements OnInit {
     private http: HttpClient,
     private fb: FormBuilder,
     private auth: AuthService,
-    private toast: ToastService
+    private toast: ToastService,
+    private router: Router
   ) {
     this.form = this.fb.group({
       firstName: ['', Validators.required],
@@ -208,4 +254,9 @@ export class ProfileComponent implements OnInit {
       error: () => { this.saving = false; this.toast.error('Update failed'); }
     });
   }
+
+    goBack() { this.router.navigate(['/client/settings']); }
+
 }
+
+

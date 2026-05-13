@@ -55,11 +55,11 @@ import { environment } from "../../../../environments/environment";
       </div>
 
       <!-- ===== GREETING ===== -->
-      <div class="px-4 lg:px-6 pb-4">
+      <!-- <div class="px-4 lg:px-6 pb-4">
         <p class="text-sm mt-0.5" style="color: var(--color-text-secondary)">
           What service do you need today?
         </p>
-      </div>
+      </div> -->
 
       <!-- ===== SEARCH BAR ===== -->
       <div class="px-4 lg:px-6 mb-5">

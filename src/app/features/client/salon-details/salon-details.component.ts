@@ -207,7 +207,7 @@ type TabType = "services" | "about" | "reviews";
                   </div>
                 </div>
 
-                <!-- ===== SERVICE CARDS — Discover-style portrait grid ===== -->
+                <!-- Service Cards -->
                 <div class="px-4 lg:px-0">
                   <ng-container *ngIf="loadingServices">
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -219,7 +219,6 @@ type TabType = "services" | "about" | "reviews";
                     </div>
                   </ng-container>
 
-                  <!-- Horizontal scrolling service cards -->
                   <div class="flex flex-col gap-3">
                     <div
                       *ngFor="let svc of services"
@@ -236,7 +235,6 @@ type TabType = "services" | "about" | "reviews";
                           : '1.5px solid transparent'
                       "
                     >
-                      <!-- Service image -->
                       <div
                         class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0"
                       >
@@ -255,7 +253,6 @@ type TabType = "services" | "about" | "reviews";
                         </div>
                       </div>
 
-                      <!-- Service info -->
                       <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-2">
                           <p
@@ -268,7 +265,8 @@ type TabType = "services" | "about" | "reviews";
                             *ngIf="svc.totalBookings > 20"
                             class="text-xs px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0"
                             style="background: color-mix(in srgb, var(--color-primary) 15%, transparent); color: var(--color-primary)"
-                            >🔥 Popular</span
+                          >
+                            Popular</span
                           >
                         </div>
                         <div class="flex items-center gap-3 mt-2">
@@ -288,7 +286,6 @@ type TabType = "services" | "about" | "reviews";
                         </div>
                       </div>
 
-                      <!-- Checkmark -->
                       <div
                         class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
                         [style.background-color]="
@@ -324,19 +321,115 @@ type TabType = "services" | "about" | "reviews";
               </div>
 
               <!-- ===== ABOUT TAB ===== -->
-              <!-- Working Hours -->
               <div
-                class="rounded-2xl overflow-hidden"
-                style="background-color: var(--color-bg-secondary)"
+                *ngIf="activeTab === 'about'"
+                class="space-y-4 px-4 lg:px-0 pb-36"
               >
-                <div class="px-4 pt-4 pb-3 flex items-center justify-between">
-                  <div class="flex items-center gap-2">
+                <!-- Working Hours -->
+                <div
+                  class="rounded-2xl overflow-hidden"
+                  style="background-color: var(--color-bg-secondary)"
+                >
+                  <div class="px-4 pt-4 pb-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <div
+                        class="w-8 h-8 rounded-xl flex items-center justify-center"
+                        style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent)"
+                      >
+                        <i
+                          class="ri-time-line text-sm"
+                          style="color: var(--color-primary)"
+                        ></i>
+                      </div>
+                      <h3
+                        class="font-semibold text-sm"
+                        style="color: var(--color-text-primary)"
+                      >
+                        Working Hours
+                      </h3>
+                    </div>
+                    <span
+                      class="text-xs font-semibold px-2.5 py-1 rounded-full"
+                      style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary)"
+                    >
+                      Open
+                    </span>
+                  </div>
+
+                  <div class="flex justify-between px-4 pb-4">
+                    <div
+                      *ngFor="let day of getDayChips()"
+                      class="flex flex-col items-center gap-1.5"
+                    >
+                      <span
+                        class="text-xs"
+                        style="color: var(--color-text-secondary)"
+                        >{{ day.label }}</span
+                      >
+                      <div
+                        class="flex items-center justify-center rounded-full font-bold text-xs transition-all"
+                        style="width: 32px; height: 40px;"
+                        [style.background-color]="
+                          day.active
+                            ? 'var(--color-primary)'
+                            : 'var(--color-bg-primary)'
+                        "
+                        [style.color]="
+                          day.active ? '#fff' : 'var(--color-text-placeholder)'
+                        "
+                      >
+                        {{ day.short }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="mx-4 mb-4 flex items-center justify-between px-4 py-3 rounded-2xl"
+                    style="background-color: var(--color-bg-primary)"
+                  >
+                    <div class="flex items-center gap-2">
+                      <i
+                        class="ri-sun-line text-sm"
+                        style="color: var(--color-primary)"
+                      ></i>
+                      <span
+                        class="text-sm font-semibold"
+                        style="color: var(--color-text-primary)"
+                      >
+                        {{ salon?.openingTime || "09:00" }}
+                      </span>
+                    </div>
+                    <div
+                      class="flex-1 mx-3 h-px"
+                      style="background-color: var(--color-border-light)"
+                    ></div>
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="text-sm font-semibold"
+                        style="color: var(--color-text-primary)"
+                      >
+                        {{ salon?.closingTime || "18:00" }}
+                      </span>
+                      <i
+                        class="ri-moon-line text-sm"
+                        style="color: var(--color-text-secondary)"
+                      ></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Location -->
+                <div
+                  class="rounded-2xl overflow-hidden"
+                  style="background-color: var(--color-bg-secondary)"
+                >
+                  <div class="px-4 pt-4 pb-3 flex items-center gap-2">
                     <div
                       class="w-8 h-8 rounded-xl flex items-center justify-center"
                       style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent)"
                     >
                       <i
-                        class="ri-time-line text-sm"
+                        class="ri-map-pin-2-line text-sm"
                         style="color: var(--color-primary)"
                       ></i>
                     </div>
@@ -344,181 +437,84 @@ type TabType = "services" | "about" | "reviews";
                       class="font-semibold text-sm"
                       style="color: var(--color-text-primary)"
                     >
-                      Working Hours
+                      Location
                     </h3>
                   </div>
-                  <span
-                    class="text-xs font-semibold px-2.5 py-1 rounded-full"
-                    style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary)"
-                  >
-                    Open
-                  </span>
-                </div>
 
-                <!-- Day row: label on top, oval chip below — exactly like reference -->
-                <div class="flex justify-between px-4 pb-4">
                   <div
-                    *ngFor="let day of getDayChips()"
-                    class="flex flex-col items-center gap-1.5"
+                    class="mx-4 rounded-2xl overflow-hidden relative"
+                    style="height: 110px; background: linear-gradient(135deg, #e8f4f8 0%, #d0eae8 100%)"
                   >
-                    <!-- Day label -->
-                    <span
-                      class="text-xs"
-                      style="color: var(--color-text-secondary)"
-                      >{{ day.label }}</span
-                    >
-                    <!-- Oval chip -->
                     <div
-                      class="flex items-center justify-center rounded-full font-bold text-xs transition-all"
-                      style="width: 32px; height: 40px;"
-                      [style.background-color]="
-                        day.active
-                          ? 'var(--color-primary)'
-                          : 'var(--color-bg-primary)'
-                      "
-                      [style.color]="
-                        day.active ? '#fff' : 'var(--color-text-placeholder)'
-                      "
+                      class="absolute inset-0 opacity-10"
+                      style="background-image: repeating-linear-gradient(0deg, transparent, transparent 20px, var(--color-primary) 20px, var(--color-primary) 21px), repeating-linear-gradient(90deg, transparent, transparent 20px, var(--color-primary) 20px, var(--color-primary) 21px)"
+                    ></div>
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
                     >
-                      {{ day.short }}
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Time range -->
-                <div
-                  class="mx-4 mb-4 flex items-center justify-between px-4 py-3 rounded-2xl"
-                  style="background-color: var(--color-bg-primary)"
-                >
-                  <div class="flex items-center gap-2">
-                    <i
-                      class="ri-sun-line text-sm"
-                      style="color: var(--color-primary)"
-                    ></i>
-                    <span
-                      class="text-sm font-semibold"
-                      style="color: var(--color-text-primary)"
-                    >
-                      {{ salon?.openingTime || "09:00" }}
-                    </span>
-                  </div>
-                  <div
-                    class="flex-1 mx-3 h-px"
-                    style="background-color: var(--color-border-light)"
-                  ></div>
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="text-sm font-semibold"
-                      style="color: var(--color-text-primary)"
-                    >
-                      {{ salon?.closingTime || "18:00" }}
-                    </span>
-                    <i
-                      class="ri-moon-line text-sm"
-                      style="color: var(--color-text-secondary)"
-                    ></i>
-                  </div>
-                </div>
-              </div>
-              <!-- Location -->
-              <div
-                class="rounded-2xl overflow-hidden"
-                style="background-color: var(--color-bg-secondary)"
-              >
-                <div class="px-4 pt-4 pb-3 flex items-center gap-2">
-                  <div
-                    class="w-8 h-8 rounded-xl flex items-center justify-center"
-                    style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent)"
-                  >
-                    <i
-                      class="ri-map-pin-2-line text-sm"
-                      style="color: var(--color-primary)"
-                    ></i>
-                  </div>
-                  <h3
-                    class="font-semibold text-sm"
-                    style="color: var(--color-text-primary)"
-                  >
-                    Location
-                  </h3>
-                </div>
-
-                <!-- Map placeholder -->
-                <div
-                  class="mx-4 rounded-2xl overflow-hidden relative"
-                  style="height: 110px; background: linear-gradient(135deg, #e8f4f8 0%, #d0eae8 100%)"
-                >
-                  <div
-                    class="absolute inset-0 opacity-10"
-                    style="background-image: repeating-linear-gradient(0deg, transparent, transparent 20px, var(--color-primary) 20px, var(--color-primary) 21px), repeating-linear-gradient(90deg, transparent, transparent 20px, var(--color-primary) 20px, var(--color-primary) 21px)"
-                  ></div>
-                  <div
-                    class="absolute inset-0 flex items-center justify-center"
-                  >
-                    <div class="flex flex-col items-center gap-1">
-                      <div
-                        class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
-                        style="background-color: var(--color-primary)"
-                      >
-                        <i class="ri-map-pin-2-fill text-white text-lg"></i>
-                      </div>
-                      <div
-                        class="px-3 py-1 rounded-full text-xs font-semibold shadow-sm"
-                        style="background: white; color: var(--color-primary)"
-                      >
-                        {{ salon?.city }}
+                      <div class="flex flex-col items-center gap-1">
+                        <div
+                          class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+                          style="background-color: var(--color-primary)"
+                        >
+                          <i class="ri-map-pin-2-fill text-white text-lg"></i>
+                        </div>
+                        <div
+                          class="px-3 py-1 rounded-full text-xs font-semibold shadow-sm"
+                          style="background: white; color: var(--color-primary)"
+                        >
+                          {{ salon?.city }}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Address row -->
-                <div class="px-4 py-3 flex items-start gap-3">
-                  <i
-                    class="ri-map-pin-line text-sm mt-0.5 flex-shrink-0"
-                    style="color: var(--color-primary)"
-                  ></i>
-                  <div class="flex-1 min-w-0">
-                    <p
-                      class="text-sm font-medium"
-                      style="color: var(--color-text-primary)"
-                    >
-                      {{ salon?.businessAddress }}
-                    </p>
-                    <p
-                      class="text-xs mt-0.5"
-                      style="color: var(--color-text-secondary)"
-                    >
-                      {{ salon?.city }}, {{ salon?.region }}
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Phone row (if available) -->
-                <div
-                  *ngIf="salon?.user?.phone"
-                  class="mx-4 mb-4 flex items-center justify-between px-4 py-3 rounded-2xl cursor-pointer active:opacity-80"
-                  style="background-color: color-mix(in srgb, var(--color-primary) 8%, transparent)"
-                  (click)="call()"
-                >
-                  <div class="flex items-center gap-2">
+                  <div class="px-4 py-3 flex items-start gap-3">
                     <i
-                      class="ri-phone-fill text-sm"
+                      class="ri-map-pin-line text-sm mt-0.5 flex-shrink-0"
                       style="color: var(--color-primary)"
                     ></i>
-                    <span
-                      class="text-sm font-semibold"
-                      style="color: var(--color-primary)"
-                    >
-                      {{ salon?.user?.phone }}
-                    </span>
+                    <div class="flex-1 min-w-0">
+                      <p
+                        class="text-sm font-medium"
+                        style="color: var(--color-text-primary)"
+                      >
+                        {{ salon?.businessAddress }}
+                      </p>
+                      <p
+                        class="text-xs mt-0.5"
+                        style="color: var(--color-text-secondary)"
+                      >
+                        {{ salon?.city }}, {{ salon?.region }}
+                      </p>
+                    </div>
                   </div>
-                  <i
-                    class="ri-arrow-right-s-line"
-                    style="color: var(--color-primary)"
-                  ></i>
+
+                  <div
+                    *ngIf="salon?.user?.phone"
+                    class="mx-4 mb-4 flex items-center justify-between px-4 py-3 rounded-2xl cursor-pointer active:opacity-80"
+                    style="background-color: color-mix(in srgb, var(--color-primary) 8%, transparent)"
+                    (click)="call()"
+                  >
+                    <div class="flex items-center gap-2">
+                      <i
+                        class="ri-phone-fill text-sm"
+                        style="color: var(--color-primary)"
+                      ></i>
+                      <span
+                        class="text-sm font-semibold"
+                        style="color: var(--color-primary)"
+                      >
+                        {{ salon?.user?.phone }}
+                      </span>
+                    </div>
+                    <i
+                      class="ri-arrow-right-s-line"
+                      style="color: var(--color-primary)"
+                    ></i>
+                  </div>
+                  <div *ngIf="!salon?.user?.phone" class="pb-4"></div>
                 </div>
-                <div *ngIf="!salon?.user?.phone" class="pb-4"></div>
               </div>
 
               <!-- ===== REVIEWS TAB ===== -->
@@ -713,7 +709,6 @@ type TabType = "services" | "about" | "reviews";
           </div>
         </div>
       </div>
-      <!-- END .page-enter -->
 
       <!-- ===== MOBILE FAB ===== -->
       <div
@@ -957,7 +952,7 @@ export class SalonDetailsComponent implements OnInit {
 
   book(): void {
     if (this.activeTab === "reviews") {
-      this.toast.info("Review feature coming soon");
+      this.router.navigate(["/client/review", this.salonId]);
       return;
     }
     if (this.selectedServices.length === 0) {
@@ -965,10 +960,9 @@ export class SalonDetailsComponent implements OnInit {
       this.toast.warning("Please select at least one service");
       return;
     }
-    this.router.navigate(["/client/salon", this.salonId], {
-      queryParams: { services: this.selectedServices.join(","), book: true },
+    this.router.navigate(["/client/book-appointment", this.salonId], {
+      queryParams: { services: this.selectedServices.join(",") },
     });
-    this.toast.success("Booking flow coming soon!");
   }
 
   toggleFavorite(): void {
