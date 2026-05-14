@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.beautyhub.com/api',
+    apiUrl: 'https://api-bigluxx.thedonkomi.com/api/v1',
 };
