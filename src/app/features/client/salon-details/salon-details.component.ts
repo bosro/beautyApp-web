@@ -348,18 +348,29 @@ type TabType = "services" | "about" | "reviews";
                         Working Hours
                       </h3>
                     </div>
+
+                    <!-- CHANGED: holiday-aware status badge -->
                     <span
                       class="text-xs font-semibold px-2.5 py-1 rounded-full"
-                      style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary)"
+                      [style.background-color]="
+                        isOnHoliday
+                          ? 'color-mix(in srgb, #F59E0B 12%, transparent)'
+                          : 'color-mix(in srgb, var(--color-primary) 12%, transparent)'
+                      "
+                      [style.color]="
+                        isOnHoliday ? '#D97706' : 'var(--color-primary)'
+                      "
                     >
-                      Open
+                      {{ isOnHoliday ? "On Holiday" : "Open" }}
                     </span>
                   </div>
 
+                  <!-- CHANGED: day chips now tappable to select day -->
                   <div class="flex justify-between px-4 pb-4">
                     <div
                       *ngFor="let day of getDayChips()"
-                      class="flex flex-col items-center gap-1.5"
+                      (click)="selectedDayName = day.full"
+                      class="flex flex-col items-center gap-1.5 cursor-pointer"
                     >
                       <span
                         class="text-xs"
@@ -371,7 +382,9 @@ type TabType = "services" | "about" | "reviews";
                         style="width: 32px; height: 40px;"
                         [style.background-color]="
                           day.active
-                            ? 'var(--color-primary)'
+                            ? selectedDayName === day.full
+                              ? '#1a1a1a'
+                              : 'var(--color-primary)'
                             : 'var(--color-bg-primary)'
                         "
                         [style.color]="
@@ -383,6 +396,19 @@ type TabType = "services" | "about" | "reviews";
                     </div>
                   </div>
 
+                  <!-- NEW: holiday notice banner -->
+                  <div
+                    *ngIf="isOnHoliday"
+                    class="mx-4 mb-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center gap-2"
+                  >
+                    <i class="ri-calendar-close-line text-amber-600"></i>
+                    <p class="text-xs text-amber-700 dark:text-amber-400">
+                      This salon is currently on holiday and not accepting
+                      bookings.
+                    </p>
+                  </div>
+
+                  <!-- CHANGED: hours now reflect selected day's override -->
                   <div
                     class="mx-4 mb-4 flex items-center justify-between px-4 py-3 rounded-2xl"
                     style="background-color: var(--color-bg-primary)"
@@ -396,7 +422,7 @@ type TabType = "services" | "about" | "reviews";
                         class="text-sm font-semibold"
                         style="color: var(--color-text-primary)"
                       >
-                        {{ salon?.openingTime || "09:00" }}
+                        {{ getDayHours(selectedDayName).open }}
                       </span>
                     </div>
                     <div
@@ -408,12 +434,37 @@ type TabType = "services" | "about" | "reviews";
                         class="text-sm font-semibold"
                         style="color: var(--color-text-primary)"
                       >
-                        {{ salon?.closingTime || "18:00" }}
+                        {{ getDayHours(selectedDayName).close }}
                       </span>
                       <i
                         class="ri-moon-line text-sm"
                         style="color: var(--color-text-secondary)"
                       ></i>
+                    </div>
+                  </div>
+
+                  <!-- Break times for selected day -->
+                  <div
+                    *ngIf="getBreakTimes().length > 0"
+                    class="mx-4 mb-4 space-y-2"
+                  >
+                    <p
+                      class="text-xs font-semibold"
+                      style="color: var(--color-text-secondary)"
+                    >
+                      Break Times
+                    </p>
+                    <div
+                      *ngFor="let b of getBreakTimes()"
+                      class="flex items-center gap-2 px-3 py-2 rounded-xl"
+                      style="background-color: color-mix(in srgb, #F97316 8%, transparent)"
+                    >
+                      <i class="ri-cup-line text-sm text-orange-500"></i>
+                      <span
+                        class="text-xs font-medium text-orange-600 dark:text-orange-400"
+                      >
+                        {{ b.startTime }} – {{ b.endTime }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -859,6 +910,15 @@ export class SalonDetailsComponent implements OnInit {
 
   ratingBars: { star: number; pct: number }[] = [];
 
+  salonHolidays: any[] = [];
+  dayOverrides: Record<string, any> = {};
+  isOnHoliday = false;
+
+  selectedDayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
+
+  salonBreakTimes: Record<string, { startTime: string; endTime: string }[]> =
+    {};
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -881,11 +941,47 @@ export class SalonDetailsComponent implements OnInit {
           this.computeRatingBars();
           this.loadServices();
           this.loadReviews();
+          this.loadHolidaysAndOverrides(); // Add this
         },
         error: () => {
           this.loading = false;
         },
       });
+  }
+
+  loadHolidaysAndOverrides(): void {
+    // Fetch holidays
+    this.http
+      .get<any>(`${environment.apiUrl}/schedule/${this.salonId}/holidays`)
+      .subscribe({
+        next: (res) => {
+          this.dayOverrides = res.data?.overrides || {};
+          // Extract break times per day for display
+          this.salonBreakTimes = {};
+          Object.entries(this.dayOverrides).forEach(
+            ([day, override]: [string, any]) => {
+              if (override.breakTimes?.length) {
+                this.salonBreakTimes[day] = override.breakTimes;
+              }
+            },
+          );
+        },
+        error: () => {},
+      });
+
+    // Fetch per-day overrides
+    this.http
+      .get<any>(`${environment.apiUrl}/schedule/${this.salonId}/day-overrides`)
+      .subscribe({
+        next: (res) => {
+          this.dayOverrides = res.data?.overrides || {};
+        },
+        error: () => {},
+      });
+  }
+
+  getBreakTimes(): { startTime: string; endTime: string }[] {
+    return this.salonBreakTimes[this.selectedDayName] || [];
   }
 
   private computeRatingBars(): void {
@@ -972,16 +1068,44 @@ export class SalonDetailsComponent implements OnInit {
     );
   }
 
-  getDayChips(): { label: string; short: string; active: boolean }[] {
+  getDayChips(): {
+    label: string;
+    short: string;
+    full: string;
+    active: boolean;
+  }[] {
+    const map: Record<string, string> = {
+      Sun: "Sunday",
+      Mon: "Monday",
+      Tue: "Tuesday",
+      Wed: "Wednesday",
+      Thu: "Thursday",
+      Fri: "Friday",
+      Sat: "Saturday",
+    };
     const allDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const workingDays = this.salon?.workingDays || [];
     return allDays.map((d) => ({
       label: d,
       short: d.slice(0, 1),
-      active: workingDays.some((w: string) =>
-        w.toLowerCase().startsWith(d.toLowerCase()),
-      ),
+      full: map[d],
+      active:
+        !this.isOnHoliday &&
+        workingDays.some((w: string) =>
+          w.toLowerCase().startsWith(d.toLowerCase()),
+        ),
     }));
+  }
+
+  // Add helper for per-day hours display in About tab:
+  getDayHours(dayName: string): { open: string; close: string } {
+    const override = this.dayOverrides[dayName];
+    if (override)
+      return { open: override.openingTime, close: override.closingTime };
+    return {
+      open: this.salon?.openingTime || "09:00",
+      close: this.salon?.closingTime || "18:00",
+    };
   }
 
   call(): void {

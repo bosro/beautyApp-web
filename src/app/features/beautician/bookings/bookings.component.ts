@@ -14,7 +14,7 @@ import { ToastService } from "@core/services/toast.service";
       >
         <div class="flex items-center justify-between">
           <h1 class="text-lg font-semibold text-[var(--color-text-primary)]">
-            Bookings
+            Manage Bookings
           </h1>
           <div class="flex items-center gap-2">
             <input
@@ -31,7 +31,7 @@ import { ToastService } from "@core/services/toast.service";
         <div class="flex gap-1 bg-[var(--color-background)] p-1 rounded-xl">
           <button
             *ngFor="let tab of tabs"
-            (click)="activeTab = tab.value; filterBookings()"
+            (click)="setActiveTab(tab.value)"
             class="flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors"
             [ngClass]="
               activeTab === tab.value
@@ -50,15 +50,15 @@ import { ToastService } from "@core/services/toast.service";
       <div *ngIf="loading" class="p-4 space-y-3">
         <div
           *ngFor="let i of [1, 2, 3, 4]"
-          class="skeleton h-28 rounded-xl"
+          class="skeleton h-36 rounded-xl"
         ></div>
       </div>
 
       <app-empty-state
         *ngIf="!loading && filteredBookings.length === 0"
         icon="ri-calendar-line"
-        title="No Bookings"
-        subtitle="No bookings found for this status."
+        [title]="'No ' + activeTab.toLowerCase() + ' bookings'"
+        [subtitle]="'Your ' + activeTab.toLowerCase() + ' bookings will appear here.'"
       >
       </app-empty-state>
 
@@ -67,15 +67,12 @@ import { ToastService } from "@core/services/toast.service";
         class="p-4 space-y-3"
       >
         <div *ngFor="let booking of filteredBookings" class="card p-4">
-          <div class="flex gap-3">
-            <!-- Client -->
+          <!-- Header: client + status -->
+          <div class="flex gap-3 mb-3">
             <img
               [src]="
-                booking.client?.avatar ||
-                'https://ui-avatars.com/api/?name=' +
-                  booking.client?.firstName +
-                  '+' +
-                  booking.client?.lastName
+                booking.customer?.avatar ||
+                'https://ui-avatars.com/api/?name=' + (booking.customer?.name || 'C')
               "
               class="w-11 h-11 rounded-xl object-cover flex-shrink-0"
             />
@@ -85,7 +82,7 @@ import { ToastService } from "@core/services/toast.service";
                 <p
                   class="font-semibold text-[var(--color-text-primary)] truncate"
                 >
-                  {{ booking.client?.firstName }} {{ booking.client?.lastName }}
+                  {{ booking.customer?.name || 'Customer' }}
                 </p>
                 <span
                   class="badge badge-sm flex-shrink-0"
@@ -93,74 +90,107 @@ import { ToastService } from "@core/services/toast.service";
                   >{{ booking.status }}</span
                 >
               </div>
-              <p class="text-xs text-[var(--color-text-secondary)] mt-0.5">
-                {{ booking.date | date: "EEE, MMM d" }} ·
-                {{ booking.startTime }} – {{ booking.endTime }}
+              <p *ngIf="booking.customer?.phone" class="text-xs text-[var(--color-text-secondary)] mt-0.5">
+                {{ booking.customer.phone }}
               </p>
-              <p class="text-xs text-[var(--color-text-muted)] mt-0.5 truncate">
-                {{ getServiceNames(booking) }}
-              </p>
-              <div class="flex items-center justify-between mt-2">
-                <p class="text-sm font-bold text-[var(--color-primary)]">
-                  GH₵ {{ booking.totalAmount | number: "1.2-2" }}
-                </p>
-                <div class="flex gap-2">
-                  <button
-                    *ngIf="booking.status === 'PENDING'"
-                    (click)="updateStatus(booking, 'CONFIRMED')"
-                    class="text-xs px-2.5 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium"
-                  >
-                    Confirm
-                  </button>
-                  <button
-                    *ngIf="booking.status === 'CONFIRMED'"
-                    (click)="updateStatus(booking, 'COMPLETED')"
-                    class="text-xs px-2.5 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium"
-                  >
-                    Complete
-                  </button>
-                  <button
-                    *ngIf="
-                      booking.status === 'PENDING' ||
-                      booking.status === 'CONFIRMED'
-                    "
-                    (click)="bookingToCancel = booking; showCancelModal = true"
-                    class="text-xs px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-lg hover:bg-red-200 font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    (click)="viewClient(booking.client?.id)"
-                    class="text-xs px-2.5 py-1 bg-[var(--color-background)] border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded-lg"
-                  >
-                    Profile
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
 
-          <!-- Notes -->
-          <div
-            *ngIf="booking.notes"
-            class="mt-2 pt-2 border-t border-[var(--color-border)]"
-          >
-            <p class="text-xs text-[var(--color-text-muted)] italic">
-              "{{ booking.notes }}"
+          <!-- Service + price -->
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-sm font-medium text-[var(--color-text-primary)]">
+              {{ booking.service?.name || 'Service' }}
+            </p>
+            <p class="text-sm font-bold text-[var(--color-primary)]">
+              GH₵ {{ booking.price | number: "1.2-2" }}
             </p>
           </div>
+
+          <!-- Date + time -->
+          <p class="text-xs text-[var(--color-text-secondary)] mb-2">
+            <i class="ri-calendar-line mr-1"></i>{{ booking.date | date: "EEE, MMM d, y" }}
+            &nbsp;·&nbsp;
+            <i class="ri-time-line mr-1"></i>{{ booking.time }}
+          </p>
+
+          <!-- Note -->
+          <div
+            *ngIf="booking.note"
+            class="mt-2 mb-3 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20"
+          >
+            <p class="text-xs text-[var(--color-text-muted)] italic">
+              "{{ booking.note }}"
+            </p>
+          </div>
+
+          <!-- Actions: PENDING -->
+          <div *ngIf="booking.status === 'PENDING'" class="flex gap-2 mt-3 pt-3 border-t border-[var(--color-border)]">
+            <button
+              (click)="openActionModal(booking, 'decline')"
+              [disabled]="updating[booking.id]"
+              class="flex-1 text-sm py-2 border border-red-400 text-red-500 rounded-lg font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+            >
+              Decline
+            </button>
+            <button
+              (click)="openActionModal(booking, 'accept')"
+              [disabled]="updating[booking.id]"
+              class="flex-1 text-sm py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors disabled:opacity-50"
+            >
+              <span *ngIf="!updating[booking.id]">Accept</span>
+              <span *ngIf="updating[booking.id]" class="flex items-center justify-center gap-1">
+                <i class="ri-loader-4-line animate-spin text-xs"></i> Accepting...
+              </span>
+            </button>
+          </div>
+
+          <!-- Actions: CONFIRMED -->
+          <div *ngIf="booking.status === 'CONFIRMED'" class="flex gap-2 mt-3 pt-3 border-t border-[var(--color-border)]">
+            <button
+              (click)="openActionModal(booking, 'decline')"
+              [disabled]="updating[booking.id]"
+              class="text-sm px-3 py-2 border border-red-400 text-red-500 rounded-lg font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              (click)="openActionModal(booking, 'complete')"
+              [disabled]="updating[booking.id]"
+              class="flex-1 text-sm py-2 bg-[var(--color-primary)] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              <span *ngIf="!updating[booking.id]">Mark as Completed</span>
+              <span *ngIf="updating[booking.id]" class="flex items-center justify-center gap-1">
+                <i class="ri-loader-4-line animate-spin text-xs"></i> Updating...
+              </span>
+            </button>
+          </div>
+
+          <!-- View details link -->
+          <button
+            (click)="viewDetails(booking.id)"
+            class="mt-2 w-full text-xs text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors text-center py-1"
+          >
+            View full details →
+          </button>
         </div>
       </div>
 
+      <!-- Confirm Action Modal -->
       <app-confirm-modal
-        *ngIf="showCancelModal"
-        title="Cancel Booking"
-        message="Are you sure you want to cancel this booking? The client will be notified."
-        confirmText="Yes, Cancel"
-        type="error"
-        [loading]="cancelling"
-        (confirmed)="cancelBooking()"
-        (cancelled)="showCancelModal = false; bookingToCancel = null"
+        *ngIf="showActionModal"
+        [title]="modalAction === 'accept' ? 'Accept Booking' : modalAction === 'complete' ? 'Complete Booking' : 'Cancel Booking'"
+        [message]="
+          modalAction === 'accept'
+            ? 'Confirm booking from ' + selectedBooking?.customer?.name + '?'
+            : modalAction === 'complete'
+            ? 'Mark this booking as completed?'
+            : 'Cancel booking from ' + selectedBooking?.customer?.name + '?'
+        "
+        [confirmText]="modalAction === 'accept' ? 'Accept' : modalAction === 'complete' ? 'Complete' : 'Cancel Booking'"
+        [type]="modalAction === 'accept' || modalAction === 'complete' ? 'success' : 'error'"
+        [loading]="updating[selectedBooking?.id]"
+        (confirmed)="confirmAction()"
+        (cancelled)="closeActionModal()"
       >
       </app-confirm-modal>
     </div>
@@ -172,9 +202,13 @@ export class BeauticianBookingsComponent implements OnInit {
   loading = true;
   activeTab = "PENDING";
   searchQuery = "";
-  showCancelModal = false;
-  bookingToCancel: any = null;
-  cancelling = false;
+
+  showActionModal = false;
+  selectedBooking: any = null;
+  modalAction: "accept" | "decline" | "complete" | null = null;
+
+  // Track per-booking update state so other cards don't gray out
+  updating: Record<string, boolean> = {};
 
   tabs = [
     { label: "Pending", value: "PENDING" },
@@ -190,14 +224,30 @@ export class BeauticianBookingsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.loadBookings();
+  }
+
+  loadBookings() {
+    this.loading = true;
+    // Uses the same endpoint as mobile: GET /bookings/beautician/:id
+    // The auth interceptor attaches the token; the backend filters by the logged-in beautician.
     this.http.get<any>(`${environment.apiUrl}/beauticians/bookings`).subscribe({
       next: (res) => {
-        this.bookings = res.data?.bookings || []; // was: res.data || []
+        // Mobile interface shows: res.data.bookings (BookingsResponse shape)
+        this.bookings = res.data?.bookings || [];
         this.filterBookings();
         this.loading = false;
       },
-      error: () => (this.loading = false),
+      error: () => {
+        this.toast.error("Failed to load bookings");
+        this.loading = false;
+      },
     });
+  }
+
+  setActiveTab(tab: string) {
+    this.activeTab = tab;
+    this.filterBookings();
   }
 
   filterBookings() {
@@ -205,7 +255,7 @@ export class BeauticianBookingsComponent implements OnInit {
       const matchStatus = b.status === this.activeTab;
       const matchSearch =
         !this.searchQuery ||
-        `${b.client?.firstName} ${b.client?.lastName}`
+        (b.customer?.name || "")
           .toLowerCase()
           .includes(this.searchQuery.toLowerCase());
       return matchStatus && matchSearch;
@@ -217,7 +267,7 @@ export class BeauticianBookingsComponent implements OnInit {
   }
 
   getStatusClass(s: string) {
-    const m: any = {
+    const m: Record<string, string> = {
       PENDING: "badge-warning",
       CONFIRMED: "badge-info",
       COMPLETED: "badge-success",
@@ -226,51 +276,67 @@ export class BeauticianBookingsComponent implements OnInit {
     return m[s] || "";
   }
 
-  getServiceNames(booking: any) {
-    return (booking.services || []).map((s: any) => s.service?.name).join(", ");
+  openActionModal(booking: any, action: "accept" | "decline" | "complete") {
+    this.selectedBooking = booking;
+    this.modalAction = action;
+    this.showActionModal = true;
   }
 
-  updateStatus(booking: any, status: string) {
+  closeActionModal() {
+    this.showActionModal = false;
+    this.selectedBooking = null;
+    this.modalAction = null;
+  }
+
+  confirmAction() {
+    if (!this.selectedBooking || !this.modalAction) return;
+
+    const id = this.selectedBooking.id;
+    const statusMap: Record<string, string> = {
+      accept: "CONFIRMED",
+      decline: "CANCELLED",
+      complete: "COMPLETED",
+    };
+    const newStatus = statusMap[this.modalAction];
+
+    this.updating[id] = true;
+    this.showActionModal = false;
+
+    const body: any = { status: newStatus };
+    if (newStatus === "CANCELLED") {
+      body.cancellationReason = "Declined by beautician";
+    }
+
+    // Matches mobile: PUT /bookings/:id/status with { status, cancellationReason? }
     this.http
-      .patch(
-        `${environment.apiUrl}/bookings/${booking.id}/${status.toLowerCase()}`,
-        {},
-      )
+      .put(`${environment.apiUrl}/bookings/${id}/status`, body)
       .subscribe({
         next: () => {
-          booking.status = status;
+          // Optimistically update in place — same pattern as mobile refetch
+          const booking = this.bookings.find((b) => b.id === id);
+          if (booking) booking.status = newStatus;
           this.filterBookings();
-          this.toast.success(`Booking ${status.toLowerCase()}`);
+
+          const messages: Record<string, string> = {
+            CONFIRMED: `Booking accepted for ${this.selectedBooking?.customer?.name}`,
+            CANCELLED: `Booking cancelled`,
+            COMPLETED: `Booking marked as completed`,
+          };
+          this.toast.success(messages[newStatus] || "Booking updated");
+          this.updating[id] = false;
+          this.closeActionModal();
         },
-        error: () => this.toast.error("Update failed"),
+        error: (err) => {
+          this.toast.error(
+            err.error?.message || "Failed to update booking",
+          );
+          this.updating[id] = false;
+          this.closeActionModal();
+        },
       });
   }
 
-  cancelBooking() {
-    if (!this.bookingToCancel) return;
-    this.cancelling = true;
-    this.http
-      .patch(
-        `${environment.apiUrl}/bookings/${this.bookingToCancel.id}/cancel`,
-        {},
-      )
-      .subscribe({
-        next: () => {
-          this.bookingToCancel.status = "CANCELLED";
-          this.filterBookings();
-          this.showCancelModal = false;
-          this.cancelling = false;
-          this.bookingToCancel = null;
-          this.toast.success("Booking cancelled");
-        },
-        error: () => {
-          this.cancelling = false;
-          this.toast.error("Failed to cancel");
-        },
-      });
-  }
-
-  viewClient(id: string) {
-    this.router.navigate(["/beautician/clients", id]);
+  viewDetails(bookingId: string) {
+    this.router.navigate(["/beautician/bookings", bookingId]);
   }
 }

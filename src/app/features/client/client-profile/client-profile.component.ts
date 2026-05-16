@@ -52,13 +52,13 @@ import { User } from "@core/models";
             <i class="ri-arrow-right-s-line menu-arrow"></i>
           </button>
 
-          <button class="menu-row" (click)="navigate('/client/notifications')">
+          <!-- <button class="menu-row" (click)="navigate('/client/notifications')">
             <div class="menu-row-left">
               <i class="ri-notification-3-line"></i>
               <span>Notifications</span>
             </div>
             <i class="ri-arrow-right-s-line menu-arrow"></i>
-          </button>
+          </button> -->
 
           <!-- Theme inline toggle -->
           <div class="menu-row">
@@ -97,21 +97,21 @@ import { User } from "@core/models";
             </div>
           </button>
 
-          <button class="menu-row" (click)="navigate('/client/about')">
+          <!-- <button class="menu-row" (click)="navigate('/client/about')">
             <div class="menu-row-left">
               <i class="ri-information-line"></i>
               <span>About Us</span>
             </div>
             <i class="ri-arrow-right-s-line menu-arrow"></i>
-          </button>
+          </button> -->
 
-          <button class="menu-row" (click)="navigate('/client/support')">
+          <!-- <button class="menu-row" (click)="navigate('/client/support')">
             <div class="menu-row-left">
               <i class="ri-question-line"></i>
               <span>Help Center</span>
             </div>
             <i class="ri-arrow-right-s-line menu-arrow"></i>
-          </button>
+          </button> -->
 
           <button class="menu-row" (click)="navigate('/client/support')">
             <div class="menu-row-left">

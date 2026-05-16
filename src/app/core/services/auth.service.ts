@@ -43,20 +43,22 @@ export class AuthService {
     return this.user?.role ?? null;
   }
 
-get refreshToken(): string | null {
-  return this._state.value.refreshToken ?? localStorage.getItem('@refresh_token');
-}
+  get refreshToken(): string | null {
+    return (
+      this._state.value.refreshToken ?? localStorage.getItem("@refresh_token")
+    );
+  }
 
-refreshTokenRequest(refreshToken: string): Observable<string> {
-  return this.api.post<any>('/auth/refresh-token', { refreshToken }).pipe(
-    tap((res: any) => {
-      if (res?.data?.tokens && res?.data?.user) {
-        this.setAuth(res.data.tokens, res.data.user);
-      }
-    }),
-    map((res: any) => res.data.tokens.accessToken)
-  );
-}
+  refreshTokenRequest(refreshToken: string): Observable<string> {
+    return this.api.post<any>("/auth/refresh-token", { refreshToken }).pipe(
+      tap((res: any) => {
+        if (res?.data?.tokens && res?.data?.user) {
+          this.setAuth(res.data.tokens, res.data.user);
+        }
+      }),
+      map((res: any) => res.data.tokens.accessToken),
+    );
+  }
 
   constructor(
     private api: ApiService,
@@ -160,6 +162,16 @@ refreshTokenRequest(refreshToken: string): Observable<string> {
     role: "CUSTOMER" | "BEAUTICIAN";
   }): Observable<unknown> {
     return this.api.post("/auth/register", payload).pipe(
+      tap((res: any) => {
+        if (res?.data?.tokens && res?.data?.user) {
+          this.setAuth(res.data.tokens, res.data.user);
+        }
+      }),
+    );
+  }
+
+  googleSignIn(idToken: string): Observable<any> {
+    return this.api.post("/auth/google", { idToken, role: "CUSTOMER" }).pipe(
       tap((res: any) => {
         if (res?.data?.tokens && res?.data?.user) {
           this.setAuth(res.data.tokens, res.data.user);

@@ -88,3 +88,4 @@ export class ClientsComponent implements OnInit {
 
   viewClient(id: string) { this.router.navigate(['/beautician/clients', id]); }
 }
+

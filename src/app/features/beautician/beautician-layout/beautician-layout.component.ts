@@ -288,12 +288,12 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
       icon: "ri-time-line",
       badge: null,
     },
-    {
-      path: "/beautician/earnings",
-      label: "Earnings",
-      icon: "ri-money-dollar-circle-line",
-      badge: null,
-    },
+    // {
+    //   path: "/beautician/earnings",
+    //   label: "Earnings",
+    //   icon: "ri-money-dollar-circle-line",
+    //   badge: null,
+    // },
     {
       path: "/beautician/reviews",
       label: "Reviews",
@@ -335,12 +335,12 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
       icon: "ri-scissors-2-line",
       badge: null,
     },
-    {
-      path: "/beautician/earnings",
-      label: "Earnings",
-      icon: "ri-money-dollar-circle-line",
-      badge: null,
-    },
+    // {
+    //   path: "/beautician/earnings",
+    //   label: "Earnings",
+    //   icon: "ri-money-dollar-circle-line",
+    //   badge: null,
+    // },
     { path: "more", label: "More", icon: "ri-settings-line", badge: null },
   ];
 

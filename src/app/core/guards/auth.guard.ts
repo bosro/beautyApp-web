@@ -59,3 +59,5 @@ export class BeauticianGuard implements CanActivate {
 }
 
 
+
+

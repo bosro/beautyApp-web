@@ -7,7 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SharedModule } from './shared/shared.module';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
-
+import { GoogleMapsModule } from '@angular/google-maps';
 @NgModule({
   declarations: [AppComponent],
   imports: [
@@ -16,6 +16,7 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
     HttpClientModule,
     AppRoutingModule,
     SharedModule,
+    GoogleMapsModule
   ],
   providers: [
     {

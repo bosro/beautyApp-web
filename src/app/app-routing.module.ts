@@ -21,6 +21,12 @@ const routes: Routes = [
       import('./features/client/client.module').then((m) => m.ClientModule),
     canActivate: [ClientGuard],
   },
+   {
+    path: 'settings',
+    loadChildren: () =>
+      import('./features/settings/settings.module').then((m) => m.SettingsModule),
+    canActivate: [ClientGuard],
+  },
 
   // Beautician section
   {

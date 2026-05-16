@@ -15,7 +15,7 @@ import { ReferralComponent } from "./referral/referral.component";
 import { PromotionsComponent } from "./promotions/promotions.component";
 import { SearchResultsComponent } from "./search-results/search-results.component";
 import { WalletComponent } from "./wallet/wallet.component";
-import { SettingsComponent } from "./settings/settings.component";
+import { SettingsComponent } from "./client-profile/client-profile.component";
 import { ProfileSettingsComponent } from "./profile-settings/profile-settings.component";
 import { MapComponent } from "./map/map.component";
 import { BookAppointmentComponent } from "./book-appointment/book-appointment.component";
