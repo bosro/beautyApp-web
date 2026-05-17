@@ -31,7 +31,8 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               { "glob": "**/*", "input": "public" },
-              "src/assets"
+              "src/assets",
+              "src/firebase-messaging-sw.js" 
             ],
             "styles": ["src/styles.scss"],
             "scripts": []

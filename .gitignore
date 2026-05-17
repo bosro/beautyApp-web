@@ -45,3 +45,6 @@ app-example
 /ios
 /android
 
+
+environment.ts
+environment.prod.ts

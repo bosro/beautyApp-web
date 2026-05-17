@@ -1,3 +1,6 @@
+// src/app/core/guards/auth.guard.ts
+// UPDATED — added SettingsGuard that allows both CUSTOMER and BEAUTICIAN
+
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -58,6 +61,19 @@ export class BeauticianGuard implements CanActivate {
   }
 }
 
+/**
+ * SettingsGuard — allows ANY authenticated user (CUSTOMER or BEAUTICIAN).
+ * Used for shared settings routes: notifications, change-password, security.
+ * If not authenticated → redirect to login.
+ */
+@Injectable({ providedIn: 'root' })
+export class SettingsGuard implements CanActivate {
+  constructor(private auth: AuthService, private router: Router) {}
 
-
-
+  canActivate(): boolean | UrlTree {
+    if (this.auth.isAuthenticated) {
+      return true;
+    }
+    return this.router.createUrlTree(['/auth/login']);
+  }
+}

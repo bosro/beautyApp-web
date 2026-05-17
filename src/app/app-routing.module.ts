@@ -1,6 +1,14 @@
+// src/app/app-routing.module.ts  (UPDATED)
+
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AuthGuard, GuestGuard, ClientGuard, BeauticianGuard } from './core/guards/auth.guard';
+import {
+  AuthGuard,
+  GuestGuard,
+  ClientGuard,
+  BeauticianGuard,
+  SettingsGuard,           // ← NEW
+} from './core/guards/auth.guard';
 
 const routes: Routes = [
   // Default redirect
@@ -21,11 +29,13 @@ const routes: Routes = [
       import('./features/client/client.module').then((m) => m.ClientModule),
     canActivate: [ClientGuard],
   },
-   {
+
+  // Settings — shared by CUSTOMER and BEAUTICIAN
+  {
     path: 'settings',
     loadChildren: () =>
       import('./features/settings/settings.module').then((m) => m.SettingsModule),
-    canActivate: [ClientGuard],
+    canActivate: [SettingsGuard],   // ← was ClientGuard; now allows both roles
   },
 
   // Beautician section

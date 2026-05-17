@@ -32,12 +32,14 @@ export class AppComponent implements OnInit {
   constructor(
     private theme: ThemeService,
     private auth: AuthService,
+    
   ) {}
 
   ngOnInit(): void {
     this.loadGoogleMaps();
     this.loadGoogleIdentity();
     this.initAuth();
+    this.fcmService.requestPermissionAndRegister();
   }
 
   private loadGoogleMaps(): void {
