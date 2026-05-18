@@ -244,6 +244,117 @@ import { environment } from "../../../../environments/environment";
             </div>
           </section>
 
+          <!-- ===== AI FEATURES SECTION ===== -->
+          <div class="px-4 lg:px-6 mt-6">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center"
+                >
+                  <i class="ri-robot-2-line text-white text-sm"></i>
+                </div>
+                <h2
+                  class="text-base font-bold text-[var(--color-text-primary)]"
+                >
+                  AI Beauty Tools
+                </h2>
+              </div>
+              <span
+                class="text-xs px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 font-semibold"
+              >
+                Powered by Gemini
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <!-- AI Chat Assistant -->
+              <button
+                (click)="router.navigate(['/client/ai-assistant'])"
+                class="group relative overflow-hidden rounded-2xl p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+              >
+                <div
+                  class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl"
+                ></div>
+                <div class="relative z-10">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3"
+                  >
+                    <i class="ri-chat-ai-line text-white text-xl"></i>
+                  </div>
+                  <p class="text-white font-bold text-sm mb-1">AI Assistant</p>
+                  <p class="text-white/75 text-xs leading-relaxed">
+                    Chat to book appointments & discover styles
+                  </p>
+                  <div
+                    class="mt-3 flex items-center gap-1 text-white/80 text-xs font-medium"
+                  >
+                    Start chatting <i class="ri-arrow-right-line"></i>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Virtual Try-On -->
+              <button
+                (click)="router.navigate(['/client/ai-virtual-tryon'])"
+                class="group relative overflow-hidden rounded-2xl p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
+                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+              >
+                <div
+                  class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl"
+                ></div>
+                <div class="relative z-10">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3"
+                  >
+                    <i class="ri-magic-line text-white text-xl"></i>
+                  </div>
+                  <p class="text-white font-bold text-sm mb-1">
+                    Virtual Try-On
+                  </p>
+                  <p class="text-white/75 text-xs leading-relaxed">
+                    Upload a photo & get AI hairstyle recommendations
+                  </p>
+                  <div
+                    class="mt-3 flex items-center gap-1 text-white/80 text-xs font-medium"
+                  >
+                    Try it <i class="ri-arrow-right-line"></i>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Smart Scheduling -->
+              <button
+                (click)="router.navigate(['/client/ai-smart-schedule'])"
+                class="group relative overflow-hidden rounded-2xl p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
+                style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+              >
+                <div
+                  class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl"
+                ></div>
+                <div class="relative z-10">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3"
+                  >
+                    <i class="ri-calendar-ai-line text-white text-xl"></i>
+                  </div>
+                  <p class="text-white font-bold text-sm mb-1">
+                    Smart Schedule
+                  </p>
+                  <p class="text-white/75 text-xs leading-relaxed">
+                    AI picks the best appointment time for you
+                  </p>
+                  <div
+                    class="mt-3 flex items-center gap-1 text-white/80 text-xs font-medium"
+                  >
+                    Find best time <i class="ri-arrow-right-line"></i>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+          <!-- ===== END AI FEATURES SECTION ===== -->
+
           <!-- ===== NEAR YOU ===== -->
           <section class="mb-6">
             <div class="flex items-center justify-between px-4 lg:px-0 mb-3">

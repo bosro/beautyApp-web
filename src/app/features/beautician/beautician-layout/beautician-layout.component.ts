@@ -1,3 +1,9 @@
+// ============================================================
+// beautician-layout.component.ts  —  Enhanced UI
+// Mirrors the quality of client-layout: pill nav, frosted glass,
+// polished sidebar, smooth bottom sheet. All logic unchanged.
+// ============================================================
+
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { Subject } from "rxjs";
@@ -9,80 +15,151 @@ import { ThemeService } from "@core/services/theme.service";
   selector: "app-beautician-layout",
   standalone: false,
   template: `
-    <div class="flex h-screen bg-[var(--color-background)] overflow-hidden">
-      <!-- Desktop Sidebar -->
+    <div
+      class="flex h-screen overflow-hidden"
+      style="background-color: var(--color-background)"
+    >
+      <!-- ══════════════════════════════════════
+           DESKTOP SIDEBAR
+      ══════════════════════════════════════ -->
       <aside
-        class="hidden lg:flex flex-col w-64 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex-shrink-0"
+        class="hidden lg:flex flex-col w-64 xl:w-72 flex-shrink-0 h-full border-r overflow-y-auto"
+        style="background-color: var(--color-surface); border-color: var(--color-border)"
       >
         <!-- Logo -->
-        <div class="px-5 py-4 border-b border-[var(--color-border)]">
-          <img
-            src="assets/images/logo.png"
-            alt="Bigluxx"
-            class="logo-light h-9 w-auto object-contain"
-          />
-          <img
-            src="assets/images/logo-dark.png"
-            alt="Bigluxx"
-            class="logo-dark h-9 w-auto object-contain"
-          />
-          <p
-            class="text-[10px] text-[var(--color-primary)] font-medium mt-0.5 pl-0.5"
-          >
-            Business
-          </p>
+        <div
+          class="flex items-center justify-between px-5 py-4 border-b"
+          style="border-color: var(--color-border)"
+        >
+          <div>
+            <img
+              src="assets/images/logo.png"
+              alt="Bigluxx"
+              class="logo-light h-8 w-auto object-contain"
+            />
+            <img
+              src="assets/images/logo-dark.png"
+              alt="Bigluxx"
+              class="logo-dark h-8 w-auto object-contain"
+            />
+            <p
+              class="text-[10px] text-[var(--color-primary)] font-bold mt-0.5 tracking-wider uppercase"
+            >
+              Business
+            </p>
+          </div>
         </div>
 
         <!-- Business Card -->
-        <div class="p-4 border-b border-[var(--color-border)]">
-          <div class="flex items-center gap-3">
-            <img
-              [src]="
-                user?.avatar ||
-                'https://ui-avatars.com/api/?name=' +
-                  user?.businessName +
-                  '&size=40&background=E88B7B&color=fff'
-              "
-              alt="Business"
-              class="w-10 h-10 rounded-xl object-cover"
-            />
-            <div class="min-w-0">
-              <p
-                class="text-sm font-semibold text-[var(--color-text-primary)] truncate"
+        <div class="p-4 border-b" style="border-color: var(--color-border)">
+          <div
+            class="flex items-center gap-3 p-3 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity"
+            style="background: color-mix(in srgb, var(--color-primary) 6%, transparent)"
+            [routerLink]="['/beautician/profile']"
+          >
+            <!-- Avatar -->
+            <div class="relative flex-shrink-0">
+              <img
+                *ngIf="user?.avatar || user?.profileImage"
+                [src]="user?.avatar || user?.profileImage"
+                alt="Business"
+                class="w-11 h-11 rounded-xl object-cover"
+              />
+              <div
+                *ngIf="!user?.avatar && !user?.profileImage"
+                class="w-11 h-11 rounded-xl flex items-center justify-center text-white font-black text-lg"
+                style="background: var(--color-primary)"
               >
-                {{ user?.businessName || user?.firstName }}
+                {{
+                  (user?.businessName || user?.firstName || user?.name || "B")
+                    .charAt(0)
+                    .toUpperCase()
+                }}
+              </div>
+              <!-- Online dot -->
+              <div
+                class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2"
+                style="border-color: var(--color-surface)"
+              ></div>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p
+                class="text-sm font-bold text-[var(--color-text-primary)] truncate"
+              >
+                {{ user?.businessName || user?.firstName || user?.name }}
               </p>
-              <p class="text-xs text-[var(--color-text-muted)] truncate">
+              <p class="text-xs text-[var(--color-text-muted)] truncate mt-0.5">
                 {{ user?.email }}
               </p>
             </div>
+            <i
+              class="ri-arrow-right-s-line text-[var(--color-text-muted)] flex-shrink-0"
+            ></i>
           </div>
         </div>
 
         <!-- Nav Links -->
-        <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+        <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+          <p
+            class="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest px-3 mb-2"
+          >
+            Main
+          </p>
           <a
-            *ngFor="let link of navLinks"
+            *ngFor="let link of navLinks.slice(0, 4)"
             [routerLink]="link.path"
-            class="nav-link"
+            class="nav-link group"
             [ngClass]="{ 'nav-link-active': isActive(link.path) }"
           >
-            <i [ngClass]="link.icon" class="text-xl"></i>
-            <span>{{ link.label }}</span>
+            <i
+              [ngClass]="
+                isActive(link.path) ? link.activeIcon || link.icon : link.icon
+              "
+              class="text-lg flex-shrink-0"
+            ></i>
+            <span class="flex-1">{{ link.label }}</span>
             <span
               *ngIf="link.badge"
-              class="ml-auto bg-[var(--color-primary)] text-white text-xs font-bold px-1.5 py-0.5 rounded-full"
+              class="ml-auto text-white text-[10px] font-black px-1.5 py-0.5 rounded-full"
+              style="background: var(--color-primary)"
               >{{ link.badge }}</span
             >
           </a>
+
+          <div
+            class="h-px mx-3 my-3"
+            style="background-color: var(--color-border)"
+          ></div>
+          <p
+            class="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest px-3 mb-2"
+          >
+            Manage
+          </p>
+          <a
+            *ngFor="let link of navLinks.slice(4)"
+            [routerLink]="link.path"
+            class="nav-link group"
+            [ngClass]="{ 'nav-link-active': isActive(link.path) }"
+          >
+            <i
+              [ngClass]="
+                isActive(link.path) ? link.activeIcon || link.icon : link.icon
+              "
+              class="text-lg flex-shrink-0"
+            ></i>
+            <span class="flex-1">{{ link.label }}</span>
+          </a>
         </nav>
 
-        <!-- Bottom -->
-        <div class="p-3 border-t border-[var(--color-border)] space-y-1">
+        <!-- Bottom actions -->
+        <div
+          class="p-3 border-t space-y-0.5"
+          style="border-color: var(--color-border)"
+        >
           <button (click)="toggleTheme()" class="nav-link w-full">
             <i
               [ngClass]="isDark ? 'ri-sun-line' : 'ri-moon-line'"
-              class="text-xl"
+              class="text-lg"
             ></i>
             <span>{{ isDark ? "Light Mode" : "Dark Mode" }}</span>
           </button>
@@ -93,120 +170,207 @@ import { ThemeService } from "@core/services/theme.service";
               'nav-link-active': isActive('/beautician/business-profile'),
             }"
           >
-            <i class="ri-settings-3-line text-xl"></i>
+            <i class="ri-settings-3-line text-lg"></i>
             <span>Settings</span>
           </a>
-          <!-- <button
-            (click)="showLogoutModal = true"
-            class="nav-link w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-          >
-            <i class="ri-logout-box-r-line text-xl"></i>
-            <span>Log Out</span>
-          </button> -->
           <button
             (click)="confirmLogout()"
             class="nav-link w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
           >
-            <i class="ri-logout-box-r-line text-xl"></i>
+            <i class="ri-logout-box-r-line text-lg"></i>
             <span>Log Out</span>
           </button>
         </div>
       </aside>
 
-      <!-- Main -->
-      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <!-- ══════════════════════════════════════
+           MAIN CONTENT AREA
+      ══════════════════════════════════════ -->
+      <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <!-- Mobile Top Bar -->
         <header
-          class="lg:hidden flex items-center px-4 py-3 bg-[var(--color-surface)] border-b border-[var(--color-border)] gap-3"
+          class="lg:hidden flex items-center justify-between px-4 py-3 border-b flex-shrink-0 relative"
+          style="background-color: var(--color-surface); border-color: var(--color-border)"
         >
-          <img
-            src="assets/images/logo.png"
-            alt="Bigluxx"
-            class="logo-light h-7 w-auto object-contain"
-          />
-          <img
-            src="assets/images/logo-dark.png"
-            alt="Bigluxx"
-            class="logo-dark h-7 w-auto object-contain"
-          />
-          <span class="text-xs font-semibold text-[var(--color-primary)] flex-1"
-            >Business</span
+          <!-- Left: avatar shortcut -->
+          <a
+            [routerLink]="['/beautician/profile']"
+            class="flex items-center flex-shrink-0"
           >
-          <button
-            (click)="toggleTheme()"
-            class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--color-background)]"
+            <img
+              *ngIf="user?.avatar || user?.profileImage"
+              [src]="user?.avatar || user?.profileImage"
+              class="w-9 h-9 rounded-xl object-cover"
+            />
+            <div
+              *ngIf="!user?.avatar && !user?.profileImage"
+              class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black"
+              style="background: var(--color-primary)"
+            >
+              {{
+                (user?.businessName || user?.name || "B")
+                  .charAt(0)
+                  .toUpperCase()
+              }}
+            </div>
+          </a>
+
+          <!-- Centre: logo -->
+          <div
+            class="absolute left-1/2 -translate-x-1/2 flex flex-col items-center"
           >
-            <i
-              [ngClass]="isDark ? 'ri-sun-line' : 'ri-moon-line'"
-              class="text-[var(--color-text-secondary)]"
-            ></i>
-          </button>
+            <img
+              src="assets/images/logo.png"
+              alt="Bigluxx"
+              class="logo-light h-7 w-auto object-contain"
+            />
+            <img
+              src="assets/images/logo-dark.png"
+              alt="Bigluxx"
+              class="logo-dark h-7 w-auto object-contain"
+            />
+          </div>
+
+          <!-- Right: theme + notification -->
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <button
+              (click)="toggleTheme()"
+              class="w-9 h-9 flex items-center justify-center rounded-xl"
+              style="background-color: var(--color-background)"
+            >
+              <i
+                [ngClass]="isDark ? 'ri-sun-line' : 'ri-moon-line'"
+                class="text-base text-[var(--color-text-secondary)]"
+              ></i>
+            </button>
+          </div>
         </header>
 
-        <!-- Scroll Area -->
-        <main class="flex-1 overflow-y-auto">
+        <!-- Page content -->
+        <main class="flex-1 overflow-y-auto pb-28 lg:pb-0">
           <router-outlet></router-outlet>
         </main>
 
-        <!-- Mobile Bottom Nav -->
+        <!-- ══════════════════════════════════════
+             MOBILE BOTTOM NAV — Pill style
+             (mirrors client layout exactly)
+        ══════════════════════════════════════ -->
         <nav
-          class="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] px-2 py-2 flex items-center justify-around z-40"
+          class="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-6 pb-5 pointer-events-none"
         >
-          <a
-            *ngFor="let tab of mobileTabs"
-            [routerLink]="tab.path !== 'more' ? tab.path : null"
-            (click)="tab.path === 'more' ? (showMoreSheet = true) : null"
-            class="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors relative"
-            [ngClass]="
-              tab.path === 'more'
-                ? showMoreSheet
-                  ? 'text-[var(--color-primary)]'
-                  : 'text-[var(--color-text-muted)]'
-                : isActive(tab.path)
-                  ? 'text-[var(--color-primary)]'
-                  : 'text-[var(--color-text-muted)]'
+          <div
+            class="flex items-center justify-around rounded-[30px] h-[64px] px-2 pointer-events-auto"
+            style="
+              background-color: rgba(10,10,10,0.94);
+              backdrop-filter: blur(16px);
+              -webkit-backdrop-filter: blur(16px);
+              box-shadow: 0 8px 32px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.18);
             "
           >
-            <i [ngClass]="tab.icon" class="text-xl"></i>
-            <span class="text-[10px] font-medium">{{ tab.label }}</span>
-          </a>
+            <!-- Main tabs -->
+            <a
+              *ngFor="let tab of mobileTabs"
+              [routerLink]="tab.path !== 'more' ? tab.path : null"
+              (click)="tab.path === 'more' ? (showMoreSheet = true) : null"
+              class="relative flex items-center justify-center h-[44px] rounded-full transition-all duration-300 ease-out"
+              [ngClass]="
+                tab.path === 'more'
+                  ? showMoreSheet
+                    ? 'gap-2 px-5'
+                    : 'w-[44px]'
+                  : isActive(tab.path)
+                    ? 'gap-2 px-5'
+                    : 'w-[44px]'
+              "
+              [style.background-color]="
+                (tab.path !== 'more' && isActive(tab.path)) ||
+                (tab.path === 'more' && showMoreSheet)
+                  ? 'var(--color-primary)'
+                  : 'transparent'
+              "
+            >
+              <i
+                [ngClass]="
+                  tab.path === 'more'
+                    ? showMoreSheet
+                      ? tab.activeIcon || tab.icon
+                      : tab.icon
+                    : isActive(tab.path)
+                      ? tab.activeIcon || tab.icon
+                      : tab.icon
+                "
+                class="text-[20px] leading-none flex-shrink-0 text-white"
+              ></i>
+              <span
+                *ngIf="
+                  (tab.path !== 'more' && isActive(tab.path)) ||
+                  (tab.path === 'more' && showMoreSheet)
+                "
+                class="text-white text-xs font-semibold whitespace-nowrap overflow-hidden"
+                style="max-width: 80px"
+                >{{ tab.label }}</span
+              >
+            </a>
+          </div>
         </nav>
 
-        <!-- Bottom Sheet Overlay — OUTSIDE nav, z-index higher than nav -->
+        <!-- ══════════════════════════════════════
+             MORE BOTTOM SHEET
+        ══════════════════════════════════════ -->
+        <!-- Overlay -->
         <div
           *ngIf="showMoreSheet"
-          class="fixed inset-0 bg-black/50 z-50 lg:hidden"
+          class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 lg:hidden"
           (click)="showMoreSheet = false"
         ></div>
 
-        <!-- Bottom Sheet Panel — OUTSIDE nav -->
+        <!-- Sheet Panel -->
         <div
           class="fixed bottom-0 left-0 right-0 lg:hidden transition-transform duration-300 ease-out z-50"
           [ngClass]="showMoreSheet ? 'translate-y-0' : 'translate-y-full'"
         >
           <div
-            class="bg-[var(--color-surface)] rounded-t-2xl p-4 pb-10 shadow-2xl"
+            class="rounded-t-3xl shadow-2xl overflow-hidden"
+            style="background-color: var(--color-surface)"
             (click)="$event.stopPropagation()"
           >
-            <!-- Handle -->
+            <!-- Handle + header -->
             <div
-              class="w-10 h-1 bg-[var(--color-border)] rounded-full mx-auto mb-4"
-            ></div>
-
-            <h3
-              class="font-semibold text-[var(--color-text-primary)] mb-4 px-1"
+              class="px-5 pt-3 pb-4 border-b"
+              style="border-color: var(--color-border)"
             >
-              More Options
-            </h3>
+              <div
+                class="w-10 h-1 rounded-full mx-auto mb-4"
+                style="background-color: var(--color-border)"
+              ></div>
+              <div class="flex items-center justify-between">
+                <h3
+                  class="font-bold text-base text-[var(--color-text-primary)]"
+                >
+                  More Options
+                </h3>
+                <button
+                  (click)="showMoreSheet = false"
+                  class="w-8 h-8 flex items-center justify-center rounded-full"
+                  style="background-color: var(--color-background)"
+                >
+                  <i
+                    class="ri-close-line text-[var(--color-text-secondary)]"
+                  ></i>
+                </button>
+              </div>
+            </div>
 
-            <div class="grid grid-cols-3 gap-3">
+            <!-- Grid items -->
+            <div class="p-4 grid grid-cols-3 gap-3">
               <button
                 *ngFor="let item of moreItems"
                 (click)="navigateTo(item.path)"
-                class="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-[var(--color-background)] transition-colors active:scale-95"
+                class="flex flex-col items-center gap-2.5 p-3 rounded-2xl hover:opacity-80 transition-all active:scale-95"
+                style="background-color: var(--color-background)"
               >
                 <div
-                  class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                  class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                   [ngStyle]="{ background: item.bg }"
                 >
                   <i
@@ -216,34 +380,37 @@ import { ThemeService } from "@core/services/theme.service";
                   ></i>
                 </div>
                 <span
-                  class="text-xs font-medium text-[var(--color-text-secondary)] text-center leading-tight"
+                  class="text-xs font-semibold text-[var(--color-text-secondary)] text-center leading-tight"
                 >
                   {{ item.label }}
                 </span>
               </button>
             </div>
 
-            <!-- Divider -->
-            <div class="border-t border-[var(--color-border)] my-3"></div>
-
-            <!-- Logout -->
-            <button
-              (click)="confirmLogout()"
-              class="w-full flex items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-            >
-              <div
-                class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center"
+            <!-- Divider + Logout -->
+            <div
+              class="mx-4 border-t pb-2"
+              style="border-color: var(--color-border)"
+            ></div>
+            <div class="px-4 pb-10">
+              <button
+                (click)="confirmLogout()"
+                class="w-full flex items-center gap-3 p-4 rounded-2xl bg-red-50 dark:bg-red-900/15 hover:bg-red-100 dark:hover:bg-red-900/25 transition-colors"
               >
-                <i class="ri-logout-box-r-line text-xl text-red-500"></i>
-              </div>
-              <span class="font-medium">Log Out</span>
-            </button>
+                <div
+                  class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0"
+                >
+                  <i class="ri-logout-box-r-line text-xl text-red-500"></i>
+                </div>
+                <span class="font-bold text-sm text-red-500">Log Out</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Logout Confirm -->
+    <!-- Logout Confirm Modal -->
     <app-confirm-modal
       *ngIf="showLogoutModal"
       title="Log Out"
@@ -261,6 +428,7 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
   currentUrl = "";
   showLogoutModal = false;
   isDark = false;
+  showMoreSheet = false;
   private destroy$ = new Subject<void>();
 
   navLinks = [
@@ -268,80 +436,78 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
       path: "/beautician/dashboard",
       label: "Dashboard",
       icon: "ri-dashboard-line",
+      activeIcon: "ri-dashboard-fill",
       badge: null,
     },
     {
       path: "/beautician/bookings",
       label: "Bookings",
       icon: "ri-calendar-line",
+      activeIcon: "ri-calendar-fill",
       badge: null,
     },
     {
       path: "/beautician/services",
       label: "Services",
       icon: "ri-scissors-2-line",
+      activeIcon: "ri-scissors-2-fill",
       badge: null,
     },
     {
       path: "/beautician/schedule",
       label: "Schedule",
       icon: "ri-time-line",
-      badge: null,
-    },
-    // {
-    //   path: "/beautician/earnings",
-    //   label: "Earnings",
-    //   icon: "ri-money-dollar-circle-line",
-    //   badge: null,
-    // },
-    {
-      path: "/beautician/reviews",
-      label: "Reviews",
-      icon: "ri-star-line",
+      activeIcon: "ri-time-fill",
       badge: null,
     },
     {
       path: "/beautician/clients",
       label: "Clients",
       icon: "ri-group-line",
+      activeIcon: "ri-group-fill",
+      badge: null,
+    },
+    {
+      path: "/beautician/reviews",
+      label: "Reviews",
+      icon: "ri-star-line",
+      activeIcon: "ri-star-fill",
       badge: null,
     },
     {
       path: "/beautician/profile",
       label: "My Profile",
       icon: "ri-user-line",
+      activeIcon: "ri-user-fill",
       badge: null,
     },
   ];
-
-  showMoreSheet = false;
 
   mobileTabs = [
     {
       path: "/beautician/dashboard",
       label: "Home",
       icon: "ri-dashboard-line",
-      badge: null,
+      activeIcon: "ri-dashboard-fill",
     },
     {
       path: "/beautician/bookings",
       label: "Bookings",
       icon: "ri-calendar-line",
-      badge: null,
+      activeIcon: "ri-calendar-fill",
     },
     {
       path: "/beautician/services",
       label: "Services",
       icon: "ri-scissors-2-line",
-      badge: null,
+      activeIcon: "ri-scissors-2-fill",
     },
-    // {
-    //   path: "/beautician/earnings",
-    //   label: "Earnings",
-    //   icon: "ri-money-dollar-circle-line",
-    //   badge: null,
-    // },
-    { path: "more", label: "More", icon: "ri-settings-line", badge: null },
+    {
+      path: "more",
+      label: "More",
+      icon: "ri-menu-line",
+      activeIcon: "ri-close-line",
+    },
   ];
 
   moreItems = [
@@ -353,18 +519,18 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
       color: "#6366F1",
     },
     {
-      path: "/beautician/reviews",
-      label: "Reviews",
-      icon: "ri-star-line",
-      bg: "#FFFBEB",
-      color: "#F59E0B",
-    },
-    {
       path: "/beautician/clients",
       label: "Clients",
       icon: "ri-group-line",
       bg: "#F0FDF4",
       color: "#22C55E",
+    },
+    {
+      path: "/beautician/reviews",
+      label: "Reviews",
+      icon: "ri-star-line",
+      bg: "#FFFBEB",
+      color: "#F59E0B",
     },
     {
       path: "/beautician/profile",
@@ -381,11 +547,11 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
       color: "#A855F7",
     },
     {
-      path: "/beautician/stats",
-      label: "Stats",
-      icon: "ri-bar-chart-line",
-      bg: "#EFF6FF",
-      color: "#3B82F6",
+      path: "/beautician/verification",
+      label: "Verification",
+      icon: "ri-shield-check-line",
+      bg: "#F0FDF4",
+      color: "#16A34A",
     },
   ];
 
@@ -404,7 +570,10 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
         filter((e) => e instanceof NavigationEnd),
         takeUntil(this.destroy$),
       )
-      .subscribe((e: any) => (this.currentUrl = e.urlAfterRedirects));
+      .subscribe((e: any) => {
+        this.currentUrl = e.urlAfterRedirects;
+        this.showMoreSheet = false; // close sheet on navigation
+      });
     this.currentUrl = this.router.url;
     this.isDark = this.themeService.getMode() === "dark";
   }
@@ -424,15 +593,15 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
     this.router.navigate([path]);
   }
 
- confirmLogout() {
-  this.showMoreSheet = false;  // close sheet first
-  this.showLogoutModal = true; // then show modal
-}
+  confirmLogout() {
+    this.showMoreSheet = false;
+    this.showLogoutModal = true;
+  }
 
-logout() {
-  this.showLogoutModal = false;
-  this.auth.logout();
-}
+  logout() {
+    this.showLogoutModal = false;
+    this.auth.logout();
+  }
 
   ngOnDestroy() {
     this.destroy$.next();

@@ -3,152 +3,282 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Salon App - Reviews</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+<title>2nd Phone Number</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Poppins', sans-serif; background: #e2e2e2; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px 0; }
-  .phone { width: 390px; background: #fff; border-radius: 50px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.28); border: 10px solid #1a1a1a; display: flex; flex-direction: column; }
-  .top-section { padding: 20px 16px 0; }
-  .stylists { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 14px; }
-  .stylists::-webkit-scrollbar { display: none; }
-  .stylist-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
-  .stylist-avatar { width: 54px; height: 54px; border-radius: 50%; overflow: hidden; border: 2px solid #eee; }
-  .stylist-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .stylist-name { font-size: 10px; color: #444; text-align: center; }
-  .tabs { display: flex; border-bottom: 1px solid #eee; }
-  .tab { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; color: #999; cursor: pointer; font-weight: 500; }
-  .tab.active { color: #2a8a93; background: #e8f5f6; border-radius: 20px; margin: 6px 8px; padding: 6px 0; font-weight: 600; }
-  .reviews-section { padding: 16px 16px 0; flex: 1; overflow-y: auto; }
-  .reviews-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .reviews-title { font-size: 16px; font-weight: 700; color: #1a1a1a; }
-  .view-all { font-size: 13px; color: #2a8a93; font-weight: 600; }
-  .rating-overview { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
-  .big-rating { font-size: 42px; font-weight: 700; color: #1a1a1a; line-height: 1; }
-  .out-of { font-size: 13px; color: #888; }
-  .stars-bars { flex: 1; }
-  .star-row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
-  .star-row i { color: #f5a623; font-size: 10px; }
-  .star-bar { flex: 1; height: 5px; background: #eee; border-radius: 3px; overflow: hidden; }
-  .star-bar-fill { height: 100%; background: #f5a623; border-radius: 3px; }
-  .write-review { margin-bottom: 16px; }
-  .write-review-label { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px; }
-  .star-rating { display: flex; gap: 6px; }
-  .star-rating i { font-size: 22px; color: #e0e0e0; }
-  .review-card { display: flex; gap: 12px; margin-bottom: 16px; }
-  .reviewer-avatar { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; overflow: hidden; }
-  .reviewer-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .review-content { flex: 1; }
-  .reviewer-name { font-size: 14px; font-weight: 600; color: #1a1a1a; }
-  .review-text { font-size: 12px; color: #555; line-height: 1.5; margin-top: 3px; }
-  .review-date { font-size: 11px; color: #aaa; margin-top: 4px; }
-  .book-btn { background: #2a8a93; color: #fff; text-align: center; padding: 18px; font-size: 16px; font-weight: 600; border-radius: 14px; margin: 16px; cursor: pointer; }
+  body {
+    background: #c8cfe0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  }
+  .phone-frame {
+    width: 375px;
+    background: #0a0a0a;
+    border-radius: 48px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+  }
+
+  .marquee-area {
+    position: relative;
+    height: 340px;
+    overflow: hidden;
+    background: #0a0a0a;
+  }
+  .marquee-area::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 150px;
+    background: linear-gradient(transparent, #0a0a0a);
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .cols-wrap {
+    display: flex;
+    gap: 4px;
+    padding: 0 4px;
+    height: 100%;
+  }
+
+  .col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    will-change: transform;
+  }
+
+  .col:first-child .card:first-child { border-radius: 40px 0 0 0; }
+  .col:last-child  .card:first-child { border-radius: 0 40px 0 0; }
+
+  .card {
+    flex-shrink: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #1a1a1a;
+    position: relative;
+  }
+  .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card.h-tall { height: 160px; }
+  .card.h-med  { height: 130px; }
+  .card.h-sm   { height: 110px; }
+
+  .restore-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(255,255,255,0.22);
+    color: white;
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    z-index: 2;
+  }
+
+  .bottom {
+    background: #0a0a0a;
+    padding: 6px 20px 28px;
+  }
+  .headline {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .subtext {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .plan-card {
+    border: 2px solid #e8550a;
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .plan-left { display: flex; align-items: center; gap: 12px; }
+  .check-circle {
+    width: 26px; height: 26px;
+    background: #e8550a;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .plan-name { font-size: 16px; font-weight: 700; color: white; }
+  .plan-sub  { font-size: 12px; color: #888; }
+  .plan-right { text-align: right; }
+  .save-badge {
+    background: #e8550a;
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 3px;
+  }
+  .price-row { font-size: 13px; color: white; font-weight: 600; }
+  .secured-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; margin-bottom: 14px;
+  }
+  .secured-text { font-size: 12px; color: #888; }
+  .cta-btn {
+    width: 100%;
+    background: white;
+    border: none;
+    border-radius: 50px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    margin-bottom: 14px;
+  }
+  .cta-label { font-size: 16px; font-weight: 600; color: #111; flex: 1; text-align: center; }
+  .arrow-circle {
+    width: 36px; height: 36px;
+    background: #111;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .footer-links { text-align: center; font-size: 12px; color: #666; }
+  .footer-links a { color: #aaa; text-decoration: none; font-weight: 600; }
 </style>
 </head>
 <body>
-<div class="phone">
-  <div class="top-section">
-    <div class="stylists">
-      <div class="stylist-item">
-        <div class="stylist-avatar"><img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=120&h=120&fit=crop&crop=face" alt="Kirean"></div>
-        <div class="stylist-name">Kirean Dely</div>
+<div class="phone-frame">
+
+  <div class="marquee-area">
+    <div class="cols-wrap">
+
+      <!-- Col 1 — upward, normal speed -->
+      <div class="col" id="col1">
+        <div class="card h-tall"><img src="https://images.unsplash.com/photo-1529400971008-f566de0db08d?w=200&q=80" alt=""></div>
+        <div class="card h-med"><img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&q=80" alt=""></div>
+        <div class="card h-tall"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200&q=80" alt=""></div>
+        <div class="card h-med"><img src="https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=200&q=80" alt=""></div>
+        <!-- duplicate for seamless loop -->
+        <div class="card h-tall"><img src="https://images.unsplash.com/photo-1529400971008-f566de0db08d?w=200&q=80" alt=""></div>
+        <div class="card h-med"><img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&q=80" alt=""></div>
+        <div class="card h-tall"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200&q=80" alt=""></div>
+        <div class="card h-med"><img src="https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=200&q=80" alt=""></div>
       </div>
-      <div class="stylist-item">
-        <div class="stylist-avatar"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face" alt="Maria"></div>
-        <div class="stylist-name">Maria</div>
+
+      <!-- Col 2 — upward, faster -->
+      <div class="col" id="col2">
+        <div class="card h-med"><img src="https://images.unsplash.com/photo-1545167622-3a6ac756afa4?w=200&q=80" alt=""></div>
+        <div class="card h-tall"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80" alt=""></div>
+        <div class="card h-med"><img src="https://images.unsplash.com/photo-1521119989659-a83eee488004?w=200&q=80" alt=""></div>
+        <div class="card h-tall"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80" alt=""></div>
+        <!-- duplicate -->
+        <div class="card h-med"><img src="https://images.unsplash.com/photo-1545167622-3a6ac756afa4?w=200&q=80" alt=""></div>
+        <div class="card h-tall"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80" alt=""></div>
+        <div class="card h-med"><img src="https://images.unsplash.com/photo-1521119989659-a83eee488004?w=200&q=80" alt=""></div>
+        <div class="card h-tall"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80" alt=""></div>
       </div>
-      <div class="stylist-item">
-        <div class="stylist-avatar"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&h=120&fit=crop&crop=face" alt="William"></div>
-        <div class="stylist-name">William</div>
+
+      <!-- Col 3 — upward, slower -->
+      <div class="col" id="col3">
+        <div class="card h-tall" style="position:relative;">
+          <img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&q=80" alt="">
+          <div class="restore-badge">Restore</div>
+        </div>
+        <div class="card h-sm"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80" alt=""></div>
+        <div class="card h-tall"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80" alt=""></div>
+        <div class="card h-med"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&q=80" alt=""></div>
+        <!-- duplicate -->
+        <div class="card h-tall" style="position:relative;">
+          <img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&q=80" alt="">
+          <div class="restore-badge">Restore</div>
+        </div>
+        <div class="card h-sm"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80" alt=""></div>
+        <div class="card h-tall"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80" alt=""></div>
+        <div class="card h-med"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&q=80" alt=""></div>
       </div>
-      <div class="stylist-item">
-        <div class="stylist-avatar"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&h=120&fit=crop&crop=face" alt="Seman"></div>
-        <div class="stylist-name">Seman</div>
-      </div>
-    </div>
-    <div class="tabs">
-      <div class="tab">About</div>
-      <div class="tab active">Reviews</div>
-      <div class="tab">Photos</div>
+
     </div>
   </div>
 
-  <div class="reviews-section">
-    <div class="reviews-header">
-      <span class="reviews-title">Rating & Reviews</span>
-      <span class="view-all">View All</span>
-    </div>
-    <div class="rating-overview">
-      <div>
-        <div class="big-rating">4.5</div>
-        <div class="out-of">out of 5</div>
+  <!-- Bottom CTA -->
+  <div class="bottom">
+    <h1 class="headline">Start to Continue<br>2nd phone number</h1>
+    <p class="subtext">Call from a second number<br>with no limits just for $6,99 per week</p>
+
+    <div class="plan-card">
+      <div class="plan-left">
+        <div class="check-circle">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2.5 7L5.5 10L11.5 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="plan-name">Weekly $6,99</div>
+          <div class="plan-sub">Most popular</div>
+        </div>
       </div>
-      <div class="stars-bars">
-        <div class="star-row">
-          <i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i>
-          <div class="star-bar"><div class="star-bar-fill" style="width:72%"></div></div>
-        </div>
-        <div class="star-row">
-          <i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-line" style="color:#ddd"></i>
-          <div class="star-bar"><div class="star-bar-fill" style="width:50%"></div></div>
-        </div>
-        <div class="star-row">
-          <i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i>
-          <div class="star-bar"><div class="star-bar-fill" style="width:30%"></div></div>
-        </div>
-        <div class="star-row">
-          <i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i>
-          <div class="star-bar"><div class="star-bar-fill" style="width:15%"></div></div>
-        </div>
-        <div class="star-row">
-          <i class="ri-star-fill"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i><i class="ri-star-line" style="color:#ddd"></i>
-          <div class="star-bar"><div class="star-bar-fill" style="width:5%"></div></div>
-        </div>
+      <div class="plan-right">
+        <div class="save-badge">83% SAVE</div>
+        <div class="price-row">🔥 $6,99/week 🔥</div>
       </div>
     </div>
 
-    <div class="write-review">
-      <div class="write-review-label">Write A Review</div>
-      <div class="star-rating">
-        <i class="ri-star-line"></i><i class="ri-star-line"></i><i class="ri-star-line"></i><i class="ri-star-line"></i><i class="ri-star-line"></i>
-      </div>
+    <div class="secured-row">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#888" stroke-width="1.5">
+        <path d="M8 1.5L2 4v4c0 3 2.5 5.5 6 6.5 3.5-1 6-3.5 6-6.5V4L8 1.5z"/>
+        <path d="M5.5 8l1.5 1.5 3-3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="secured-text">Secured with Apple Store. Cancel anytime</span>
     </div>
 
-    <div class="review-card">
-      <div class="reviewer-avatar"><img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&h=100&fit=crop&crop=face" alt="Maria"></div>
-      <div class="review-content">
-        <div class="reviewer-name">Maria Sana</div>
-        <div class="review-text">"I Was A vrey First To Pleased With This app using and get great experiance</div>
-        <div class="review-date">20 june 2019</div>
+    <button class="cta-btn">
+      <div style="width:36px;"></div>
+      <span class="cta-label">Start to Continue</span>
+      <div class="arrow-circle">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="2">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
-    </div>
-    <div class="review-card">
-      <div class="reviewer-avatar"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" alt="Leslie"></div>
-      <div class="review-content">
-        <div class="reviewer-name">Leslie Alexander</div>
-        <div class="review-text">"Thank You For Your Services That Save My Time Very Much".</div>
-        <div class="review-date">15 April 2022</div>
-      </div>
-    </div>
-    <div class="review-card">
-      <div class="reviewer-avatar"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=face" alt="Jenny"></div>
-      <div class="review-content">
-        <div class="reviewer-name">Jenny Wilson</div>
-        <div class="review-text">"This app is very usefull for all the person in around, so thank you so much for this all".</div>
-        <div class="review-date">10 May 2022</div>
-      </div>
-    </div>
-    <div class="review-card">
-      <div class="reviewer-avatar"><img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=100&h=100&fit=crop&crop=face" alt="Esther"></div>
-      <div class="review-content">
-        <div class="reviewer-name">Esther Howard</div>
-        <div class="review-text">"Thank you so mach, that save my lots of time every time i need it"</div>
-        <div class="review-date">10 May 2022</div>
-      </div>
+    </button>
+
+    <div class="footer-links">
+      <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
     </div>
   </div>
-  <div class="book-btn">Book Appointment</div>
 </div>
+
+<script>
+  const colDefs = [
+    { el: document.getElementById('col1'), speed: 0.45, y: 0 },
+    { el: document.getElementById('col2'), speed: 0.70, y: -60 },
+    { el: document.getElementById('col3'), speed: 0.30, y: -30 },
+  ];
+
+  function tick() {
+    colDefs.forEach(c => {
+      c.y -= c.speed;
+      const half = c.el.scrollHeight / 2;
+      if (Math.abs(c.y) >= half) c.y += half;
+      c.el.style.transform = `translateY(${c.y}px)`;
+    });
+    requestAnimationFrame(tick);
+  }
+
+  tick();
+</script>
 </body>
 </html>
+
+
+

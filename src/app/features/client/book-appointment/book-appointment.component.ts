@@ -894,3 +894,5 @@ export class BookAppointmentComponent implements OnInit {
     this.router.navigate(["/client/salon", this.salonId]);
   }
 }
+
+

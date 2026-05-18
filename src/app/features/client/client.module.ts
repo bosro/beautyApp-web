@@ -21,9 +21,12 @@ import { MapComponent } from "./map/map.component";
 import { BookAppointmentComponent } from "./book-appointment/book-appointment.component";
 import { LeaveReviewComponent } from "./leave-review/leave-review.component";
 import { BookingSuccessComponent } from "./booking-success/booking-success.component";
-import { PrivacyPolicyComponent } from './privacy-policy/privacy-policy.component';
-import { TermsConditionsComponent } from './terms-conditions/terms-conditions.component';
-import { CustomerServiceComponent } from './customer-service/customer-service.component';
+import { PrivacyPolicyComponent } from "./privacy-policy/privacy-policy.component";
+import { TermsConditionsComponent } from "./terms-conditions/terms-conditions.component";
+import { CustomerServiceComponent } from "./customer-service/customer-service.component";
+import { AiAssistantComponent } from "./ai-assistant/ai-assistant.component";
+import { AiVirtualTryonComponent } from "./ai-virtual-tryon/ai-virtual-tryon.component";
+import { AiSmartScheduleComponent } from "./ai-smart-schedule/ai-smart-schedule.component";
 
 const routes: Routes = [
   {
@@ -47,6 +50,9 @@ const routes: Routes = [
       { path: "map", component: MapComponent },
       { path: "booking-success", component: BookingSuccessComponent },
       { path: "privacy-policy", component: PrivacyPolicyComponent },
+      { path: "ai-assistant", component: AiAssistantComponent },
+      { path: "ai-virtual-tryon", component: AiVirtualTryonComponent },
+      { path: "ai-smart-schedule", component: AiSmartScheduleComponent },
       { path: "terms", component: TermsConditionsComponent },
       { path: "support", component: CustomerServiceComponent },
       { path: "book-appointment/:id", component: BookAppointmentComponent },
@@ -79,6 +85,9 @@ const routes: Routes = [
     PrivacyPolicyComponent,
     TermsConditionsComponent,
     CustomerServiceComponent,
+    AiAssistantComponent,
+    AiVirtualTryonComponent,
+    AiSmartScheduleComponent,
   ],
   imports: [SharedModule, RouterModule.forChild(routes)],
 })

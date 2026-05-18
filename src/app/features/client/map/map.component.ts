@@ -961,3 +961,5 @@ export class MapComponent implements OnInit, OnDestroy {
     this.location.back();
   }
 }
+
+
