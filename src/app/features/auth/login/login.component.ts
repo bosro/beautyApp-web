@@ -1,8 +1,8 @@
 // ============================================================
-// login.component.ts  —  Fixed:
-//  1. Bento marquee is now the LEFT panel (replaces old gradient panel)
-//  2. Duplicate Google button removed (only your styled button remains)
-//  3. auth-layout no longer needs its own left panel — login owns it
+// login.component.ts
+//  - No-scroll: entire page fits in 100vh
+//  - Mobile marquee reduced to 32vh so form is always visible
+//  - Brand logo/watermark moved to TOP of marquee panel
 // ============================================================
 
 import { Component, OnInit, AfterViewInit, OnDestroy } from "@angular/core";
@@ -10,6 +10,7 @@ import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { ToastService } from "../../../core/services/toast.service";
+import { ThemeService } from "../../../core/services/theme.service";
 import { environment } from "@environments/environment";
 
 @Component({
@@ -23,6 +24,24 @@ import { environment } from "@environments/environment";
         <div class="marquee-fade-bottom"></div>
         <div class="marquee-fade-top"></div>
         <div class="marquee-overlay"></div>
+
+        <!-- Brand watermark at TOP of panel -->
+        <div class="panel-brand">
+          <div class="panel-logo">
+            <img
+              src="assets/images/logo-dark.png"
+              alt="Bigluxx"
+              class="panel-logo-img"
+            />
+          </div>
+          <p class="panel-tagline">Ghana's Premium Beauty Platform</p>
+          <div class="panel-pills">
+            <span class="ppill"><i class="ri-scissors-line"></i> Hair</span>
+            <span class="ppill"><i class="ri-paint-brush-line"></i> Nails</span>
+            <span class="ppill"><i class="ri-magic-line"></i> Makeup</span>
+            <span class="ppill"><i class="ri-leaf-line"></i> Spa</span>
+          </div>
+        </div>
 
         <div class="cols-wrap">
           <!-- Col 1 — scrolls up, normal speed -->
@@ -51,6 +70,7 @@ import { environment } from "@environments/environment";
                 alt="Nails"
               />
             </div>
+            <!-- duplicates for seamless loop -->
             <div class="mcard tall">
               <img
                 src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=300&q=80"
@@ -181,32 +201,26 @@ import { environment } from "@environments/environment";
             </div>
           </div>
         </div>
-
-        <!-- Brand watermark centred on panel -->
-        <div class="panel-brand">
-          <div class="panel-logo">
-            <img
-              src="assets/images/logo-dark.png"
-              alt="Bigluxx"
-              class="panel-logo-img"
-            />
-          </div>
-          <p class="panel-tagline">Ghana's Premium Beauty Platform</p>
-          <div class="panel-pills">
-            <span class="ppill">✂️ Hair</span>
-            <span class="ppill">💅 Nails</span>
-            <span class="ppill">💄 Makeup</span>
-            <span class="ppill">🧖 Spa</span>
-          </div>
-        </div>
       </div>
 
       <!-- ══════════════════════════════════════════
            RIGHT PANEL — Login Form
       ══════════════════════════════════════════ -->
       <div class="form-panel">
+        <!-- Theme toggle — fixed to top-right of form panel -->
+        <button
+          type="button"
+          (click)="themeService.toggle()"
+          class="theme-toggle"
+          [title]="
+            themeService.isDark ? 'Switch to light mode' : 'Switch to dark mode'
+          "
+        >
+          <i [class]="themeService.isDark ? 'ri-sun-line' : 'ri-moon-line'"></i>
+        </button>
+
         <div class="form-inner">
-          <!-- Mobile logo (hidden on desktop) -->
+          <!-- Mobile logo — shown on mobile only (desktop brand is in marquee) -->
           <div class="mobile-logo-wrap">
             <img
               src="assets/images/logo.png"
@@ -314,12 +328,7 @@ import { environment } from "@environments/environment";
             <div class="divider-line"></div>
           </div>
 
-          <!--
-            Google Sign-In — single styled button only.
-            The #google-btn-container div has been REMOVED to prevent
-            the Google SDK from rendering a second native button below yours.
-            onGoogleSignIn() triggers the One Tap prompt directly.
-          -->
+          <!-- Google Sign-In -->
           <button type="button" (click)="onGoogleSignIn()" class="google-btn">
             <img
               src="https://www.svgrepo.com/show/355037/google.svg"
@@ -348,26 +357,32 @@ import { environment } from "@environments/environment";
   `,
   styles: [
     `
-      /* ── Reset & root ─────────────────────────────────────── */
       :host {
         display: contents;
       }
+
+      /* ── Root: fixed to viewport, no scroll ── */
       .auth-root {
         display: flex;
-        min-height: 100vh;
-        background: var(--color-background);
+        height: 100vh;
+        max-height: 100vh;
         overflow: hidden;
+        background: var(--color-background);
       }
 
-      /* ── LEFT: Marquee Panel ──────────────────────────────── */
+      /* ══════════════════════════════════════════
+         DESKTOP: Left marquee panel
+      ══════════════════════════════════════════ */
       .marquee-panel {
         display: none;
         position: relative;
-        flex: 0 0 48%;
-        max-width: 520px;
+        flex: 0 0 56%;
+        max-width: 600px;
         overflow: hidden;
         background: #0a0a0a;
+        clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
       }
+
       @media (min-width: 1024px) {
         .marquee-panel {
           display: block;
@@ -379,7 +394,7 @@ import { environment } from "@environments/environment";
         bottom: 0;
         left: 0;
         right: 0;
-        height: 260px;
+        height: 200px;
         background: linear-gradient(transparent, #0a0a0a);
         z-index: 10;
         pointer-events: none;
@@ -389,7 +404,7 @@ import { environment } from "@environments/environment";
         top: 0;
         left: 0;
         right: 0;
-        height: 120px;
+        height: 200px;
         background: linear-gradient(#0a0a0a, transparent);
         z-index: 10;
         pointer-events: none;
@@ -406,7 +421,7 @@ import { environment } from "@environments/environment";
         display: flex;
         gap: 6px;
         padding: 0 6px;
-        height: 100vh;
+        height: 100%;
       }
       .mcol {
         flex: 1;
@@ -437,10 +452,10 @@ import { environment } from "@environments/environment";
         height: 120px;
       }
 
-      /* Brand overlay centred on panel */
+      /* Brand watermark — TOP of panel, above the images */
       .panel-brand {
         position: absolute;
-        bottom: 56px;
+        top: 36px;
         left: 0;
         right: 0;
         z-index: 20;
@@ -481,16 +496,50 @@ import { environment } from "@environments/environment";
         font-weight: 600;
         padding: 5px 12px;
         border-radius: 999px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
       }
 
-      /* ── RIGHT: Form Panel ────────────────────────────────── */
+      /* ══════════════════════════════════════════
+         RIGHT: Form panel — fills remaining width,
+         scrolls internally if content overflows
+      ══════════════════════════════════════════ */
       .form-panel {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 32px 20px;
+        padding: 24px 20px;
         overflow-y: auto;
+        background: var(--color-background);
+        position: relative;
+      }
+
+      /* Theme toggle — top-right of form panel */
+      .theme-toggle {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1.5px solid var(--color-border);
+        background: var(--color-surface);
+        color: var(--color-text-secondary);
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+        z-index: 10;
+      }
+      .theme-toggle:hover {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
         background: var(--color-background);
       }
       .form-inner {
@@ -498,14 +547,14 @@ import { environment } from "@environments/environment";
         max-width: 400px;
       }
 
-      /* Mobile logo */
+      /* Mobile logo — hidden on desktop (brand lives in marquee) */
       .mobile-logo-wrap {
         display: flex;
         justify-content: center;
-        margin-bottom: 32px;
+        margin-bottom: 24px;
       }
       .mobile-logo {
-        height: 32px;
+        height: 30px;
         width: auto;
         object-fit: contain;
       }
@@ -515,34 +564,32 @@ import { environment } from "@environments/environment";
         }
       }
 
-      /* Form head */
       .form-head {
-        margin-bottom: 28px;
+        margin-bottom: 20px;
       }
       .form-title {
-        font-size: 28px;
+        font-size: 26px;
         font-weight: 800;
         letter-spacing: -0.5px;
         color: var(--color-text-primary);
         line-height: 1.15;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
       }
       .form-sub {
-        font-size: 14px;
+        font-size: 13px;
         color: var(--color-text-secondary);
         line-height: 1.5;
       }
 
-      /* Fields */
       .login-form {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 14px;
       }
       .field-group {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 5px;
       }
       .field-label {
         font-size: 13px;
@@ -581,7 +628,7 @@ import { environment } from "@environments/environment";
         background: transparent;
         color: var(--color-text-primary);
         font-size: 15px;
-        padding: 14px 14px 14px 42px;
+        padding: 13px 14px 13px 42px;
         border-radius: 14px;
       }
       .field-input::placeholder {
@@ -602,11 +649,10 @@ import { environment } from "@environments/environment";
         color: #ef4444;
       }
 
-      /* Forgot */
       .forgot-row {
         display: flex;
         justify-content: flex-end;
-        margin-top: -6px;
+        margin-top: -4px;
       }
       .forgot-link {
         font-size: 13px;
@@ -619,7 +665,6 @@ import { environment } from "@environments/environment";
         opacity: 1;
       }
 
-      /* Submit button */
       .submit-btn {
         width: 100%;
         display: flex;
@@ -631,15 +676,14 @@ import { environment } from "@environments/environment";
         border: none;
         cursor: pointer;
         border-radius: 50px;
-        padding: 16px 24px;
+        padding: 15px 24px;
         font-size: 15px;
         font-weight: 700;
         letter-spacing: 0.3px;
         transition:
           opacity 0.2s,
           transform 0.15s;
-        margin-top: 4px;
-        position: relative;
+        margin-top: 2px;
       }
       .submit-btn:hover:not(:disabled) {
         opacity: 0.92;
@@ -676,12 +720,11 @@ import { environment } from "@environments/environment";
         }
       }
 
-      /* Divider */
       .divider-row {
         display: flex;
         align-items: center;
         gap: 12px;
-        margin: 20px 0;
+        margin: 16px 0;
       }
       .divider-line {
         flex: 1;
@@ -694,7 +737,6 @@ import { environment } from "@environments/environment";
         color: var(--color-text-muted);
       }
 
-      /* Google */
       .google-btn {
         width: 100%;
         display: flex;
@@ -704,7 +746,7 @@ import { environment } from "@environments/environment";
         background: var(--color-surface);
         border: 1.5px solid var(--color-border);
         border-radius: 50px;
-        padding: 14px 24px;
+        padding: 13px 24px;
         font-size: 14px;
         font-weight: 600;
         color: var(--color-text-primary);
@@ -722,12 +764,11 @@ import { environment } from "@environments/environment";
         height: 20px;
       }
 
-      /* Footer */
       .auth-footer {
-        margin-top: 24px;
+        margin-top: 20px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
         text-align: center;
       }
       .footer-line {
@@ -747,6 +788,134 @@ import { environment } from "@environments/environment";
       .footer-link:hover {
         text-decoration: underline;
       }
+
+      /* ══════════════════════════════════════════
+         MOBILE — Stacked layout, no scroll
+      ══════════════════════════════════════════ */
+      @media (max-width: 1023px) {
+        .auth-root {
+          flex-direction: column;
+          height: 100vh;
+          max-height: 100vh;
+          overflow: hidden;
+        }
+
+        /* Marquee: compact fixed height at top — 32vh keeps form fully visible */
+        .marquee-panel {
+          display: block;
+          position: relative;
+          flex: 0 0 32vh;
+          min-height: 220px;
+          max-height: 280px;
+          width: 100%;
+          max-width: 100%;
+          clip-path: none;
+          overflow: hidden;
+          background: #0a0a0a;
+          z-index: 0;
+        }
+
+        .cols-wrap {
+          height: 100%;
+        }
+
+        .marquee-overlay {
+          background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Stronger top fade to frame the brand */
+        .marquee-fade-top {
+          height: 100px;
+          background: linear-gradient(#0a0a0a 30%, transparent);
+        }
+
+        /* Bottom fade blends into form background */
+        .marquee-fade-bottom {
+          height: 50%;
+          background: linear-gradient(transparent, var(--color-background));
+        }
+
+        /* Brand watermark visible on mobile too, at top */
+        .panel-brand {
+          display: flex;
+          top: 20px;
+        }
+
+        /* Hide the text tagline and pills on mobile to save space */
+        .panel-tagline,
+        .panel-pills {
+          display: none;
+        }
+
+        .panel-logo-img {
+          height: 28px;
+        }
+
+        /* Form panel: takes remaining height, scrolls if needed */
+        .form-panel {
+          position: relative;
+          z-index: 1;
+          flex: 1;
+          min-height: 0;
+          background: var(--color-background);
+          align-items: flex-start;
+          justify-content: flex-start;
+          padding: 6px 24px 24px;
+          overflow-y: auto;
+        }
+
+        /* Pull form up slightly to overlap the fade zone */
+        .form-inner {
+          margin-top: -36px;
+          width: 100%;
+          max-width: 100%;
+        }
+
+        /* Tighten spacing on mobile */
+        .form-head {
+          margin-bottom: 16px;
+        }
+        .form-title {
+          font-size: 22px;
+        }
+        .login-form {
+          gap: 12px;
+        }
+        .divider-row {
+          margin: 12px 0;
+        }
+        .auth-footer {
+          margin-top: 16px;
+        }
+
+        /* CSS animation for mobile (RAF is skipped) */
+        #lc1 {
+          animation: mScrollUp 20s linear infinite;
+        }
+        #lc2 {
+          animation: mScrollDown 14s linear infinite;
+        }
+        #lc3 {
+          animation: mScrollUp 26s linear infinite;
+        }
+      }
+
+      @keyframes mScrollUp {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(-50%);
+        }
+      }
+      @keyframes mScrollDown {
+        from {
+          transform: translateY(-50%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
     `,
   ],
 })
@@ -764,6 +933,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private fb: FormBuilder,
     private auth: AuthService,
     private toast: ToastService,
+    public themeService: ThemeService,
     private router: Router,
   ) {}
 
@@ -787,6 +957,9 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private startMarquee(): void {
+    const isMobile = window.innerWidth < 1024;
+    if (isMobile) return; // CSS animation handles mobile via @keyframes
+
     const defs = [
       { id: "lc1", speed: 0.45, y: 0, dir: -1 },
       { id: "lc2", speed: 0.7, y: -80, dir: 1 },
@@ -848,7 +1021,6 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     google.accounts.id.prompt((notification: any) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        // Fallback: trigger OAuth redirect flow instead of rendering a second button
         google.accounts.id.cancel();
         const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${environment.googleClientId}&redirect_uri=${encodeURIComponent(window.location.origin + "/auth/google/callback")}&response_type=code&scope=openid%20email%20profile`;
         window.location.href = oauthUrl;

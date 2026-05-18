@@ -1,58 +1,80 @@
 // ============================================================
-// auth-layout.component.ts  —  Updated
-// The left marquee panel now lives inside login.component,
-// so this layout is a simple full-width shell with a theme toggle.
+// auth-layout.component.ts — h-screen + overflow-hidden
+// Prevents any outer scroll on the login route.
 // ============================================================
 
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { ThemeService } from '../../../core/services/theme.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-auth-layout',
   template: `
-    <div class="auth-shell" style="background-color: var(--color-background)">
+    <div
+      class="flex"
+      [class.h-screen]="isLoginRoute"
+      [class.overflow-hidden]="isLoginRoute"
+      [class.min-h-screen]="!isLoginRoute"
+      style="background-color: var(--color-background)"
+    >
+      <!-- RIGHT / FULL-WIDTH PANEL -->
+      <div class="flex-1 flex flex-col min-w-0 min-h-0">
 
-      <!-- Theme toggle — top-right corner, sits above everything -->
-      <button
-        (click)="toggleTheme()"
-        class="theme-toggle"
-        [title]="themeService.isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-      >
-        <i
-          class="text-base"
-          [class]="themeService.isDark ? 'ri-sun-line' : 'ri-moon-line'"
-          style="color: var(--color-text-secondary)"
-        ></i>
-      </button>
+        <!-- Top bar — only on non-login routes -->
+        <ng-container *ngIf="!isLoginRoute">
+          <div class="flex items-center justify-between px-6 pt-6 lg:justify-end lg:px-10 lg:pt-8">
+            <div class="flex items-center gap-2 lg:hidden">
+              <img src="assets/images/logo.png" alt="Bigluxx" class="logo-light h-8 w-auto object-contain" />
+              <img src="assets/images/logo-dark.png" alt="Bigluxx" class="logo-dark h-8 w-auto object-contain" />
+            </div>
+            <button
+              (click)="toggleTheme()"
+              class="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:opacity-80"
+              style="background-color: var(--color-bg-secondary)"
+              [title]="themeService.isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+            >
+              <i
+                class="text-base"
+                [class]="themeService.isDark ? 'ri-sun-line' : 'ri-moon-line'"
+                style="color: var(--color-text-secondary)"
+              ></i>
+            </button>
+          </div>
+        </ng-container>
 
-      <!-- Each auth page (login, register, etc.) renders here.
-           login.component owns the left/right split layout internally. -->
-      <router-outlet></router-outlet>
+        <!-- Form area -->
+        <div
+          class="flex-1 flex items-center justify-center min-h-0"
+          [ngClass]="isLoginRoute ? 'p-0 overflow-hidden' : 'px-6 py-8 lg:px-12 xl:px-16'"
+        >
+          <div [ngClass]="isLoginRoute ? 'w-full h-full' : 'w-full max-w-md'">
+            <router-outlet></router-outlet>
+          </div>
+        </div>
+
+      </div>
     </div>
   `,
-  styles: [`
-    .auth-shell {
-      position: relative;
-      min-height: 100vh;
-    }
-    .theme-toggle {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 100;
-      width: 36px; height: 36px;
-      border-radius: 10px;
-      border: none;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      background-color: var(--color-bg-secondary);
-      transition: opacity 0.2s;
-    }
-    .theme-toggle:hover { opacity: 0.8; }
-  `],
 })
-export class AuthLayoutComponent {
-  constructor(public themeService: ThemeService) {}
+export class AuthLayoutComponent implements OnInit {
+  isLoginRoute = false;
+
+  constructor(
+    public themeService: ThemeService,
+    private router: Router,
+  ) {}
+
+  ngOnInit(): void {
+    this.checkRoute(this.router.url);
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe(e => this.checkRoute(e.urlAfterRedirects));
+  }
+
+  private checkRoute(url: string): void {
+    this.isLoginRoute = /\/auth(\/login)?(\/)?(\?.*)?$/.test(url);
+  }
 
   toggleTheme(): void {
     this.themeService.toggle();
