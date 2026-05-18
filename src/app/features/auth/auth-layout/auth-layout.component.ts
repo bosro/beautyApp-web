@@ -1,101 +1,55 @@
+// ============================================================
+// auth-layout.component.ts  —  Updated
+// The left marquee panel now lives inside login.component,
+// so this layout is a simple full-width shell with a theme toggle.
+// ============================================================
+
 import { Component } from '@angular/core';
 import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-auth-layout',
   template: `
-    <div class="min-h-screen flex" style="background-color: var(--color-bg-primary)">
-      <!-- LEFT PANEL — hidden on mobile, shown on lg+ -->
-      <div
-        class="hidden lg:flex lg:w-[480px] xl:w-[560px] flex-shrink-0 gradient-primary flex-col justify-between p-12 relative overflow-hidden"
+    <div class="auth-shell" style="background-color: var(--color-background)">
+
+      <!-- Theme toggle — top-right corner, sits above everything -->
+      <button
+        (click)="toggleTheme()"
+        class="theme-toggle"
+        [title]="themeService.isDark ? 'Switch to light mode' : 'Switch to dark mode'"
       >
-        <!-- Background pattern circles -->
-        <div
-          class="absolute -top-20 -left-20 w-80 h-80 rounded-full opacity-10"
-          style="background: white"
-        ></div>
-        <div
-          class="absolute -bottom-32 -right-20 w-96 h-96 rounded-full opacity-10"
-          style="background: white"
-        ></div>
+        <i
+          class="text-base"
+          [class]="themeService.isDark ? 'ri-sun-line' : 'ri-moon-line'"
+          style="color: var(--color-text-secondary)"
+        ></i>
+      </button>
 
-        <!-- Logo -->
-        <div class="relative z-10">
-          <img src="assets/images/logo-dark.png" alt="Bigluxx" class="h-10 w-auto object-contain" />
-        </div>
-
-        <!-- Center content -->
-        <div class="relative z-10">
-          <h1 class="text-white text-4xl xl:text-5xl font-bold leading-tight mb-6">
-            Beauty Made<br />Simple for<br />Everyone
-          </h1>
-          <p class="text-white/80 text-lg leading-relaxed mb-8">
-            Whether you need a service or offer one — booking and managing appointments is effortless.
-          </p>
-
-          <!-- Feature pills -->
-          <div class="flex flex-col gap-3">
-            <div class="flex items-center gap-3 text-white/90">
-              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <i class="ri-map-pin-2-line text-sm"></i>
-              </div>
-              <span class="text-sm">Find beauticians near you</span>
-            </div>
-            <div class="flex items-center gap-3 text-white/90">
-              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <i class="ri-calendar-check-line text-sm"></i>
-              </div>
-              <span class="text-sm">Book appointments instantly</span>
-            </div>
-            <div class="flex items-center gap-3 text-white/90">
-              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <i class="ri-star-line text-sm"></i>
-              </div>
-              <span class="text-sm">Verified, rated professionals</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footer text -->
-        <div class="relative z-10">
-          <p class="text-white/50 text-xs">© 2025 Bigluxx · Accra, Ghana</p>
-        </div>
-      </div>
-
-      <!-- RIGHT PANEL — form area -->
-      <div class="flex-1 flex flex-col">
-        <!-- Top bar mobile logo + theme toggle -->
-        <div class="flex items-center justify-between px-6 pt-6 lg:justify-end lg:px-10 lg:pt-8">
-          <div class="flex items-center gap-2 lg:hidden">
-            <!-- theme-aware logo -->
-            <img src="assets/images/logo.png" alt="Bigluxx" class="logo-light h-8 w-auto object-contain" />
-            <img src="assets/images/logo-dark.png" alt="Bigluxx" class="logo-dark h-8 w-auto object-contain" />
-          </div>
-
-          <!-- Theme toggle -->
-          <button
-            (click)="toggleTheme()"
-            class="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:opacity-80"
-            style="background-color: var(--color-bg-secondary)"
-            [title]="themeService.isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-          >
-            <i
-              class="text-base"
-              [class]="themeService.isDark ? 'ri-sun-line' : 'ri-moon-line'"
-              style="color: var(--color-text-secondary)"
-            ></i>
-          </button>
-        </div>
-
-        <!-- Form content -->
-        <div class="flex-1 flex items-center justify-center px-6 py-8 lg:px-12 xl:px-16">
-          <div class="w-full max-w-md">
-            <router-outlet></router-outlet>
-          </div>
-        </div>
-      </div>
+      <!-- Each auth page (login, register, etc.) renders here.
+           login.component owns the left/right split layout internally. -->
+      <router-outlet></router-outlet>
     </div>
   `,
+  styles: [`
+    .auth-shell {
+      position: relative;
+      min-height: 100vh;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      background-color: var(--color-bg-secondary);
+      transition: opacity 0.2s;
+    }
+    .theme-toggle:hover { opacity: 0.8; }
+  `],
 })
 export class AuthLayoutComponent {
   constructor(public themeService: ThemeService) {}

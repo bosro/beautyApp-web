@@ -1,8 +1,8 @@
 // ============================================================
-// login.component.ts  —  Enhanced UI with animated marquee grid
-// All auth logic, form validation, Google sign-in unchanged.
-// The marquee bento grid mirrors the reference HTML pages.
-// Add your own images by replacing the placeholder URLs.
+// login.component.ts  —  Fixed:
+//  1. Bento marquee is now the LEFT panel (replaces old gradient panel)
+//  2. Duplicate Google button removed (only your styled button remains)
+//  3. auth-layout no longer needs its own left panel — login owns it
 // ============================================================
 
 import { Component, OnInit, AfterViewInit, OnDestroy } from "@angular/core";
@@ -16,64 +16,180 @@ import { environment } from "@environments/environment";
   selector: "app-login",
   template: `
     <div class="auth-root">
-
       <!-- ══════════════════════════════════════════
            LEFT PANEL — Animated Marquee Bento Grid
       ══════════════════════════════════════════ -->
       <div class="marquee-panel" aria-hidden="true">
-
-        <!-- Gradient fade at bottom -->
         <div class="marquee-fade-bottom"></div>
-        <!-- Gradient fade at top -->
         <div class="marquee-fade-top"></div>
-        <!-- Dark overlay tint -->
         <div class="marquee-overlay"></div>
 
-        <!-- Columns -->
         <div class="cols-wrap">
-
           <!-- Col 1 — scrolls up, normal speed -->
           <div class="mcol" id="lc1">
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=300&q=80" alt="Salon" /></div>
-            <div class="mcard med"><img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80" alt="Beauty" /></div>
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=300&q=80" alt="Makeup" /></div>
-            <div class="mcard med"><img src="https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=300&q=80" alt="Nails" /></div>
-            <!-- duplicates for seamless loop -->
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=300&q=80" alt="Salon" /></div>
-            <div class="mcard med"><img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80" alt="Beauty" /></div>
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=300&q=80" alt="Makeup" /></div>
-            <div class="mcard med"><img src="https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=300&q=80" alt="Nails" /></div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=300&q=80"
+                alt="Salon"
+              />
+            </div>
+            <div class="mcard med">
+              <img
+                src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80"
+                alt="Beauty"
+              />
+            </div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=300&q=80"
+                alt="Makeup"
+              />
+            </div>
+            <div class="mcard med">
+              <img
+                src="https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=300&q=80"
+                alt="Nails"
+              />
+            </div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=300&q=80"
+                alt="Salon"
+              />
+            </div>
+            <div class="mcard med">
+              <img
+                src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80"
+                alt="Beauty"
+              />
+            </div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=300&q=80"
+                alt="Makeup"
+              />
+            </div>
+            <div class="mcard med">
+              <img
+                src="https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=300&q=80"
+                alt="Nails"
+              />
+            </div>
           </div>
 
           <!-- Col 2 — scrolls down, faster -->
           <div class="mcol" id="lc2">
-            <div class="mcard med"><img src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=300&q=80" alt="Spa" /></div>
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1552693673-1bf958298935?w=300&q=80" alt="Hair" /></div>
-            <div class="mcard sm"><img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&q=80" alt="Barber" /></div>
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=300&q=80" alt="Facial" /></div>
-            <div class="mcard med"><img src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=300&q=80" alt="Spa" /></div>
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1552693673-1bf958298935?w=300&q=80" alt="Hair" /></div>
-            <div class="mcard sm"><img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&q=80" alt="Barber" /></div>
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=300&q=80" alt="Facial" /></div>
+            <div class="mcard med">
+              <img
+                src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=300&q=80"
+                alt="Spa"
+              />
+            </div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1552693673-1bf958298935?w=300&q=80"
+                alt="Hair"
+              />
+            </div>
+            <div class="mcard sm">
+              <img
+                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&q=80"
+                alt="Barber"
+              />
+            </div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=300&q=80"
+                alt="Facial"
+              />
+            </div>
+            <div class="mcard med">
+              <img
+                src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=300&q=80"
+                alt="Spa"
+              />
+            </div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1552693673-1bf958298935?w=300&q=80"
+                alt="Hair"
+              />
+            </div>
+            <div class="mcard sm">
+              <img
+                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&q=80"
+                alt="Barber"
+              />
+            </div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=300&q=80"
+                alt="Facial"
+              />
+            </div>
           </div>
 
           <!-- Col 3 — scrolls up, slower -->
           <div class="mcol" id="lc3">
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80" alt="Style" /></div>
-            <div class="mcard sm"><img src="https://images.unsplash.com/photo-1559599101-f09722fb4948?w=300&q=80" alt="Lashes" /></div>
-            <div class="mcard med"><img src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=300&q=80" alt="Skin" /></div>
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=300&q=80" alt="Wax" /></div>
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80" alt="Style" /></div>
-            <div class="mcard sm"><img src="https://images.unsplash.com/photo-1559599101-f09722fb4948?w=300&q=80" alt="Lashes" /></div>
-            <div class="mcard med"><img src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=300&q=80" alt="Skin" /></div>
-            <div class="mcard tall"><img src="https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=300&q=80" alt="Wax" /></div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80"
+                alt="Style"
+              />
+            </div>
+            <div class="mcard sm">
+              <img
+                src="https://images.unsplash.com/photo-1559599101-f09722fb4948?w=300&q=80"
+                alt="Lashes"
+              />
+            </div>
+            <div class="mcard med">
+              <img
+                src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=300&q=80"
+                alt="Skin"
+              />
+            </div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=300&q=80"
+                alt="Wax"
+              />
+            </div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80"
+                alt="Style"
+              />
+            </div>
+            <div class="mcard sm">
+              <img
+                src="https://images.unsplash.com/photo-1559599101-f09722fb4948?w=300&q=80"
+                alt="Lashes"
+              />
+            </div>
+            <div class="mcard med">
+              <img
+                src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=300&q=80"
+                alt="Skin"
+              />
+            </div>
+            <div class="mcard tall">
+              <img
+                src="https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=300&q=80"
+                alt="Wax"
+              />
+            </div>
           </div>
         </div>
 
         <!-- Brand watermark centred on panel -->
         <div class="panel-brand">
           <div class="panel-logo">
-            <img src="assets/images/logo-dark.png" alt="Bigluxx" class="panel-logo-img" />
+            <img
+              src="assets/images/logo-dark.png"
+              alt="Bigluxx"
+              class="panel-logo-img"
+            />
           </div>
           <p class="panel-tagline">Ghana's Premium Beauty Platform</p>
           <div class="panel-pills">
@@ -90,11 +206,18 @@ import { environment } from "@environments/environment";
       ══════════════════════════════════════════ -->
       <div class="form-panel">
         <div class="form-inner">
-
           <!-- Mobile logo (hidden on desktop) -->
           <div class="mobile-logo-wrap">
-            <img src="assets/images/logo.png" alt="Bigluxx" class="logo-light mobile-logo" />
-            <img src="assets/images/logo-dark.png" alt="Bigluxx" class="logo-dark mobile-logo" />
+            <img
+              src="assets/images/logo.png"
+              alt="Bigluxx"
+              class="logo-light mobile-logo"
+            />
+            <img
+              src="assets/images/logo-dark.png"
+              alt="Bigluxx"
+              class="logo-dark mobile-logo"
+            />
           </div>
 
           <div class="form-head">
@@ -103,11 +226,13 @@ import { environment } from "@environments/environment";
           </div>
 
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
-
             <!-- Email -->
             <div class="field-group">
               <label class="field-label">Email address</label>
-              <div class="field-wrap" [class.field-error]="submitted && f['email'].errors">
+              <div
+                class="field-wrap"
+                [class.field-error]="submitted && f['email'].errors"
+              >
                 <i class="ri-mail-line field-icon"></i>
                 <input
                   formControlName="email"
@@ -117,14 +242,27 @@ import { environment } from "@environments/environment";
                   autocomplete="email"
                 />
               </div>
-              <p *ngIf="submitted && f['email'].errors?.['required']" class="field-err-msg">Email is required</p>
-              <p *ngIf="submitted && f['email'].errors?.['email']" class="field-err-msg">Enter a valid email</p>
+              <p
+                *ngIf="submitted && f['email'].errors?.['required']"
+                class="field-err-msg"
+              >
+                Email is required
+              </p>
+              <p
+                *ngIf="submitted && f['email'].errors?.['email']"
+                class="field-err-msg"
+              >
+                Enter a valid email
+              </p>
             </div>
 
             <!-- Password -->
             <div class="field-group">
               <label class="field-label">Password</label>
-              <div class="field-wrap" [class.field-error]="submitted && f['password'].errors">
+              <div
+                class="field-wrap"
+                [class.field-error]="submitted && f['password'].errors"
+              >
                 <i class="ri-lock-line field-icon"></i>
                 <input
                   formControlName="password"
@@ -133,16 +271,30 @@ import { environment } from "@environments/environment";
                   class="field-input"
                   autocomplete="current-password"
                 />
-                <button type="button" (click)="showPassword = !showPassword" class="eye-btn" tabindex="-1">
-                  <i [class]="showPassword ? 'ri-eye-off-line' : 'ri-eye-line'"></i>
+                <button
+                  type="button"
+                  (click)="showPassword = !showPassword"
+                  class="eye-btn"
+                  tabindex="-1"
+                >
+                  <i
+                    [class]="showPassword ? 'ri-eye-off-line' : 'ri-eye-line'"
+                  ></i>
                 </button>
               </div>
-              <p *ngIf="submitted && f['password'].errors?.['required']" class="field-err-msg">Password is required</p>
+              <p
+                *ngIf="submitted && f['password'].errors?.['required']"
+                class="field-err-msg"
+              >
+                Password is required
+              </p>
             </div>
 
             <!-- Forgot -->
             <div class="forgot-row">
-              <a routerLink="/auth/forgot-password" class="forgot-link">Forgot password?</a>
+              <a routerLink="/auth/forgot-password" class="forgot-link"
+                >Forgot password?</a
+              >
             </div>
 
             <!-- Submit -->
@@ -162,12 +314,20 @@ import { environment } from "@environments/environment";
             <div class="divider-line"></div>
           </div>
 
-          <!-- Google -->
+          <!--
+            Google Sign-In — single styled button only.
+            The #google-btn-container div has been REMOVED to prevent
+            the Google SDK from rendering a second native button below yours.
+            onGoogleSignIn() triggers the One Tap prompt directly.
+          -->
           <button type="button" (click)="onGoogleSignIn()" class="google-btn">
-            <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" class="google-icon" />
+            <img
+              src="https://www.svgrepo.com/show/355037/google.svg"
+              alt="Google"
+              class="google-icon"
+            />
             <span>Continue with Google</span>
           </button>
-          <div id="google-btn-container" class="mt-2"></div>
 
           <!-- Footer links -->
           <div class="auth-footer">
@@ -177,235 +337,418 @@ import { environment } from "@environments/environment";
             </p>
             <p class="footer-line muted">
               Are you a beautician?
-              <a routerLink="/auth/beautician-register" class="footer-link">Join as beautician</a>
+              <a routerLink="/auth/beautician-register" class="footer-link"
+                >Join as beautician</a
+              >
             </p>
           </div>
         </div>
       </div>
     </div>
   `,
-  styles: [`
-    /* ── Reset & root ─────────────────────────────────────── */
-    .auth-root {
-      display: flex;
-      min-height: 100vh;
-      background: var(--color-background);
-      overflow: hidden;
-    }
+  styles: [
+    `
+      /* ── Reset & root ─────────────────────────────────────── */
+      :host {
+        display: contents;
+      }
+      .auth-root {
+        display: flex;
+        min-height: 100vh;
+        background: var(--color-background);
+        overflow: hidden;
+      }
 
-    /* ── LEFT: Marquee Panel ──────────────────────────────── */
-    .marquee-panel {
-      display: none;
-      position: relative;
-      flex: 0 0 48%;
-      max-width: 520px;
-      overflow: hidden;
-      background: #0a0a0a;
-    }
-    @media (min-width: 1024px) { .marquee-panel { display: block; } }
+      /* ── LEFT: Marquee Panel ──────────────────────────────── */
+      .marquee-panel {
+        display: none;
+        position: relative;
+        flex: 0 0 48%;
+        max-width: 520px;
+        overflow: hidden;
+        background: #0a0a0a;
+      }
+      @media (min-width: 1024px) {
+        .marquee-panel {
+          display: block;
+        }
+      }
 
-    .marquee-fade-bottom {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      height: 260px;
-      background: linear-gradient(transparent, #0a0a0a);
-      z-index: 10; pointer-events: none;
-    }
-    .marquee-fade-top {
-      position: absolute; top: 0; left: 0; right: 0;
-      height: 120px;
-      background: linear-gradient(#0a0a0a, transparent);
-      z-index: 10; pointer-events: none;
-    }
-    .marquee-overlay {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.38);
-      z-index: 5; pointer-events: none;
-    }
+      .marquee-fade-bottom {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 260px;
+        background: linear-gradient(transparent, #0a0a0a);
+        z-index: 10;
+        pointer-events: none;
+      }
+      .marquee-fade-top {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 120px;
+        background: linear-gradient(#0a0a0a, transparent);
+        z-index: 10;
+        pointer-events: none;
+      }
+      .marquee-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.38);
+        z-index: 5;
+        pointer-events: none;
+      }
 
-    .cols-wrap {
-      display: flex;
-      gap: 6px;
-      padding: 0 6px;
-      height: 100vh;
-    }
-    .mcol {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      will-change: transform;
-    }
-    .mcard {
-      flex-shrink: 0;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #1a1a1a;
-    }
-    .mcard img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .mcard.tall { height: 200px; }
-    .mcard.med  { height: 155px; }
-    .mcard.sm   { height: 120px; }
+      .cols-wrap {
+        display: flex;
+        gap: 6px;
+        padding: 0 6px;
+        height: 100vh;
+      }
+      .mcol {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        will-change: transform;
+      }
+      .mcard {
+        flex-shrink: 0;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #1a1a1a;
+      }
+      .mcard img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .mcard.tall {
+        height: 200px;
+      }
+      .mcard.med {
+        height: 155px;
+      }
+      .mcard.sm {
+        height: 120px;
+      }
 
-    /* Brand overlay centred on panel */
-    .panel-brand {
-      position: absolute;
-      bottom: 56px; left: 0; right: 0;
-      z-index: 20;
-      display: flex; flex-direction: column;
-      align-items: center; gap: 10px;
-      padding: 0 24px;
-    }
-    .panel-logo { display: flex; align-items: center; justify-content: center; }
-    .panel-logo-img { height: 36px; width: auto; object-fit: contain; }
-    .panel-tagline {
-      font-size: 13px; color: rgba(255,255,255,0.55);
-      font-weight: 500; letter-spacing: 0.3px; text-align: center;
-    }
-    .panel-pills { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-    .ppill {
-      background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(8px);
-      color: white; font-size: 12px; font-weight: 600;
-      padding: 5px 12px; border-radius: 999px;
-    }
+      /* Brand overlay centred on panel */
+      .panel-brand {
+        position: absolute;
+        bottom: 56px;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 0 24px;
+      }
+      .panel-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .panel-logo-img {
+        height: 36px;
+        width: auto;
+        object-fit: contain;
+      }
+      .panel-tagline {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.55);
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        text-align: center;
+      }
+      .panel-pills {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .ppill {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 999px;
+      }
 
-    /* ── RIGHT: Form Panel ────────────────────────────────── */
-    .form-panel {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 20px;
-      overflow-y: auto;
-      background: var(--color-background);
-    }
-    .form-inner {
-      width: 100%;
-      max-width: 400px;
-    }
+      /* ── RIGHT: Form Panel ────────────────────────────────── */
+      .form-panel {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 20px;
+        overflow-y: auto;
+        background: var(--color-background);
+      }
+      .form-inner {
+        width: 100%;
+        max-width: 400px;
+      }
 
-    /* Mobile logo */
-    .mobile-logo-wrap {
-      display: flex; justify-content: center; margin-bottom: 32px;
-    }
-    .mobile-logo { height: 32px; width: auto; object-fit: contain; }
-    @media (min-width: 1024px) { .mobile-logo-wrap { display: none; } }
+      /* Mobile logo */
+      .mobile-logo-wrap {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 32px;
+      }
+      .mobile-logo {
+        height: 32px;
+        width: auto;
+        object-fit: contain;
+      }
+      @media (min-width: 1024px) {
+        .mobile-logo-wrap {
+          display: none;
+        }
+      }
 
-    /* Form head */
-    .form-head { margin-bottom: 28px; }
-    .form-title {
-      font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
-      color: var(--color-text-primary); line-height: 1.15; margin-bottom: 6px;
-    }
-    .form-sub { font-size: 14px; color: var(--color-text-secondary); line-height: 1.5; }
+      /* Form head */
+      .form-head {
+        margin-bottom: 28px;
+      }
+      .form-title {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: var(--color-text-primary);
+        line-height: 1.15;
+        margin-bottom: 6px;
+      }
+      .form-sub {
+        font-size: 14px;
+        color: var(--color-text-secondary);
+        line-height: 1.5;
+      }
 
-    /* Fields */
-    .login-form { display: flex; flex-direction: column; gap: 16px; }
-    .field-group { display: flex; flex-direction: column; gap: 6px; }
-    .field-label {
-      font-size: 13px; font-weight: 600;
-      color: var(--color-text-secondary); letter-spacing: 0.2px;
-    }
-    .field-wrap {
-      position: relative;
-      display: flex; align-items: center;
-      border: 1.5px solid var(--color-border);
-      border-radius: 14px;
-      background: var(--color-surface);
-      transition: border-color 0.2s;
-    }
-    .field-wrap:focus-within {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 12%, transparent);
-    }
-    .field-wrap.field-error { border-color: #ef4444; }
-    .field-icon {
-      position: absolute; left: 14px;
-      font-size: 16px; color: var(--color-primary);
-      pointer-events: none;
-    }
-    .field-input {
-      flex: 1; border: none; outline: none;
-      background: transparent;
-      color: var(--color-text-primary);
-      font-size: 15px;
-      padding: 14px 14px 14px 42px;
-      border-radius: 14px;
-    }
-    .field-input::placeholder { color: var(--color-text-muted); }
-    .eye-btn {
-      background: none; border: none; cursor: pointer;
-      padding: 0 14px; color: var(--color-text-secondary);
-      font-size: 16px; display: flex; align-items: center;
-    }
-    .field-err-msg { font-size: 12px; color: #ef4444; }
+      /* Fields */
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .field-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        letter-spacing: 0.2px;
+      }
+      .field-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        border: 1.5px solid var(--color-border);
+        border-radius: 14px;
+        background: var(--color-surface);
+        transition: border-color 0.2s;
+      }
+      .field-wrap:focus-within {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px
+          color-mix(in srgb, var(--color-primary) 12%, transparent);
+      }
+      .field-wrap.field-error {
+        border-color: #ef4444;
+      }
+      .field-icon {
+        position: absolute;
+        left: 14px;
+        font-size: 16px;
+        color: var(--color-primary);
+        pointer-events: none;
+      }
+      .field-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: var(--color-text-primary);
+        font-size: 15px;
+        padding: 14px 14px 14px 42px;
+        border-radius: 14px;
+      }
+      .field-input::placeholder {
+        color: var(--color-text-muted);
+      }
+      .eye-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0 14px;
+        color: var(--color-text-secondary);
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+      }
+      .field-err-msg {
+        font-size: 12px;
+        color: #ef4444;
+      }
 
-    /* Forgot */
-    .forgot-row { display: flex; justify-content: flex-end; margin-top: -6px; }
-    .forgot-link {
-      font-size: 13px; font-weight: 600; color: var(--color-primary);
-      text-decoration: none; opacity: 0.9;
-    }
-    .forgot-link:hover { opacity: 1; }
+      /* Forgot */
+      .forgot-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: -6px;
+      }
+      .forgot-link {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-primary);
+        text-decoration: none;
+        opacity: 0.9;
+      }
+      .forgot-link:hover {
+        opacity: 1;
+      }
 
-    /* Submit button */
-    .submit-btn {
-      width: 100%;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      background: var(--color-primary);
-      color: white; border: none; cursor: pointer;
-      border-radius: 50px; padding: 16px 24px;
-      font-size: 15px; font-weight: 700; letter-spacing: 0.3px;
-      transition: opacity 0.2s, transform 0.15s;
-      margin-top: 4px; position: relative;
-    }
-    .submit-btn:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
-    .submit-btn:active:not(:disabled) { transform: translateY(0); }
-    .submit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-    .btn-arrow {
-      width: 30px; height: 30px; border-radius: 50%;
-      background: rgba(255,255,255,0.2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
-    }
-    .spinner-sm {
-      width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+      /* Submit button */
+      .submit-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 50px;
+        padding: 16px 24px;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        transition:
+          opacity 0.2s,
+          transform 0.15s;
+        margin-top: 4px;
+        position: relative;
+      }
+      .submit-btn:hover:not(:disabled) {
+        opacity: 0.92;
+        transform: translateY(-1px);
+      }
+      .submit-btn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+      .submit-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .btn-arrow {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+      }
+      .spinner-sm {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
 
-    /* Divider */
-    .divider-row {
-      display: flex; align-items: center; gap: 12px;
-      margin: 20px 0;
-    }
-    .divider-line { flex: 1; height: 1px; background: var(--color-border); }
-    .divider-text { font-size: 12px; font-weight: 500; color: var(--color-text-muted); }
+      /* Divider */
+      .divider-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0;
+      }
+      .divider-line {
+        flex: 1;
+        height: 1px;
+        background: var(--color-border);
+      }
+      .divider-text {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--color-text-muted);
+      }
 
-    /* Google */
-    .google-btn {
-      width: 100%;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      background: var(--color-surface);
-      border: 1.5px solid var(--color-border);
-      border-radius: 50px; padding: 14px 24px;
-      font-size: 14px; font-weight: 600;
-      color: var(--color-text-primary);
-      cursor: pointer; transition: border-color 0.2s, background 0.2s;
-    }
-    .google-btn:hover { border-color: var(--color-primary); background: var(--color-background); }
-    .google-icon { width: 20px; height: 20px; }
+      /* Google */
+      .google-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: var(--color-surface);
+        border: 1.5px solid var(--color-border);
+        border-radius: 50px;
+        padding: 14px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .google-btn:hover {
+        border-color: var(--color-primary);
+        background: var(--color-background);
+      }
+      .google-icon {
+        width: 20px;
+        height: 20px;
+      }
 
-    /* Footer */
-    .auth-footer { margin-top: 24px; display: flex; flex-direction: column; gap: 8px; text-align: center; }
-    .footer-line { font-size: 14px; color: var(--color-text-secondary); }
-    .footer-line.muted { font-size: 12px; color: var(--color-text-muted); }
-    .footer-link { font-weight: 700; color: var(--color-primary); text-decoration: none; margin-left: 4px; }
-    .footer-link:hover { text-decoration: underline; }
-  `],
+      /* Footer */
+      .auth-footer {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+      .footer-line {
+        font-size: 14px;
+        color: var(--color-text-secondary);
+      }
+      .footer-line.muted {
+        font-size: 12px;
+        color: var(--color-text-muted);
+      }
+      .footer-link {
+        font-weight: 700;
+        color: var(--color-primary);
+        text-decoration: none;
+        margin-left: 4px;
+      }
+      .footer-link:hover {
+        text-decoration: underline;
+      }
+    `,
+  ],
 })
 export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   form!: FormGroup;
@@ -414,7 +757,8 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   showPassword = false;
 
   private rafId: number | null = null;
-  private cols: { el: HTMLElement; speed: number; y: number; dir: number }[] = [];
+  private cols: { el: HTMLElement; speed: number; y: number; dir: number }[] =
+    [];
 
   constructor(
     private fb: FormBuilder,
@@ -439,28 +783,29 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Give the DOM a tick to render the columns
     setTimeout(() => this.startMarquee(), 100);
   }
 
   private startMarquee(): void {
     const defs = [
-      { id: "lc1", speed: 0.45, y: 0,   dir: -1 },
-      { id: "lc2", speed: 0.70, y: -80, dir:  1 },
-      { id: "lc3", speed: 0.30, y: -40, dir: -1 },
+      { id: "lc1", speed: 0.45, y: 0, dir: -1 },
+      { id: "lc2", speed: 0.7, y: -80, dir: 1 },
+      { id: "lc3", speed: 0.3, y: -40, dir: -1 },
     ];
 
-    this.cols = defs.map(d => {
-      const el = document.getElementById(d.id) as HTMLElement;
-      return { el, speed: d.speed, y: d.y, dir: d.dir };
-    }).filter(c => !!c.el);
+    this.cols = defs
+      .map((d) => {
+        const el = document.getElementById(d.id) as HTMLElement;
+        return { el, speed: d.speed, y: d.y, dir: d.dir };
+      })
+      .filter((c) => !!c.el);
 
     const tick = () => {
-      this.cols.forEach(c => {
+      this.cols.forEach((c) => {
         c.y += c.speed * c.dir;
         const half = c.el.scrollHeight / 2;
         if (c.dir === -1 && Math.abs(c.y) >= half) c.y += half;
-        if (c.dir ===  1 && c.y >= 0)              c.y -= half;
+        if (c.dir === 1 && c.y >= 0) c.y -= half;
         c.el.style.transform = `translateY(${c.y}px)`;
       });
       this.rafId = requestAnimationFrame(tick);
@@ -472,7 +817,9 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.rafId) cancelAnimationFrame(this.rafId);
   }
 
-  get f() { return this.form.controls; }
+  get f() {
+    return this.form.controls;
+  }
 
   onSubmit(): void {
     this.submitted = true;
@@ -486,20 +833,25 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (err) => {
         this.loading = false;
-        this.toast.error(err?.error?.message || "Login failed. Please try again.");
+        this.toast.error(
+          err?.error?.message || "Login failed. Please try again.",
+        );
       },
     });
   }
 
   onGoogleSignIn(): void {
     const google = (window as any).google;
-    if (!google) { this.toast.error("Google Sign-In is not available."); return; }
+    if (!google) {
+      this.toast.error("Google Sign-In is not available.");
+      return;
+    }
     google.accounts.id.prompt((notification: any) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        google.accounts.id.renderButton(
-          document.getElementById("google-btn-container"),
-          { theme: "outline", size: "large", width: "100%" },
-        );
+        // Fallback: trigger OAuth redirect flow instead of rendering a second button
+        google.accounts.id.cancel();
+        const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${environment.googleClientId}&redirect_uri=${encodeURIComponent(window.location.origin + "/auth/google/callback")}&response_type=code&scope=openid%20email%20profile`;
+        window.location.href = oauthUrl;
       }
     });
   }
