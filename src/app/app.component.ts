@@ -1,11 +1,11 @@
-// src/app/app.component.ts — FINAL VERSION
+// src/app/app.component.ts
 // FcmService is now properly imported and injected.
 
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
 import { AuthService } from './core/services/auth.service';
-import { FcmService } from './core/services/fcm.service';   // ADD THIS IMPORT
+import { FcmService } from './core/services/fcm.service';  
 import { environment } from '../environments/environment';
 import {
   trigger, transition, style, animate, query, group,
