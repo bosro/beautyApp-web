@@ -377,3 +377,5 @@ export class SettingsLayoutComponent implements OnInit {
     this.authService.logout();
   }
 }
+
+

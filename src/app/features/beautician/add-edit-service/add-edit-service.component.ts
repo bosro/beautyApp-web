@@ -1,7 +1,3 @@
-// ============================================================
-// add-edit-service.component.ts  —  Enhanced UI
-// ============================================================
-
 import { Component, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
@@ -13,8 +9,8 @@ import { ToastService } from "@core/services/toast.service";
   selector: "app-add-edit-service",
   standalone: false,
   template: `
-    <div class="min-h-screen bg-[var(--color-background)] pb-32 lg:pb-8">
-      <!-- ── Header ── -->
+    <div class="min-h-screen bg-[var(--color-background)]">
+      <!-- Header -->
       <div
         class="sticky top-0 z-20 bg-[var(--color-surface)]/95 backdrop-blur-md border-b border-[var(--color-border)] px-4 py-3 flex items-center gap-3"
       >
@@ -33,7 +29,7 @@ import { ToastService } from "@core/services/toast.service";
         </h1>
       </div>
 
-      <!-- Loading (edit mode) -->
+      <!-- Loading skeleton -->
       <div *ngIf="loadingService" class="p-4 max-w-2xl mx-auto space-y-3">
         <div class="skeleton h-48 rounded-3xl"></div>
         <div class="skeleton h-72 rounded-2xl"></div>
@@ -79,7 +75,6 @@ import { ToastService } from "@core/services/toast.service";
                 JPG, PNG — recommended 4:3 ratio
               </p>
             </div>
-            <!-- hover overlay -->
             <div
               *ngIf="previewUrl"
               class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
@@ -116,11 +111,13 @@ import { ToastService } from "@core/services/toast.service";
             Service Details
           </h3>
 
+          <!-- Name -->
           <div>
             <label
               class="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5 uppercase tracking-wide"
-              >Service Name *</label
             >
+              Service Name *
+            </label>
             <input
               formControlName="name"
               type="text"
@@ -135,11 +132,13 @@ import { ToastService } from "@core/services/toast.service";
             </p>
           </div>
 
+          <!-- Description -->
           <div>
             <label
               class="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5 uppercase tracking-wide"
-              >Description</label
             >
+              Description
+            </label>
             <textarea
               formControlName="description"
               rows="3"
@@ -148,12 +147,14 @@ import { ToastService } from "@core/services/toast.service";
             ></textarea>
           </div>
 
+          <!-- Price & Duration -->
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label
                 class="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5 uppercase tracking-wide"
-                >Price (GH₵) *</label
               >
+                Price (GH₵) *
+              </label>
               <input
                 formControlName="price"
                 type="number"
@@ -172,8 +173,9 @@ import { ToastService } from "@core/services/toast.service";
             <div>
               <label
                 class="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1.5 uppercase tracking-wide"
-                >Duration (mins) *</label
               >
+                Duration (mins) *
+              </label>
               <input
                 formControlName="duration"
                 type="number"
@@ -192,18 +194,19 @@ import { ToastService } from "@core/services/toast.service";
             </div>
           </div>
 
-          <!-- Category -->
+          <!-- Category — scrollable chips -->
           <div>
             <label
               class="block text-xs font-semibold text-[var(--color-text-secondary)] mb-2 uppercase tracking-wide"
-              >Category *</label
             >
-            <div class="flex gap-2">
+              Category *
+            </label>
+            <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               <button
                 *ngFor="let cat of categoryTabs"
                 type="button"
                 (click)="form.patchValue({ category: cat.value })"
-                class="flex-1 py-2.5 rounded-xl border-2 text-sm font-bold transition-all"
+                class="flex-shrink-0 px-4 py-2.5 rounded-xl border-2 text-sm font-bold transition-all whitespace-nowrap"
                 [ngClass]="
                   form.get('category')?.value === cat.value
                     ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white'
@@ -287,29 +290,24 @@ import { ToastService } from "@core/services/toast.service";
           </label>
         </div>
 
-        <!-- Submit — sticky on mobile -->
-        <div
-          class="fixed bottom-0 left-0 right-0 p-4 bg-[var(--color-surface)]/95 backdrop-blur-md border-t border-[var(--color-border)]
-          lg:static lg:border-0 lg:bg-transparent lg:backdrop-blur-none lg:p-0"
-        >
-          <div class="max-w-2xl mx-auto">
-            <button
-              type="submit"
-              [disabled]="saving || form.invalid"
-              class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50"
-            >
-              <i *ngIf="saving" class="ri-loader-4-line animate-spin"></i>
-              <i
-                *ngIf="!saving && !isEdit"
-                class="ri-add-circle-line text-base"
-              ></i>
-              <i *ngIf="!saving && isEdit" class="ri-save-line text-base"></i>
-              <span *ngIf="!saving">{{
-                isEdit ? "Update Service" : "Add Service"
-              }}</span>
-              <span *ngIf="saving">{{ isEdit ? "Updating…" : "Adding…" }}</span>
-            </button>
-          </div>
+        <!-- Submit — in flow -->
+        <div class="pt-2 pb-6">
+          <button
+            type="submit"
+            [disabled]="saving || form.invalid"
+            class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50"
+          >
+            <i *ngIf="saving" class="ri-loader-4-line animate-spin"></i>
+            <i
+              *ngIf="!saving && !isEdit"
+              class="ri-add-circle-line text-base"
+            ></i>
+            <i *ngIf="!saving && isEdit" class="ri-save-line text-base"></i>
+            <span *ngIf="!saving">{{
+              isEdit ? "Update Service" : "Add Service"
+            }}</span>
+            <span *ngIf="saving">{{ isEdit ? "Updating…" : "Adding…" }}</span>
+          </button>
         </div>
       </form>
     </div>
@@ -325,9 +323,14 @@ export class AddEditServiceComponent implements OnInit {
   previewUrl: string | null = null;
 
   categoryTabs = [
-    { label: "All", value: "all" },
-    { label: "Male", value: "male" },
-    { label: "Female", value: "female" },
+    { label: "Hair", value: "hair" },
+    { label: "Nails", value: "nails" },
+    { label: "Skin", value: "skin" },
+    { label: "Makeup", value: "makeup" },
+    { label: "Lashes", value: "lashes" },
+    { label: "Brows", value: "brows" },
+    { label: "Massage", value: "massage" },
+    { label: "Other", value: "other" },
   ];
 
   constructor(
@@ -342,7 +345,7 @@ export class AddEditServiceComponent implements OnInit {
       description: [""],
       price: [null, [Validators.required, Validators.min(0)]],
       duration: [60, [Validators.required, Validators.min(15)]],
-      category: ["all", Validators.required],
+      category: ["hair", Validators.required],
       isPopular: [false],
       isActive: [true],
     });
@@ -359,6 +362,14 @@ export class AddEditServiceComponent implements OnInit {
         .subscribe({
           next: (res) => {
             const s = res.data?.service || res.data;
+
+            // Normalize category — guard against null/wrong case
+            const validCategories = this.categoryTabs.map((c) => c.value);
+            const rawCategory = (s.category || "hair").toLowerCase();
+            const category = validCategories.includes(rawCategory)
+              ? rawCategory
+              : "hair";
+
             this.form.patchValue({
               name: s.name,
               description: s.description || "",
@@ -366,9 +377,9 @@ export class AddEditServiceComponent implements OnInit {
               duration:
                 s.durationMinutes ||
                 (typeof s.duration === "number" ? s.duration : 60),
-              category: s.category || "all",
-              isPopular: s.isPopular || false,
-              isActive: s.isActive !== undefined ? s.isActive : true,
+              category,
+              isPopular: s.isPopular ?? false,
+              isActive: s.isActive ?? true,
             });
             this.previewUrl = s.image || null;
             this.loadingService = false;
@@ -402,9 +413,10 @@ export class AddEditServiceComponent implements OnInit {
       duration: `${values.duration}mins`,
       durationMinutes: Number(values.duration),
       category: values.category,
-      isPopular: values.isPopular,
       isActive: values.isActive,
+      // isPopular intentionally omitted until migration is done
     };
+
     const req = this.isEdit
       ? this.http.put<any>(
           `${environment.apiUrl}/services/${this.serviceId}`,

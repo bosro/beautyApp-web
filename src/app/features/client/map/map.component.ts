@@ -4,6 +4,7 @@ import {
   OnDestroy,
   ViewChild,
   ElementRef,
+  NgZone,
 } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
@@ -12,11 +13,12 @@ import { Location } from "@angular/common";
 
 declare const google: any;
 
+type TravelMode = "DRIVING" | "WALKING" | "TRANSIT";
+
 @Component({
   selector: "app-map",
   template: `
     <div class="map-page">
-      <!-- MAP AREA -->
       <div class="map-area" #mapContainer></div>
 
       <!-- Back button -->
@@ -30,7 +32,6 @@ declare const google: any;
         <input
           [(ngModel)]="searchQuery"
           (keyup.enter)="runSearch()"
-          #searchInputEl
           type="text"
           placeholder="Search your favourite salon"
           class="search-input-float"
@@ -50,10 +51,10 @@ declare const google: any;
         </button>
       </div>
 
-      <!-- Salon popup -->
+      <!-- Salon popup (shown when a pin is tapped, directions not active) -->
       <div
         class="salon-popup"
-        *ngIf="selectedSalon"
+        *ngIf="selectedSalon && !directionsActive"
         (click)="goToSalon(selectedSalon.id)"
       >
         <div class="popup-img">
@@ -79,22 +80,95 @@ declare const google: any;
               <i class="ri-walk-line"></i>
               {{ selectedSalon.distance.toFixed(1) }} km away
             </div>
-            <div class="popup-dist" *ngIf="!selectedSalon.distance">
-              <i class="ri-chat-1-line"></i>
-              {{ selectedSalon.totalReviews || 0 }} reviews
+          </div>
+          <!-- Direction trigger inside popup -->
+          <button
+            class="popup-dir-btn"
+            (click)="startDirections(selectedSalon); $event.stopPropagation()"
+          >
+            <i class="ri-navigation-fill"></i> Directions
+          </button>
+        </div>
+        <i class="ri-arrow-right-s-line popup-arrow"></i>
+      </div>
+
+      <!-- Directions panel (shown when route is active) -->
+      <div class="dir-panel" *ngIf="directionsActive">
+        <div class="dir-header">
+          <button class="dir-close" (click)="clearDirections()">
+            <i class="ri-close-line"></i>
+          </button>
+          <div class="dir-dest">
+            <i class="ri-store-2-line"></i>
+            <span class="dir-name">{{ selectedSalon?.businessName }}</span>
+          </div>
+          <!-- Travel mode chips -->
+          <div class="dir-modes">
+            <button
+              *ngFor="let m of travelModes"
+              (click)="setTravelMode(m.value)"
+              class="mode-btn"
+              [class.mode-active]="activeTravelMode === m.value"
+              [title]="m.label"
+            >
+              <i [class]="m.icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="dir-summary" *ngIf="routeSummary">
+          <div class="dir-sum-item">
+            <i class="ri-time-line"></i>
+            <span>{{ routeSummary.duration }}</span>
+          </div>
+          <div class="dir-sum-dot"></div>
+          <div class="dir-sum-item">
+            <i class="ri-road-map-line"></i>
+            <span>{{ routeSummary.distance }}</span>
+          </div>
+          <div class="dir-sum-dot"></div>
+          <div class="dir-sum-item text-primary">
+            {{ activeTravelMode | titlecase }}
+          </div>
+        </div>
+
+        <!-- Steps -->
+        <div class="dir-steps" *ngIf="routeSteps.length > 0">
+          <div
+            *ngFor="let step of routeSteps; let i = index; let last = last"
+            class="dir-step"
+            [class.dir-step-last]="last"
+          >
+            <div class="step-icon">
+              <i [class]="getStepIcon(step.maneuver)"></i>
+            </div>
+            <div class="step-body">
+              <p class="step-instr" [innerHTML]="step.instructions"></p>
+              <p class="step-dist">{{ step.distance }}</p>
             </div>
           </div>
         </div>
-        <i class="ri-arrow-right-s-line popup-arrow"></i>
+
+        <!-- External link -->
+        <button class="ext-maps-btn" (click)="openExternalDirections()">
+          <i class="ri-external-link-line"></i>
+          Open in Google Maps
+        </button>
       </div>
 
       <!-- BOTTOM SHEET -->
       <div
         class="bottom-sheet"
-        [class.sheet-expanded]="sheetExpanded"
-        [style.height]="sheetHeight"
+        [class.sheet-peek]="sheetState === 'peek'"
+        [class.sheet-half]="sheetState === 'half'"
+        [class.sheet-full]="sheetState === 'full'"
+        [class.sheet-hidden]="sheetState === 'hidden'"
+        (touchstart)="onSheetTouchStart($event)"
+        (touchmove)="onSheetTouchMove($event)"
+        (touchend)="onSheetTouchEnd($event)"
       >
-        <div class="sheet-handle-wrap" (click)="toggleSheet()">
+        <div class="sheet-handle-wrap" (click)="cycleSheet()">
           <div class="sheet-handle"></div>
         </div>
 
@@ -130,7 +204,8 @@ declare const google: any;
           </button>
         </div>
 
-        <div class="results-section" *ngIf="sheetExpanded || salons.length > 0">
+        <!-- Results -->
+        <div class="results-section">
           <div *ngIf="loading" class="results-list">
             <div *ngFor="let _ of [1, 2, 3]" class="result-skeleton">
               <div class="skel-img"></div>
@@ -157,28 +232,37 @@ declare const google: any;
               <div class="result-info">
                 <p class="result-name">{{ salon.businessName }}</p>
                 <p class="result-address">
-                  <i class="ri-map-pin-line"></i> {{ salon.city }},
-                  {{ salon.region }}
+                  <i class="ri-map-pin-line"></i>
+                  {{ salon.city }}, {{ salon.region }}
                 </p>
                 <div class="result-meta">
-                  <span class="result-rating"
-                    ><i class="ri-star-fill"></i>
-                    {{ (salon.rating || 0).toFixed(1) }}</span
-                  >
+                  <span class="result-rating">
+                    <i class="ri-star-fill"></i>
+                    {{ (salon.rating || 0).toFixed(1) }}
+                  </span>
                   <span class="result-reviews"
                     >· {{ salon.totalReviews || 0 }} reviews</span
                   >
-                  <span *ngIf="salon.distance" class="result-dist"
-                    >· {{ salon.distance.toFixed(1) }}km</span
-                  >
+                  <span *ngIf="salon.distance" class="result-dist">
+                    · {{ salon.distance.toFixed(1) }}km
+                  </span>
                 </div>
               </div>
-              <button
-                class="result-go"
-                (click)="goToSalon(salon.id); $event.stopPropagation()"
-              >
-                <i class="ri-arrow-right-s-line"></i>
-              </button>
+              <div class="result-actions">
+                <button
+                  class="result-dir"
+                  (click)="startDirections(salon); $event.stopPropagation()"
+                  title="Get directions"
+                >
+                  <i class="ri-navigation-line"></i>
+                </button>
+                <button
+                  class="result-go"
+                  (click)="goToSalon(salon.id); $event.stopPropagation()"
+                >
+                  <i class="ri-arrow-right-s-line"></i>
+                </button>
+              </div>
             </div>
 
             <div *ngIf="salons.length === 0 && !loading" class="empty-state">
@@ -191,7 +275,7 @@ declare const google: any;
           </div>
         </div>
 
-        <div *ngIf="!sheetExpanded" class="confirm-btn-wrap">
+        <div *ngIf="sheetState === 'peek'" class="confirm-btn-wrap">
           <button class="confirm-btn" (click)="runSearch()">
             {{ searchQuery ? "Search Salons" : "Find Nearby Salons" }}
           </button>
@@ -201,11 +285,11 @@ declare const google: any;
   `,
   styles: [
     `
-      /* keep all your existing styles, add these: */
       :host {
         display: block;
         height: 100%;
       }
+
       .map-page {
         display: flex;
         flex-direction: column;
@@ -217,6 +301,8 @@ declare const google: any;
         flex: 1;
         min-height: 0;
       }
+
+      /* ── Back + Search float ── */
       .back-btn {
         position: absolute;
         top: 56px;
@@ -233,7 +319,7 @@ declare const google: any;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
         cursor: pointer;
         z-index: 10;
-        color: var(--color-text-primary, #1a1a1a);
+        color: #1a1a1a;
       }
       .search-bar-float {
         position: absolute;
@@ -255,7 +341,7 @@ declare const google: any;
         outline: none;
         font-size: 14px;
         font-family: inherit;
-        color: var(--color-text-primary, #1a1a1a);
+        color: #1a1a1a;
         background: transparent;
       }
       .search-input-float::placeholder {
@@ -273,12 +359,352 @@ declare const google: any;
         display: flex;
         align-items: center;
       }
-      .locate-btn {
-        color: var(--color-primary, #2a8a93);
+      .locate-btn,
+      .list-view-btn {
+        color: var(--color-primary);
       }
       .list-view-btn {
-        color: var(--color-primary, #2a8a93);
         font-size: 20px;
+      }
+
+      /* ── Salon popup ── */
+      .salon-popup {
+        position: absolute;
+        bottom: 240px;
+        left: 16px;
+        right: 16px;
+        background: #fff;
+        border-radius: 16px;
+        padding: 14px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+        z-index: 10;
+        cursor: pointer;
+        animation: slideUp 0.25s ease;
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .popup-img {
+        width: 68px;
+        height: 58px;
+        border-radius: 10px;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .popup-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .popup-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .popup-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1a1a1a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .popup-address {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: #777;
+        margin-top: 3px;
+      }
+      .popup-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 4px;
+      }
+      .popup-rating {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #f5a623;
+      }
+      .popup-dist {
+        font-size: 12px;
+        color: #555;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+      .popup-dir-btn {
+        margin-top: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+        color: var(--color-primary);
+        border: none;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+      }
+      .popup-arrow {
+        font-size: 22px;
+        color: #ccc;
+      }
+
+      /* ── Directions panel ── */
+      .dir-panel {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        background: #fff;
+        border-radius: 24px 24px 0 0;
+        box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.14);
+        max-height: 65vh;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.3s ease;
+      }
+      .dir-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 16px 10px;
+        border-bottom: 1px solid #f0f0f0;
+        flex-shrink: 0;
+      }
+      .dir-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #f5f5f5;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #555;
+        flex-shrink: 0;
+      }
+      .dir-dest {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        min-width: 0;
+      }
+      .dir-dest i {
+        color: var(--color-primary);
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      .dir-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1a1a1a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .dir-modes {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+      .mode-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: none;
+        background: #f5f5f5;
+        cursor: pointer;
+        font-size: 16px;
+        color: #888;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+      }
+      .mode-btn.mode-active {
+        background: var(--color-primary);
+        color: #fff;
+      }
+
+      .dir-summary {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+        flex-shrink: 0;
+      }
+      .dir-sum-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+      .dir-sum-item i {
+        color: var(--color-primary);
+      }
+      .dir-sum-item.text-primary {
+        color: var(--color-primary);
+      }
+      .dir-sum-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #ccc;
+      }
+
+      .dir-steps {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 16px;
+        scrollbar-width: none;
+      }
+      .dir-steps::-webkit-scrollbar {
+        display: none;
+      }
+      .dir-step {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding-bottom: 16px;
+        position: relative;
+      }
+      .dir-step:not(.dir-step-last)::before {
+        content: "";
+        position: absolute;
+        left: 15px;
+        top: 32px;
+        bottom: 0;
+        width: 2px;
+        background: #eee;
+      }
+      .step-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: var(--color-primary);
+        flex-shrink: 0;
+        z-index: 1;
+      }
+      .step-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .step-instr {
+        font-size: 13px;
+        color: #1a1a1a;
+        line-height: 1.4;
+      }
+      .step-instr b {
+        font-weight: 700;
+      }
+      .step-dist {
+        font-size: 11px;
+        color: #999;
+        margin-top: 3px;
+      }
+
+      .ext-maps-btn {
+        margin: 8px 16px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 12px;
+        border-radius: 12px;
+        border: none;
+        background: #f5f5f5;
+        color: #555;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      /* ── Bottom sheet ── */
+      .bottom-sheet {
+        background: #fff;
+        border-radius: 24px 24px 0 0;
+        box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        transition: height 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        overflow: hidden;
+        flex-shrink: 0;
+        padding: 0 20px 16px;
+        touch-action: none;
+      }
+      .bottom-sheet.sheet-hidden {
+        height: 60px;
+      }
+      .bottom-sheet.sheet-peek {
+        height: 220px;
+      }
+      .bottom-sheet.sheet-half {
+        height: 55vh;
+      }
+      .bottom-sheet.sheet-full {
+        height: 78vh;
+      }
+
+      .sheet-handle-wrap {
+        display: flex;
+        justify-content: center;
+        padding: 12px 0 8px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .sheet-handle {
+        width: 40px;
+        height: 4px;
+        background: #ddd;
+        border-radius: 2px;
+      }
+
+      .location-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .location-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+      .location-sub {
+        font-size: 13px;
+        color: #999;
       }
       .locate-me-chip {
         margin-left: auto;
@@ -294,6 +720,30 @@ declare const google: any;
         align-items: center;
         gap: 4px;
       }
+
+      .find-input {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #f7f7f7;
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+      }
+      .find-input i {
+        color: #bbb;
+        font-size: 18px;
+      }
+      .find-input-text {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 14px;
+        font-family: inherit;
+        color: #1a1a1a;
+      }
+
       .chips-row {
         display: flex;
         gap: 8px;
@@ -321,91 +771,7 @@ declare const google: any;
         color: #fff;
         border-color: var(--color-primary);
       }
-      .result-dist {
-        font-size: 12px;
-        color: var(--color-primary);
-        font-weight: 600;
-      }
-      /* Reuse existing bottom-sheet, salon-popup, result-item styles from your original */
-      .bottom-sheet {
-        background: #fff;
-        border-radius: 24px 24px 0 0;
-        box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-        transition: height 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-        overflow: hidden;
-        flex-shrink: 0;
-        padding: 0 20px 16px;
-        height: 320px;
-      }
-      .bottom-sheet.sheet-expanded {
-        height: 72vh;
-      }
-      .sheet-handle-wrap {
-        display: flex;
-        justify-content: center;
-        padding: 12px 0 8px;
-        cursor: pointer;
-      }
-      .sheet-handle {
-        width: 40px;
-        height: 4px;
-        background: #ddd;
-        border-radius: 2px;
-      }
-      .location-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 14px;
-      }
-      .location-name {
-        font-size: 18px;
-        font-weight: 700;
-        color: #1a1a1a;
-      }
-      .location-sub {
-        font-size: 13px;
-        color: #999;
-      }
-      .find-input {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: #f7f7f7;
-        border-radius: 12px;
-        padding: 12px 16px;
-        margin-bottom: 10px;
-      }
-      .find-input i {
-        color: #bbb;
-        font-size: 18px;
-      }
-      .find-input-text {
-        flex: 1;
-        border: none;
-        outline: none;
-        background: transparent;
-        font-size: 14px;
-        font-family: inherit;
-        color: #1a1a1a;
-      }
-      .confirm-btn-wrap {
-        margin-top: auto;
-      }
-      .confirm-btn {
-        width: 100%;
-        background: var(--color-primary, #2a8a93);
-        color: #fff;
-        border: none;
-        padding: 16px;
-        font-size: 16px;
-        font-weight: 600;
-        border-radius: 14px;
-        cursor: pointer;
-        font-family: inherit;
-      }
+
       .results-section {
         flex: 1;
         overflow-y: auto;
@@ -420,6 +786,8 @@ declare const google: any;
         gap: 12px;
         padding-bottom: 8px;
       }
+
+      /* Skeletons */
       .result-skeleton {
         display: flex;
         gap: 12px;
@@ -467,6 +835,7 @@ declare const google: any;
           background-position: -200% 0;
         }
       }
+
       .result-item {
         display: flex;
         gap: 12px;
@@ -530,6 +899,18 @@ declare const google: any;
         font-size: 12px;
         color: #999;
       }
+      .result-dist {
+        font-size: 12px;
+        color: var(--color-primary);
+        font-weight: 600;
+      }
+      .result-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .result-dir,
       .result-go {
         width: 32px;
         height: 32px;
@@ -540,9 +921,33 @@ declare const google: any;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        font-size: 20px;
+        font-size: 18px;
         color: #888;
       }
+      .result-dir {
+        color: var(--color-primary);
+      }
+      .result-dir:hover {
+        background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+      }
+
+      .confirm-btn-wrap {
+        margin-top: auto;
+        padding-top: 8px;
+      }
+      .confirm-btn {
+        width: 100%;
+        background: var(--color-primary);
+        color: #fff;
+        border: none;
+        padding: 16px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 14px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
       .empty-state {
         text-align: center;
         padding: 40px 20px;
@@ -563,89 +968,6 @@ declare const google: any;
         font-size: 13px;
         color: #aaa;
       }
-      .salon-popup {
-        position: absolute;
-        bottom: 340px;
-        left: 16px;
-        right: 16px;
-        background: #fff;
-        border-radius: 16px;
-        padding: 14px;
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
-        z-index: 10;
-        cursor: pointer;
-        animation: slideUp 0.25s ease;
-      }
-      @keyframes slideUp {
-        from {
-          transform: translateY(20px);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-      .popup-img {
-        width: 68px;
-        height: 58px;
-        border-radius: 10px;
-        overflow: hidden;
-        flex-shrink: 0;
-      }
-      .popup-img img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      .popup-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .popup-name {
-        font-size: 15px;
-        font-weight: 700;
-        color: #1a1a1a;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .popup-address {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        color: #777;
-        margin-top: 3px;
-      }
-      .popup-meta {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-top: 6px;
-      }
-      .popup-rating {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #f5a623;
-      }
-      .popup-dist {
-        font-size: 12px;
-        color: #555;
-        display: flex;
-        align-items: center;
-        gap: 3px;
-      }
-      .popup-arrow {
-        font-size: 22px;
-        color: #ccc;
-      }
     `,
   ],
 })
@@ -656,11 +978,11 @@ export class MapComponent implements OnInit, OnDestroy {
   loading = false;
   salons: any[] = [];
   selectedSalon: any = null;
-  sheetExpanded = false;
+  sheetState: "hidden" | "peek" | "half" | "full" = "peek";
   currentCity = "Accra";
   currentRegion = "Ghana";
   selectedCategory = "";
-  userLat = 5.6037; // Accra default
+  userLat = 5.6037;
   userLng = -0.187;
   fallback =
     "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=120&h=120&fit=crop";
@@ -676,12 +998,36 @@ export class MapComponent implements OnInit, OnDestroy {
     "Waxing",
   ];
 
+  // Directions state
+  directionsActive = false;
+  activeTravelMode: TravelMode = "DRIVING";
+  routeSummary: { duration: string; distance: string } | null = null;
+  routeSteps: { instructions: string; distance: string; maneuver: string }[] =
+    [];
+
+  travelModes = [
+    { label: "Driving", value: "DRIVING" as TravelMode, icon: "ri-car-line" },
+    { label: "Walking", value: "WALKING" as TravelMode, icon: "ri-walk-line" },
+    { label: "Transit", value: "TRANSIT" as TravelMode, icon: "ri-bus-line" },
+  ];
+
   private map: any = null;
   private markers: any[] = [];
-  private infoWindow: any = null;
+  private directionsService: any = null;
+  private directionsRenderer: any = null;
+
+  // Touch drag state for bottom sheet
+  private dragStartY = 0;
+  private dragStartState: "hidden" | "peek" | "half" | "full" = "peek";
 
   get sheetHeight(): string {
-    return this.sheetExpanded ? "72vh" : "320px";
+    const map: Record<string, string> = {
+      hidden: "60px",
+      peek: "220px",
+      half: "55vh",
+      full: "78vh",
+    };
+    return map[this.sheetState];
   }
 
   constructor(
@@ -689,6 +1035,7 @@ export class MapComponent implements OnInit, OnDestroy {
     private router: Router,
     private http: HttpClient,
     private location: Location,
+    private ngZone: NgZone,
   ) {}
 
   ngOnInit(): void {
@@ -696,12 +1043,12 @@ export class MapComponent implements OnInit, OnDestroy {
     this.route.queryParams.subscribe((params) => {
       if (params["q"]) {
         this.searchQuery = params["q"];
-        this.sheetExpanded = true;
+        this.sheetState = "half";
         this.fetchSalons({ search: this.searchQuery });
       } else if (params["category"]) {
         this.selectedCategory = params["category"];
         this.searchQuery = params["name"] || params["category"];
-        this.sheetExpanded = true;
+        this.sheetState = "half";
         this.fetchSalons({ category: params["category"] });
       } else {
         this.locateMe();
@@ -711,6 +1058,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearMarkers();
+    if (this.directionsRenderer) this.directionsRenderer.setMap(null);
   }
 
   private initMap(): void {
@@ -721,6 +1069,7 @@ export class MapComponent implements OnInit, OnDestroy {
       zoom: 13,
       disableDefaultUI: true,
       zoomControl: true,
+      mapId: "DEMO_MAP_ID",
       styles: [
         {
           featureType: "poi",
@@ -731,8 +1080,167 @@ export class MapComponent implements OnInit, OnDestroy {
       ],
     });
 
-    this.infoWindow = new google.maps.InfoWindow();
+    // Init directions services
+    this.directionsService = new google.maps.DirectionsService();
+    this.directionsRenderer = new google.maps.DirectionsRenderer({
+      suppressMarkers: false,
+      polylineOptions: {
+        strokeColor: "var(--color-primary, #2a8a93)",
+        strokeWeight: 5,
+        strokeOpacity: 0.85,
+      },
+    });
+    this.directionsRenderer.setMap(this.map);
   }
+
+  // ── Directions ──────────────────────────────────────────────────────────
+
+  startDirections(salon: any): void {
+    this.selectedSalon = salon;
+    if (!salon.latitude || !salon.longitude) {
+      // Fall back to external if no coords
+      this.openExternalDirections();
+      return;
+    }
+    this.directionsActive = true;
+    this.sheetState = "half";
+    this.requestRoute();
+  }
+
+  setTravelMode(mode: TravelMode): void {
+    this.activeTravelMode = mode;
+    this.requestRoute();
+  }
+
+  private requestRoute(): void {
+    if (!this.directionsService || !this.selectedSalon) return;
+
+    const origin = new google.maps.LatLng(this.userLat, this.userLng);
+    const destination = new google.maps.LatLng(
+      this.selectedSalon.latitude,
+      this.selectedSalon.longitude,
+    );
+
+    this.directionsService.route(
+      {
+        origin,
+        destination,
+        travelMode: google.maps.TravelMode[this.activeTravelMode],
+      },
+      (result: any, status: any) => {
+        this.ngZone.run(() => {
+          if (status === "OK") {
+            this.directionsRenderer.setDirections(result);
+            const leg = result.routes[0].legs[0];
+            this.routeSummary = {
+              duration: leg.duration.text,
+              distance: leg.distance.text,
+            };
+            this.routeSteps = leg.steps.map((s: any) => ({
+              instructions: s.instructions,
+              distance: s.distance.text,
+              maneuver: s.maneuver || "",
+            }));
+            // Pan map to show full route
+            const bounds = result.routes[0].bounds;
+            this.map.fitBounds(bounds, { padding: 60 });
+          }
+        });
+      },
+    );
+  }
+
+  clearDirections(): void {
+    this.directionsActive = false;
+    this.routeSummary = null;
+    this.routeSteps = [];
+    if (this.directionsRenderer) {
+      this.directionsRenderer.setDirections({ routes: [] });
+    }
+    this.sheetState = "half";
+    // Re-drop salon markers
+    this.dropMarkers();
+  }
+
+  openExternalDirections(): void {
+    if (!this.selectedSalon) return;
+    const dest =
+      this.selectedSalon.latitude && this.selectedSalon.longitude
+        ? `${this.selectedSalon.latitude},${this.selectedSalon.longitude}`
+        : encodeURIComponent(
+            `${this.selectedSalon.businessName}, ${this.selectedSalon.city}`,
+          );
+    const mode = this.activeTravelMode.toLowerCase();
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=${mode}`,
+      "_blank",
+    );
+  }
+
+  getStepIcon(maneuver: string): string {
+    const map: Record<string, string> = {
+      "turn-left": "ri-arrow-left-line",
+      "turn-right": "ri-arrow-right-line",
+      "turn-slight-left": "ri-arrow-left-up-line",
+      "turn-slight-right": "ri-arrow-right-up-line",
+      "turn-sharp-left": "ri-corner-up-left-line",
+      "turn-sharp-right": "ri-corner-up-right-line",
+      "uturn-left": "ri-arrow-go-back-line",
+      "uturn-right": "ri-arrow-go-forward-line",
+      "roundabout-left": "ri-recycle-line",
+      "roundabout-right": "ri-recycle-line",
+      merge: "ri-merge-cells-horizontal",
+      "ramp-left": "ri-arrow-left-down-line",
+      "ramp-right": "ri-arrow-right-down-line",
+      "fork-left": "ri-git-branch-line",
+      "fork-right": "ri-git-branch-line",
+      ferry: "ri-ship-line",
+      straight: "ri-arrow-up-line",
+    };
+    return map[maneuver] || "ri-arrow-up-line";
+  }
+
+  // ── Bottom sheet drag ────────────────────────────────────────────────────
+
+  onSheetTouchStart(e: TouchEvent): void {
+    this.dragStartY = e.touches[0].clientY;
+    this.dragStartState = this.sheetState;
+  }
+
+  onSheetTouchMove(e: TouchEvent): void {
+    e.preventDefault();
+  }
+
+  onSheetTouchEnd(e: TouchEvent): void {
+    const dy = e.changedTouches[0].clientY - this.dragStartY;
+    const states: Array<"hidden" | "peek" | "half" | "full"> = [
+      "hidden",
+      "peek",
+      "half",
+      "full",
+    ];
+    const idx = states.indexOf(this.dragStartState);
+
+    if (dy > 60) {
+      // Swiped down → collapse one level
+      this.sheetState = states[Math.max(0, idx - 1)];
+    } else if (dy < -60) {
+      // Swiped up → expand one level
+      this.sheetState = states[Math.min(states.length - 1, idx + 1)];
+    }
+  }
+
+  cycleSheet(): void {
+    const states: Array<"hidden" | "peek" | "half" | "full"> = [
+      "peek",
+      "half",
+      "full",
+    ];
+    const idx = states.indexOf(this.sheetState as any);
+    this.sheetState = states[(idx + 1) % states.length];
+  }
+
+  // ── Map markers ─────────────────────────────────────────────────────────
 
   locateMe(): void {
     if (!navigator.geolocation) {
@@ -746,30 +1254,32 @@ export class MapComponent implements OnInit, OnDestroy {
         if (this.map) {
           this.map.setCenter({ lat: this.userLat, lng: this.userLng });
           this.map.setZoom(14);
-          // Add user location marker
-          new google.maps.Marker({
-            position: { lat: this.userLat, lng: this.userLng },
-            map: this.map,
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: "#4285F4",
-              fillOpacity: 1,
-              strokeColor: "#fff",
-              strokeWeight: 3,
-            },
-            title: "You are here",
-          });
+          this.addUserLocationMarker();
         }
-        // Reverse geocode to get city name
         this.reverseGeocode(this.userLat, this.userLng);
         this.fetchSalons({ lat: this.userLat, lng: this.userLng });
-        this.sheetExpanded = true;
+        this.sheetState = "half";
       },
       () => {
         this.fetchSalons({ lat: this.userLat, lng: this.userLng });
       },
     );
+  }
+
+  private addUserLocationMarker(): void {
+    if (typeof google === "undefined" || !this.map) return;
+    const dot = document.createElement("div");
+    dot.style.cssText = `
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #4285F4; border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(66,133,244,.5);
+    `;
+    new google.maps.marker.AdvancedMarkerElement({
+      map: this.map,
+      position: { lat: this.userLat, lng: this.userLng },
+      content: dot,
+      title: "You are here",
+    });
   }
 
   private reverseGeocode(lat: number, lng: number): void {
@@ -778,17 +1288,19 @@ export class MapComponent implements OnInit, OnDestroy {
     geocoder.geocode(
       { location: { lat, lng } },
       (results: any, status: any) => {
-        if (status === "OK" && results[0]) {
-          const components = results[0].address_components;
-          const city = components.find((c: any) =>
-            c.types.includes("locality"),
-          )?.long_name;
-          const region = components.find((c: any) =>
-            c.types.includes("administrative_area_level_1"),
-          )?.long_name;
-          if (city) this.currentCity = city;
-          if (region) this.currentRegion = region;
-        }
+        this.ngZone.run(() => {
+          if (status === "OK" && results[0]) {
+            const c = results[0].address_components;
+            const city = c.find((x: any) =>
+              x.types.includes("locality"),
+            )?.long_name;
+            const region = c.find((x: any) =>
+              x.types.includes("administrative_area_level_1"),
+            )?.long_name;
+            if (city) this.currentCity = city;
+            if (region) this.currentRegion = region;
+          }
+        });
       },
     );
   }
@@ -804,99 +1316,81 @@ export class MapComponent implements OnInit, OnDestroy {
     this.loading = true;
     const apiParams: any = { limit: "30" };
 
-    if (params.lat && params.lng) {
-      // Use nearby endpoint for geo search
-      apiParams.lat = params.lat.toString();
-      apiParams.lng = params.lng.toString();
-      apiParams.radius = "15";
-      if (params.category) apiParams.category = params.category;
+    const endpoint =
+      params.lat && params.lng
+        ? `${environment.apiUrl}/beauticians/nearby`
+        : `${environment.apiUrl}/beauticians`;
 
-      this.http
-        .get<any>(`${environment.apiUrl}/beauticians/nearby`, {
-          params: apiParams,
-        })
-        .subscribe({
-          next: (res) => {
-            this.salons = res?.data?.beauticians || [];
-            this.loading = false;
-            this.dropMarkers();
-            if (this.salons.length > 0) {
-              this.selectedSalon = this.salons[0];
-              this.sheetExpanded = true;
-            }
-          },
-          error: () => {
-            this.loading = false;
-          },
-        });
-    } else {
-      // Text search
-      if (params.search) apiParams.search = params.search;
-      if (params.category) apiParams.category = params.category;
+    if (params.lat) apiParams.lat = params.lat.toString();
+    if (params.lng) apiParams.lng = params.lng.toString();
+    if (params.lat) apiParams.radius = "15";
+    if (params.search) apiParams.search = params.search;
+    if (params.category) apiParams.category = params.category;
 
-      this.http
-        .get<any>(`${environment.apiUrl}/beauticians`, { params: apiParams })
-        .subscribe({
-          next: (res) => {
-            this.salons = res?.data?.beauticians || [];
-            this.loading = false;
-            this.dropMarkers();
-            if (this.salons.length > 0) {
-              this.selectedSalon = this.salons[0];
-              this.sheetExpanded = true;
-            }
-          },
-          error: () => {
-            this.loading = false;
-          },
+    this.http.get<any>(endpoint, { params: apiParams }).subscribe({
+      next: (res) => {
+        this.ngZone.run(() => {
+          this.salons = res?.data?.beauticians || [];
+          this.loading = false;
+          this.dropMarkers();
+          if (this.salons.length > 0) {
+            this.selectedSalon = this.salons[0];
+            this.sheetState = "half";
+          }
         });
-    }
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.loading = false;
+        });
+      },
+    });
   }
 
   private dropMarkers(): void {
     if (!this.map || typeof google === "undefined") return;
     this.clearMarkers();
+    const AdvancedMarkerElement = google.maps.marker?.AdvancedMarkerElement;
+    if (!AdvancedMarkerElement) return;
 
     const bounds = new google.maps.LatLngBounds();
-    let hasValidCoords = false;
+    let hasCoords = false;
 
     this.salons.forEach((salon) => {
       if (!salon.latitude || !salon.longitude) return;
-      hasValidCoords = true;
-
+      hasCoords = true;
       const position = { lat: salon.latitude, lng: salon.longitude };
       bounds.extend(position);
 
-      // Custom pin using SVG
-      const marker = new google.maps.Marker({
-        position,
+      const pinEl = document.createElement("div");
+      pinEl.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="48" viewBox="0 0 40 48">
+          <ellipse cx="20" cy="44" rx="8" ry="4" fill="rgba(0,0,0,0.15)"/>
+          <path d="M20 0C11.163 0 4 7.163 4 16c0 10 16 32 16 32S36 26 36 16C36 7.163 28.837 0 20 0z" fill="#E84A4A"/>
+          <circle cx="20" cy="16" r="8" fill="white"/>
+          <text x="20" y="20" text-anchor="middle" font-size="10" fill="#E84A4A" font-family="sans-serif">✂</text>
+        </svg>`;
+      pinEl.style.cursor = "pointer";
+
+      const marker = new AdvancedMarkerElement({
         map: this.map,
+        position,
+        content: pinEl,
         title: salon.businessName,
-        icon: {
-          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="48" viewBox="0 0 40 48">
-              <ellipse cx="20" cy="44" rx="8" ry="4" fill="rgba(0,0,0,0.15)"/>
-              <path d="M20 0C11.163 0 4 7.163 4 16c0 10 16 32 16 32S36 26 36 16C36 7.163 28.837 0 20 0z" fill="#E84A4A"/>
-              <circle cx="20" cy="16" r="8" fill="white"/>
-              <text x="20" y="20" text-anchor="middle" font-size="10" fill="#E84A4A" font-family="sans-serif">✂</text>
-            </svg>
-          `)}`,
-          scaledSize: new google.maps.Size(40, 48),
-          anchor: new google.maps.Point(20, 48),
-        },
       });
-
       marker.addListener("click", () => {
-        this.selectedSalon = salon;
-        this.map.panTo(position);
+        this.ngZone.run(() => {
+          this.selectedSalon = salon;
+          this.map.panTo(position);
+          if (this.sheetState === "hidden") this.sheetState = "peek";
+        });
       });
-
       this.markers.push(marker);
     });
 
-    if (hasValidCoords && this.salons.length > 1) {
+    if (hasCoords && this.salons.length > 1)
       this.map.fitBounds(bounds, { padding: 60 });
-    } else if (hasValidCoords) {
+    else if (hasCoords) {
       this.map.setCenter({
         lat: this.salons[0].latitude,
         lng: this.salons[0].longitude,
@@ -906,13 +1400,13 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   private clearMarkers(): void {
-    this.markers.forEach((m) => m.setMap(null));
+    this.markers.forEach((m) => (m.map = null));
     this.markers = [];
   }
 
   runSearch(): void {
     if (this.searchQuery.trim()) {
-      this.sheetExpanded = true;
+      this.sheetState = "half";
       this.fetchSalons({ search: this.searchQuery });
     }
   }
@@ -930,7 +1424,7 @@ export class MapComponent implements OnInit, OnDestroy {
     this.searchQuery = "";
     this.salons = [];
     this.selectedSalon = null;
-    this.sheetExpanded = false;
+    this.sheetState = "peek";
     this.clearMarkers();
   }
 
@@ -945,7 +1439,6 @@ export class MapComponent implements OnInit, OnDestroy {
   goToSalon(id: string): void {
     this.router.navigate(["/client/salon", id]);
   }
-
   switchToListView(): void {
     this.router.navigate(["/client/search"], {
       queryParams: this.searchQuery.trim()
@@ -953,13 +1446,7 @@ export class MapComponent implements OnInit, OnDestroy {
         : {},
     });
   }
-
-  toggleSheet(): void {
-    this.sheetExpanded = !this.sheetExpanded;
-  }
   goBack(): void {
     this.location.back();
   }
 }
-
-

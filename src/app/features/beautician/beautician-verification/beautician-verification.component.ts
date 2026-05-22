@@ -392,7 +392,7 @@ export class BeauticianVerificationComponent implements OnInit {
     this.loading = true;
     this.http.get<any>(`${environment.apiUrl}/verification/status`).subscribe({
       next: (res) => {
-        this.status = res.data;
+        this.status = res.data; // ← confirm res.data has verificationStatus: 'APPROVED'
         this.loading = false;
       },
       error: () => (this.loading = false),

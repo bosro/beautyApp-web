@@ -16,6 +16,7 @@ export interface User {
   latitude?: number;
   longitude?: number;
   beautician?: BeauticianProfile;
+  phoneVerified?: boolean
 }
 
 export interface AuthTokens {
@@ -48,9 +49,11 @@ export interface BeauticianProfile {
   workingDays: string[];
   rating: number;
   totalReviews: number;
+  verificationStatus: "PENDING" | "APPROVED" | "REJECTED";
   totalBookings: number;
-  verificationStatus: string;
   averageRating?: number;
+  latitude?: string;
+  longitude?: string;
   user?: {
     id: string;
     name: string;
@@ -172,6 +175,7 @@ export interface Category {
   order: number;
   isActive: boolean;
   servicesCount?: number;
+  beauticianCount?: number;
   createdAt: string;
   updatedAt: string;
 }

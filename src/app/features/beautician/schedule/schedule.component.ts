@@ -36,6 +36,14 @@ interface SlotRecord {
       <div
         class="sticky top-0 z-20 bg-[var(--color-surface)]/95 backdrop-blur-md border-b border-[var(--color-border)] px-4 py-3 flex items-center justify-between"
       >
+        <button
+          (click)="goBack()"
+          class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--color-background)] transition-colors"
+        >
+          <i
+            class="ri-arrow-left-line text-lg text-[var(--color-text-primary)]"
+          ></i>
+        </button>
         <h1
           class="text-base font-bold text-[var(--color-text-primary)] tracking-tight"
         >
@@ -95,7 +103,7 @@ interface SlotRecord {
           <div class="space-y-2">
             <div
               *ngFor="let day of schedule"
-              class="card rounded-2xl px-4 py-3 flex items-center gap-3"
+              class="card shadow-none rounded-2xl px-4 py-3 flex items-center gap-3"
             >
               <!-- Day abbrev pill -->
               <div
@@ -1100,5 +1108,9 @@ export class ScheduleComponent implements OnInit {
         e = new Date(h.endDate);
       return today >= s && today <= e;
     });
+  }
+
+  goBack() {
+    this.router.navigate(["/beautician/settings"]);
   }
 }

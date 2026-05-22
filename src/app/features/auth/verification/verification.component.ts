@@ -172,3 +172,5 @@ export class VerificationComponent implements OnInit, OnDestroy {
     this.router.navigate(['/auth/register']);
   }
 }
+
+

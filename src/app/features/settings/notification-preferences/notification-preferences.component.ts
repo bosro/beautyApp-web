@@ -1,8 +1,8 @@
 // src/app/features/settings/notification-preferences/notification-preferences.component.ts
-// Works for BOTH clients and beauticians — same preferences endpoint.
 
 import { Component, OnInit } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { Location } from "@angular/common";
 import { environment } from "@environments/environment";
 import { ToastService } from "@core/services/toast.service";
 
@@ -26,191 +26,223 @@ interface Preferences {
   selector: "app-notification-preferences",
   standalone: false,
   template: `
-    <div class="min-h-screen bg-[var(--color-background)] pb-28">
-      <!-- Header -->
+    <div
+      class="min-h-screen pb-28"
+      style="background-color: var(--color-background)"
+    >
+      <!-- ── Header ── -->
       <div
-        class="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 py-4 flex items-center gap-3"
+        class="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 border-b"
+        style="background-color: var(--color-surface); border-color: var(--color-border)"
       >
         <button
-          onclick="history.back()"
-          class="w-9 h-9 rounded-full bg-[var(--color-background)] flex items-center justify-center"
+          (click)="back()"
+          class="w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0"
+          style="background-color: var(--color-background)"
         >
-          <i class="ri-arrow-left-line text-[var(--color-text-primary)]"></i>
+          <i
+            class="ri-arrow-left-s-line text-lg text-[var(--color-text-primary)]"
+          ></i>
         </button>
-        <h1 class="text-lg font-semibold text-[var(--color-text-primary)]">
-          Notification Preferences
+        <h1
+          class="flex-1 text-base font-bold text-[var(--color-text-primary)] tracking-tight"
+        >
+          Notifications
         </h1>
+        <!-- Auto-save indicator -->
         <span
           *ngIf="saving"
-          class="ml-auto text-xs text-[var(--color-text-muted)] flex items-center gap-1"
+          class="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]"
         >
-          <i class="ri-loader-4-line animate-spin"></i> Saving...
+          <i class="ri-loader-4-line animate-spin"></i> Saving…
         </span>
         <span
           *ngIf="saved && !saving"
-          class="ml-auto text-xs text-green-500 flex items-center gap-1"
+          class="flex items-center gap-1.5 text-xs text-green-500"
         >
           <i class="ri-check-line"></i> Saved
         </span>
       </div>
 
-      <!-- Loading skeleton -->
-      <div *ngIf="loading" class="p-4 space-y-4 max-w-2xl mx-auto">
+      <!-- ── Skeleton ── -->
+      <div *ngIf="loading" class="p-4 space-y-3 max-w-2xl mx-auto">
         <div class="skeleton h-36 rounded-2xl"></div>
         <div class="skeleton h-64 rounded-2xl"></div>
       </div>
 
       <div *ngIf="!loading && prefs" class="p-4 max-w-2xl mx-auto space-y-5">
-        <!-- Channels section -->
-        <div class="card overflow-hidden">
+        <!-- ── Channels ── -->
+        <p class="section-label">Channels</p>
+        <div class="menu-list">
           <div
-            class="px-4 py-3 bg-[var(--color-background)] border-b border-[var(--color-border)]"
+            *ngFor="let ch of channels; let last = last"
+            class="menu-row"
+            [ngClass]="last ? 'no-border' : ''"
           >
-            <h3
-              class="font-semibold text-sm text-[var(--color-text-secondary)] uppercase tracking-wider"
-            >
-              Notification Channels
-            </h3>
-            <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
-              Master switches — turning a channel off disables all its
-              notifications
-            </p>
-          </div>
-
-          <div
-            *ngFor="let channel of channels; let last = last"
-            class="flex items-center justify-between px-4 py-4"
-            [class.border-b]="!last"
-            [class.border-[var(--color-border)]]="!last"
-          >
-            <div class="flex items-center gap-3">
-              <div
-                class="w-9 h-9 rounded-full flex items-center justify-center"
-                [ngClass]="channel.iconBg"
-              >
-                <i
-                  [class]="channel.icon + ' text-base'"
-                  [ngClass]="channel.iconColor"
-                ></i>
+            <div class="menu-row-left">
+              <div class="menu-icon-wrap" [ngStyle]="{ background: ch.bg }">
+                <i [class]="ch.icon" [ngStyle]="{ color: ch.color }"></i>
               </div>
               <div>
                 <p class="text-sm font-medium text-[var(--color-text-primary)]">
-                  {{ channel.label }}
+                  {{ ch.label }}
                 </p>
-                <p class="text-xs text-[var(--color-text-muted)]">
-                  {{ channel.description }}
+                <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
+                  {{ ch.description }}
                 </p>
               </div>
             </div>
             <button
-              (click)="toggleChannel(channel.key)"
-              class="relative w-12 h-6 rounded-full transition-colors duration-200 flex-shrink-0"
-              [ngClass]="
-                prefs[channel.key]
-                  ? 'bg-[var(--color-primary)]'
-                  : 'bg-[var(--color-border)]'
-              "
+              class="toggle-btn"
+              [class.toggle-on]="prefs[ch.key]"
+              (click)="toggle(ch.key)"
             >
               <span
-                class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
-                [ngClass]="
-                  prefs[channel.key] ? 'translate-x-6' : 'translate-x-0'
-                "
+                class="toggle-knob"
+                [class.toggle-knob-on]="prefs[ch.key]"
               ></span>
             </button>
           </div>
         </div>
 
-        <!-- Events section -->
-        <div class="card overflow-hidden">
-          <div
-            class="px-4 py-3 bg-[var(--color-background)] border-b border-[var(--color-border)]"
-          >
-            <h3
-              class="font-semibold text-sm text-[var(--color-text-secondary)] uppercase tracking-wider"
-            >
-              Notification Events
-            </h3>
-            <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
-              Choose which events you want to be notified about
-            </p>
-          </div>
-
-          <div *ngFor="let group of eventGroups">
-            <!-- Group label -->
-            <div class="px-4 py-2 bg-[var(--color-background)]/50">
-              <p
-                class="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider"
-              >
-                {{ group.label }}
-              </p>
-            </div>
-
+        <!-- ── Event groups ── -->
+        <ng-container *ngFor="let group of eventGroups">
+          <p class="section-label">{{ group.label }}</p>
+          <div class="menu-list">
             <div
-              *ngFor="let event of group.events; let last = last"
-              class="flex items-center justify-between px-4 py-3.5"
-              [class.border-b]="!last"
-              [class.border-[var(--color-border)]]="!last"
+              *ngFor="let ev of group.events; let last = last"
+              class="menu-row"
+              [ngClass]="last ? 'no-border' : ''"
             >
-              <div class="flex items-center gap-3">
-                <i
-                  [class]="
-                    event.icon +
-                    ' text-[var(--color-primary)] text-lg w-5 text-center'
-                  "
-                ></i>
+              <div class="menu-row-left">
+                <div
+                  class="menu-icon-wrap"
+                  style="background-color: var(--color-background)"
+                >
+                  <i [class]="ev.icon" style="color: var(--color-primary)"></i>
+                </div>
                 <div>
                   <p
                     class="text-sm font-medium text-[var(--color-text-primary)]"
                   >
-                    {{ event.label }}
+                    {{ ev.label }}
                   </p>
-                  <p class="text-xs text-[var(--color-text-muted)]">
-                    {{ event.description }}
+                  <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
+                    {{ ev.description }}
                   </p>
                 </div>
               </div>
               <button
-                (click)="toggleEvent(event.key)"
-                class="relative w-12 h-6 rounded-full transition-colors duration-200 flex-shrink-0"
-                [ngClass]="
-                  prefs[event.key]
-                    ? 'bg-[var(--color-primary)]'
-                    : 'bg-[var(--color-border)]'
-                "
+                class="toggle-btn"
+                [class.toggle-on]="prefs[ev.key]"
+                (click)="toggle(ev.key)"
               >
                 <span
-                  class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
-                  [ngClass]="
-                    prefs[event.key] ? 'translate-x-6' : 'translate-x-0'
-                  "
+                  class="toggle-knob"
+                  [class.toggle-knob-on]="prefs[ev.key]"
                 ></span>
               </button>
             </div>
-
-            <!-- Separator between groups -->
-            <div class="border-b border-[var(--color-border)]"></div>
           </div>
-        </div>
+        </ng-container>
 
-        <!-- Quick actions -->
-        <div class="flex gap-3">
+        <!-- ── Quick actions ── -->
+        <div class="flex gap-3 pt-1">
           <button
             (click)="enableAll()"
-            class="flex-1 py-3 rounded-xl border border-[var(--color-border)] text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-surface)] transition-colors"
+            class="flex-1 py-3.5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+            style="background-color: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--color-border)"
           >
-            <i class="ri-notification-4-line mr-1"></i> Enable All
+            <i class="ri-notification-4-line"></i> Enable All
           </button>
           <button
             (click)="disableAll()"
-            class="flex-1 py-3 rounded-xl border border-[var(--color-border)] text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+            class="flex-1 py-3.5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors bg-red-50 text-red-500 border border-red-100"
+            style="dark:background: rgba(239,68,68,0.1)"
           >
-            <i class="ri-notification-off-line mr-1"></i> Mute All
+            <i class="ri-notification-off-line"></i> Mute All
           </button>
         </div>
       </div>
     </div>
   `,
+  styles: [
+    `
+      .section-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0 4px;
+        margin-bottom: 8px;
+      }
+
+      .menu-list {
+        background-color: var(--color-surface);
+        border-radius: 20px;
+        overflow: hidden;
+      }
+
+      .menu-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--color-border);
+      }
+      .menu-row.no-border {
+        border-bottom: none;
+      }
+
+      .menu-row-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .menu-icon-wrap {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 18px;
+      }
+
+      /* Toggle */
+      .toggle-btn {
+        position: relative;
+        width: 46px;
+        height: 26px;
+        border-radius: 13px;
+        background-color: var(--color-border);
+        border: none;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background-color 0.2s;
+      }
+      .toggle-btn.toggle-on {
+        background-color: var(--color-primary);
+      }
+      .toggle-knob {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s;
+      }
+      .toggle-knob.toggle-knob-on {
+        transform: translateX(20px);
+      }
+    `,
+  ],
 })
 export class NotificationPreferencesComponent implements OnInit {
   prefs: Preferences | null = null;
@@ -222,35 +254,35 @@ export class NotificationPreferencesComponent implements OnInit {
   channels = [
     {
       key: "emailEnabled" as keyof Preferences,
-      label: "Email Notifications",
-      description: "Receive updates in your inbox",
+      label: "Email",
+      description: "Updates sent to your inbox",
       icon: "ri-mail-line",
-      iconBg: "bg-blue-100 dark:bg-blue-900/30",
-      iconColor: "text-blue-500",
+      bg: "#EFF6FF",
+      color: "#3B82F6",
     },
     {
       key: "smsEnabled" as keyof Preferences,
-      label: "SMS Notifications",
-      description: "Receive text messages to your phone",
+      label: "SMS",
+      description: "Text messages to your phone",
       icon: "ri-message-2-line",
-      iconBg: "bg-green-100 dark:bg-green-900/30",
-      iconColor: "text-green-500",
+      bg: "#F0FDF4",
+      color: "#22C55E",
     },
     {
       key: "pushEnabled" as keyof Preferences,
-      label: "Push Notifications",
-      description: "Receive alerts on your device",
+      label: "Push",
+      description: "Alerts on your device",
       icon: "ri-notification-3-line",
-      iconBg: "bg-purple-100 dark:bg-purple-900/30",
-      iconColor: "text-purple-500",
+      bg: "#FDF4FF",
+      color: "#A855F7",
     },
     {
       key: "inAppEnabled" as keyof Preferences,
-      label: "In-App Notifications",
-      description: "Show alerts inside the app",
+      label: "In-App",
+      description: "Alerts inside the app",
       icon: "ri-apps-line",
-      iconBg: "bg-amber-100 dark:bg-amber-900/30",
-      iconColor: "text-amber-500",
+      bg: "#FFFBEB",
+      color: "#F59E0B",
     },
   ];
 
@@ -319,7 +351,7 @@ export class NotificationPreferencesComponent implements OnInit {
         {
           key: "promotions" as keyof Preferences,
           label: "Promotions & Offers",
-          description: "Deals, tips, and BigLuxx updates",
+          description: "Deals, tips, and Bigluxx updates",
           icon: "ri-gift-2-line",
         },
       ],
@@ -328,6 +360,7 @@ export class NotificationPreferencesComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
+    private location: Location,
     private toast: ToastService,
   ) {}
 
@@ -343,13 +376,11 @@ export class NotificationPreferencesComponent implements OnInit {
       });
   }
 
-  toggleChannel(key: keyof Preferences) {
-    if (!this.prefs) return;
-    (this.prefs as any)[key] = !(this.prefs as any)[key];
-    this.scheduleSave();
+  back() {
+    this.location.back();
   }
 
-  toggleEvent(key: keyof Preferences) {
+  toggle(key: keyof Preferences) {
     if (!this.prefs) return;
     (this.prefs as any)[key] = !(this.prefs as any)[key];
     this.scheduleSave();
@@ -357,25 +388,20 @@ export class NotificationPreferencesComponent implements OnInit {
 
   enableAll() {
     if (!this.prefs) return;
-
     (Object.keys(this.prefs) as (keyof Preferences)[]).forEach((k) => {
       this.prefs![k] = true;
     });
-
     this.scheduleSave();
   }
 
   disableAll() {
     if (!this.prefs) return;
-
     (Object.keys(this.prefs) as (keyof Preferences)[]).forEach((k) => {
       this.prefs![k] = false;
     });
-
     this.scheduleSave();
   }
 
-  /** Debounced auto-save — 800 ms after last toggle */
   private scheduleSave() {
     this.saved = false;
     clearTimeout(this.saveTimer);

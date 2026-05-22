@@ -23,7 +23,7 @@ const routes: Routes = [
       { path: '', redirectTo: 'change-password', pathMatch: 'full' },
       { path: 'change-password', component: ChangePasswordComponent },
       { path: 'security', component: PasswordSecurityComponent },
-      { path: 'notifications', component: NotificationPreferencesComponent },
+      { path: 'notification-preference', component: NotificationPreferencesComponent },
     ],
   },
 ];

@@ -28,7 +28,7 @@ type Period = "today" | "week" | "month";
             <h1
               class="text-xl font-black text-[var(--color-text-primary)] mt-0.5 tracking-tight"
             >
-              {{ user?.name || "Beautician" }} 👋
+              {{ user?.name || "Beautician" }}
             </h1>
           </div>
           <div class="text-right flex-shrink-0">
@@ -67,11 +67,67 @@ type Period = "today" | "week" | "month";
         <div class="skeleton h-52 rounded-2xl"></div>
       </div>
 
+      <!-- Verification status banner -->
+      <div
+        *ngIf="verificationStatus !== 'APPROVED'"
+        class="mx-4 lg:mx-6 mb-4 flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer"
+        [style.background-color]="
+          verificationStatus === 'REJECTED'
+            ? 'color-mix(in srgb, #EF4444 12%, transparent)'
+            : 'color-mix(in srgb, #F59E0B 12%, transparent)'
+        "
+        (click)="router.navigate(['/beautician/verification'])"
+      >
+        <i
+          class="text-lg flex-shrink-0"
+          [class]="
+            verificationStatus === 'REJECTED'
+              ? 'ri-shield-cross-fill'
+              : 'ri-shield-check-line'
+          "
+          [style.color]="
+            verificationStatus === 'REJECTED' ? '#EF4444' : '#D97706'
+          "
+        ></i>
+        <div class="flex-1 min-w-0">
+          <p
+            class="text-sm font-semibold"
+            [style.color]="
+              verificationStatus === 'REJECTED' ? '#DC2626' : '#B45309'
+            "
+          >
+            {{
+              verificationStatus === "REJECTED"
+                ? "Verification rejected"
+                : "Verification pending"
+            }}
+          </p>
+          <p
+            class="text-xs"
+            [style.color]="
+              verificationStatus === 'REJECTED' ? '#EF4444' : '#D97706'
+            "
+          >
+            {{
+              verificationStatus === "REJECTED"
+                ? "Tap to review the reason and resubmit your documents."
+                : "Complete your verification to start receiving bookings."
+            }}
+          </p>
+        </div>
+        <i
+          class="ri-arrow-right-s-line text-lg flex-shrink-0"
+          [style.color]="
+            verificationStatus === 'REJECTED' ? '#EF4444' : '#D97706'
+          "
+        ></i>
+      </div>
+
       <div *ngIf="!loading" class="p-4 lg:p-6 space-y-5">
         <!-- Stats Grid -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <!-- Today's bookings -->
-          <div class="card rounded-2xl p-4">
+          <div class="card shadow-none rounded-2xl p-4">
             <div class="flex items-center justify-between mb-3">
               <div
                 class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
@@ -101,7 +157,7 @@ type Period = "today" | "week" | "month";
           </div>
 
           <!-- Pending -->
-          <div class="card rounded-2xl p-4">
+          <div class="card  shadow-none rounded-2xl p-4">
             <div class="flex items-center justify-between mb-3">
               <div
                 class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center"
@@ -126,7 +182,7 @@ type Period = "today" | "week" | "month";
           </div>
 
           <!-- Rating -->
-          <div class="card rounded-2xl p-4">
+          <div class="card shadow-none rounded-2xl p-4">
             <div class="flex items-center justify-between mb-3">
               <div
                 class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center"
@@ -145,7 +201,7 @@ type Period = "today" | "week" | "month";
           </div>
 
           <!-- Active services -->
-          <div class="card rounded-2xl p-4">
+          <div class="card shadow-none rounded-2xl p-4">
             <div class="flex items-center justify-between mb-3">
               <div
                 class="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -181,7 +237,7 @@ type Period = "today" | "week" | "month";
               <div class="grid grid-cols-2 gap-3">
                 <button
                   (click)="router.navigate(['/beautician/bookings'])"
-                  class="card rounded-2xl p-4 text-left hover:border-[var(--color-primary)] transition-colors group"
+                  class="card  shadow-none rounded-2xl p-4 text-left hover:border-[var(--color-primary)] transition-colors group"
                 >
                   <div
                     class="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
@@ -201,7 +257,7 @@ type Period = "today" | "week" | "month";
 
                 <button
                   (click)="router.navigate(['/beautician/services'])"
-                  class="card rounded-2xl p-4 text-left hover:border-[var(--color-primary)] transition-colors group"
+                  class="card shadow-none rounded-2xl p-4 text-left hover:border-[var(--color-primary)] transition-colors group"
                 >
                   <div
                     class="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
@@ -221,7 +277,7 @@ type Period = "today" | "week" | "month";
 
                 <button
                   (click)="router.navigate(['/beautician/schedule'])"
-                  class="card rounded-2xl p-4 text-left hover:border-[var(--color-primary)] transition-colors group"
+                  class="card shadow-none rounded-2xl p-4 text-left hover:border-[var(--color-primary)] transition-colors group"
                 >
                   <div
                     class="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
@@ -241,7 +297,7 @@ type Period = "today" | "week" | "month";
 
                 <button
                   (click)="router.navigate(['/beautician/clients'])"
-                  class="card rounded-2xl p-4 text-left hover:border-[var(--color-primary)] transition-colors group"
+                  class="card shadow-none rounded-2xl p-4 text-left hover:border-[var(--color-primary)] transition-colors group"
                 >
                   <div
                     class="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
@@ -287,7 +343,7 @@ type Period = "today" | "week" | "month";
 
               <div
                 *ngFor="let booking of upcomingBookings"
-                class="card rounded-2xl p-4 mb-3 last:mb-0"
+                class="card shadow-none rounded-2xl p-4 mb-3 last:mb-0"
               >
                 <div class="flex gap-3 items-center">
                   <img
@@ -362,7 +418,7 @@ type Period = "today" | "week" | "month";
           <!-- Right Sidebar -->
           <div class="space-y-4">
             <!-- Month summary -->
-            <div class="card rounded-2xl p-4 space-y-3">
+            <div class="card shadow-none rounded-2xl p-4 space-y-3">
               <h3
                 class="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-60"
               >
@@ -405,7 +461,7 @@ type Period = "today" | "week" | "month";
             </div>
 
             <!-- Recent Reviews -->
-            <div class="card rounded-2xl p-4 space-y-3">
+            <div class="card shadow-none rounded-2xl p-4 space-y-3">
               <div class="flex items-center justify-between">
                 <h3
                   class="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-60"
@@ -466,7 +522,7 @@ type Period = "today" | "week" | "month";
             </div>
 
             <!-- Location Card -->
-            <div class="card rounded-2xl p-4 space-y-3">
+            <div class="card shadow-none rounded-2xl p-4 space-y-3">
               <div class="flex items-center justify-between">
                 <h3
                   class="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-60"
@@ -543,6 +599,8 @@ export class BeauticianDashboardComponent implements OnInit {
   updatingBooking: Record<string, boolean> = {};
   hasLocation = false;
 
+  verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | null = null;
+
   get selectedBookingId(): string {
     return this.selectedBooking?.id || "";
   }
@@ -567,6 +625,16 @@ export class BeauticianDashboardComponent implements OnInit {
       if (u) this.user = u;
     });
     this.loadDashboard();
+    this.loadVerificationStatus();
+  }
+
+  loadVerificationStatus(): void {
+    this.http.get<any>(`${environment.apiUrl}/verification/status`).subscribe({
+      next: (res) => {
+        this.verificationStatus = res?.data?.verificationStatus ?? null;
+      },
+      error: () => {},
+    });
   }
 
   setPeriod(period: Period) {

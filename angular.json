@@ -27,14 +27,24 @@
             "outputPath": "dist/beautyhub-web",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["zone.js"],
-            "tsConfig": "tsconfig.app.json",
-            "assets": [
-              { "glob": "**/*", "input": "public" },
-              "src/assets",
-              "src/firebase-messaging-sw.js" 
+            "polyfills": [
+              "zone.js"
             ],
-            "styles": ["src/styles.scss"],
+            "tsConfig": "tsconfig.app.json",
+            "optimization": {
+              "images": false
+            },
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              },
+              "src/assets",
+              "src/firebase-messaging-sw.js"
+            ],
+            "styles": [
+              "src/styles.scss"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -59,8 +69,12 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
-            "production": { "buildTarget": "beautyhub-web:build:production" },
-            "development": { "buildTarget": "beautyhub-web:build:development" }
+            "production": {
+              "buildTarget": "beautyhub-web:build:production"
+            },
+            "development": {
+              "buildTarget": "beautyhub-web:build:development"
+            }
           },
           "defaultConfiguration": "development"
         }

@@ -187,7 +187,7 @@ import { User } from "../../../core/models";
 
         <!-- ===== MOBILE BOTTOM TAB BAR — Pill style ===== -->
         <nav
-        *ngIf="!hideNav"
+          *ngIf="!hideNav"
           class="lg:hidden fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 px-8 pb-5"
           [ngClass]="navHidden ? 'translate-y-full' : 'translate-y-0'"
         >
@@ -227,15 +227,15 @@ import { User } from "../../../core/models";
     </div>
 
     <!-- Logout Modal -->
-    <app-confirm-modal
-      *ngIf="showLogout"
-      title="Log out"
-      message="Are you sure you want to log out?"
-      type="warning"
-      confirmText="Log out"
-      (confirmed)="logout()"
-      (cancelled)="showLogout = false"
-    ></app-confirm-modal>
+   <app-confirm-modal
+  [visible]="showLogout"
+  title="Log out"
+  message="Are you sure you want to log out?"
+  type="warning"
+  confirmText="Log out"
+  (confirmed)="logout()"
+  (cancelled)="showLogout = false"
+></app-confirm-modal>
   `,
 })
 export class ClientLayoutComponent implements OnInit {

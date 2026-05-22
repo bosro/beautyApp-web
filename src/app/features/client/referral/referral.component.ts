@@ -2,18 +2,19 @@ import { Component, OnInit } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "@environments/environment";
 import { ToastService } from "@core/services/toast.service";
+import { Router } from "@angular/router";
 
 @Component({
   selector: "app-referral",
   standalone: false,
   template: `
     <div class="min-h-screen bg-[var(--color-background)] pb-24 lg:pb-8">
-      <div
-        class="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 py-4"
-      >
-        <h1 class="text-lg font-semibold text-[var(--color-text-primary)]">
-          Refer & Earn
-        </h1>
+      <div class="pp-header">
+        <button class="pp-back-btn" (click)="goBack()">
+          <i class="ri-arrow-left-line"></i>
+        </button>
+        <h1 class="pp-title">Referral</h1>
+        <div class="pp-spacer"></div>
       </div>
 
       <div *ngIf="loading" class="p-4 space-y-4">
@@ -176,6 +177,50 @@ import { ToastService } from "@core/services/toast.service";
       </div>
     </div>
   `,
+  styles: `
+    .pp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background-color: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .pp-back-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background-color: var(--color-bg-secondary, #f5f5f5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--color-text-primary);
+      transition: opacity 0.2s;
+    }
+
+    .pp-back-btn:hover {
+      opacity: 0.7;
+    }
+
+    .pp-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      flex: 1;
+      text-align: center;
+    }
+
+    .pp-spacer {
+      width: 36px;
+    }
+  `,
 })
 export class ReferralComponent implements OnInit {
   referralData: any = null;
@@ -204,6 +249,7 @@ export class ReferralComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private toast: ToastService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -257,5 +303,9 @@ export class ReferralComponent implements OnInit {
       navigator.clipboard.writeText(this.shareUrl);
       this.toast.success("Link copied!");
     }
+  }
+
+  goBack() {
+    this.router.navigate(["/client/settings"]);
   }
 }

@@ -1,7 +1,16 @@
 // ============================================================
-// beautician-layout.component.ts  —  Enhanced UI
-// Mirrors the quality of client-layout: pill nav, frosted glass,
-// polished sidebar, smooth bottom sheet. All logic unchanged.
+// beautician-layout.component.ts
+//
+// Fixes applied vs previous version:
+//  1. navLinks now uses a consistent `path` field everywhere
+//     (verification previously used `route`, breaking [routerLink])
+//  2. verificationStatus badge is derived via a getter so it
+//     always reflects the live value rather than being frozen
+//     at class-definition time
+//  3. Verification nav item is structurally identical to all
+//     other nav items — same fields, same template path
+//  4. Badge dot is actually rendered in the sidebar template
+//  5. Verification banner is wired up with the live getter
 // ============================================================
 
 import { Component, OnInit, OnDestroy } from "@angular/core";
@@ -9,7 +18,8 @@ import { Router, NavigationEnd } from "@angular/router";
 import { Subject } from "rxjs";
 import { takeUntil, filter } from "rxjs/operators";
 import { AuthService } from "@core/services/auth.service";
-import { ThemeService } from "@core/services/theme.service";
+import { environment } from "@environments/environment";
+import { HttpClient } from "@angular/common/http";
 
 @Component({
   selector: "app-beautician-layout",
@@ -98,6 +108,62 @@ import { ThemeService } from "@core/services/theme.service";
           </div>
         </div>
 
+        <!-- ── Verification banner (sidebar, non-approved only) ── -->
+        <div
+          *ngIf="!isVerified"
+          class="mx-3 mt-3 flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-opacity hover:opacity-80"
+          [style.background-color]="
+            verificationStatus === 'REJECTED'
+              ? 'color-mix(in srgb, #EF4444 10%, transparent)'
+              : 'color-mix(in srgb, #F59E0B 10%, transparent)'
+          "
+          (click)="router.navigate(['/beautician/verification'])"
+        >
+          <i
+            class="text-base flex-shrink-0"
+            [class]="
+              verificationStatus === 'REJECTED'
+                ? 'ri-shield-cross-fill'
+                : 'ri-shield-check-line'
+            "
+            [style.color]="
+              verificationStatus === 'REJECTED' ? '#EF4444' : '#D97706'
+            "
+          ></i>
+          <div class="flex-1 min-w-0">
+            <p
+              class="text-xs font-bold leading-tight"
+              [style.color]="
+                verificationStatus === 'REJECTED' ? '#DC2626' : '#B45309'
+              "
+            >
+              {{
+                verificationStatus === "REJECTED"
+                  ? "Verification rejected"
+                  : "Verification pending"
+              }}
+            </p>
+            <p
+              class="text-[10px] mt-0.5 leading-snug"
+              [style.color]="
+                verificationStatus === 'REJECTED' ? '#EF4444' : '#D97706'
+              "
+            >
+              {{
+                verificationStatus === "REJECTED"
+                  ? "Tap to review and resubmit"
+                  : "Complete to receive bookings"
+              }}
+            </p>
+          </div>
+          <i
+            class="ri-arrow-right-s-line text-sm flex-shrink-0"
+            [style.color]="
+              verificationStatus === 'REJECTED' ? '#EF4444' : '#D97706'
+            "
+          ></i>
+        </div>
+
         <!-- Nav Links -->
         <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           <p
@@ -106,7 +172,7 @@ import { ThemeService } from "@core/services/theme.service";
             Main
           </p>
           <a
-            *ngFor="let link of navLinks.slice(0, 4)"
+            *ngFor="let link of mainNavLinks"
             [routerLink]="link.path"
             class="nav-link group"
             [ngClass]="{ 'nav-link-active': isActive(link.path) }"
@@ -136,7 +202,7 @@ import { ThemeService } from "@core/services/theme.service";
             Manage
           </p>
           <a
-            *ngFor="let link of navLinks.slice(4)"
+            *ngFor="let link of manageNavLinks"
             [routerLink]="link.path"
             class="nav-link group"
             [ngClass]="{ 'nav-link-active': isActive(link.path) }"
@@ -148,38 +214,28 @@ import { ThemeService } from "@core/services/theme.service";
               class="text-lg flex-shrink-0"
             ></i>
             <span class="flex-1">{{ link.label }}</span>
+
+            <!-- Verification badge dot: amber when pending, red when rejected -->
+            <span
+              *ngIf="link.path === '/beautician/verification' && !isVerified"
+              class="w-2 h-2 rounded-full flex-shrink-0"
+              [style.background-color]="
+                verificationStatus === 'REJECTED' ? '#EF4444' : '#F59E0B'
+              "
+            ></span>
           </a>
         </nav>
 
-        <!-- Bottom actions -->
-        <div
-          class="p-3 border-t space-y-0.5"
-          style="border-color: var(--color-border)"
-        >
-          <button (click)="toggleTheme()" class="nav-link w-full">
-            <i
-              [ngClass]="isDark ? 'ri-sun-line' : 'ri-moon-line'"
-              class="text-lg"
-            ></i>
-            <span>{{ isDark ? "Light Mode" : "Dark Mode" }}</span>
-          </button>
+        <!-- Bottom: Settings -->
+        <div class="p-3 border-t" style="border-color: var(--color-border)">
           <a
-            routerLink="/beautician/business-profile"
+            routerLink="/beautician/settings"
             class="nav-link"
-            [ngClass]="{
-              'nav-link-active': isActive('/beautician/business-profile'),
-            }"
+            [ngClass]="{ 'nav-link-active': isActive('/beautician/settings') }"
           >
             <i class="ri-settings-3-line text-lg"></i>
             <span>Settings</span>
           </a>
-          <button
-            (click)="confirmLogout()"
-            class="nav-link w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-          >
-            <i class="ri-logout-box-r-line text-lg"></i>
-            <span>Log Out</span>
-          </button>
         </div>
       </aside>
 
@@ -231,20 +287,76 @@ import { ThemeService } from "@core/services/theme.service";
             />
           </div>
 
-          <!-- Right: theme + notification -->
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <button
-              (click)="toggleTheme()"
-              class="w-9 h-9 flex items-center justify-center rounded-xl"
-              style="background-color: var(--color-background)"
-            >
-              <i
-                [ngClass]="isDark ? 'ri-sun-line' : 'ri-moon-line'"
-                class="text-base text-[var(--color-text-secondary)]"
-              ></i>
-            </button>
-          </div>
+          <!-- Right: settings shortcut + verification dot indicator -->
+          <!-- <a
+            routerLink="/beautician/settings"
+            class="relative w-9 h-9 flex items-center justify-center rounded-xl flex-shrink-0"
+            style="background-color: var(--color-background)"
+          >
+            <i
+              class="ri-settings-3-line text-base text-[var(--color-text-secondary)]"
+            ></i>
+            <span
+              *ngIf="!isVerified"
+              class="absolute top-1 right-1 w-2 h-2 rounded-full"
+              [style.background-color]="
+                verificationStatus === 'REJECTED' ? '#EF4444' : '#F59E0B'
+              "
+            ></span>
+          </a> -->
+           <a
+            routerLink="/beautician/notifications"
+            class="w-9 h-9 rounded-xl flex items-center justify-center"
+            style="background-color: var(--color-bg-secondary)"
+          >
+            <i
+              class="ri-notification-3-line text-base"
+              style="color: var(--color-primary)"
+            ></i>
+          </a>
         </header>
+
+        <!-- Mobile verification banner (shown below top bar) -->
+        <div
+          *ngIf="!isVerified"
+          class="lg:hidden flex items-center gap-2.5 px-4 py-2.5 cursor-pointer transition-opacity active:opacity-70"
+          [style.background-color]="
+            verificationStatus === 'REJECTED'
+              ? 'color-mix(in srgb, #EF4444 10%, transparent)'
+              : 'color-mix(in srgb, #F59E0B 10%, transparent)'
+          "
+          (click)="router.navigate(['/beautician/verification'])"
+        >
+          <i
+            class="text-sm flex-shrink-0"
+            [class]="
+              verificationStatus === 'REJECTED'
+                ? 'ri-shield-cross-fill'
+                : 'ri-shield-check-line'
+            "
+            [style.color]="
+              verificationStatus === 'REJECTED' ? '#EF4444' : '#D97706'
+            "
+          ></i>
+          <p
+            class="text-xs font-semibold flex-1"
+            [style.color]="
+              verificationStatus === 'REJECTED' ? '#DC2626' : '#B45309'
+            "
+          >
+            {{
+              verificationStatus === "REJECTED"
+                ? "Verification rejected — tap to review and resubmit"
+                : "Complete your verification to start receiving bookings"
+            }}
+          </p>
+          <i
+            class="ri-arrow-right-s-line text-sm flex-shrink-0"
+            [style.color]="
+              verificationStatus === 'REJECTED' ? '#EF4444' : '#D97706'
+            "
+          ></i>
+        </div>
 
         <!-- Page content -->
         <main class="flex-1 overflow-y-auto pb-28 lg:pb-0">
@@ -252,8 +364,7 @@ import { ThemeService } from "@core/services/theme.service";
         </main>
 
         <!-- ══════════════════════════════════════
-             MOBILE BOTTOM NAV — Pill style
-             (mirrors client layout exactly)
+             MOBILE BOTTOM NAV — 4 direct tabs
         ══════════════════════════════════════ -->
         <nav
           class="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-6 pb-5 pointer-events-none"
@@ -267,45 +378,23 @@ import { ThemeService } from "@core/services/theme.service";
               box-shadow: 0 8px 32px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.18);
             "
           >
-            <!-- Main tabs -->
             <a
               *ngFor="let tab of mobileTabs"
-              [routerLink]="tab.path !== 'more' ? tab.path : null"
-              (click)="tab.path === 'more' ? (showMoreSheet = true) : null"
+              [routerLink]="tab.path"
               class="relative flex items-center justify-center h-[44px] rounded-full transition-all duration-300 ease-out"
-              [ngClass]="
-                tab.path === 'more'
-                  ? showMoreSheet
-                    ? 'gap-2 px-5'
-                    : 'w-[44px]'
-                  : isActive(tab.path)
-                    ? 'gap-2 px-5'
-                    : 'w-[44px]'
-              "
+              [ngClass]="isActive(tab.path) ? 'gap-2 px-5' : 'w-[44px]'"
               [style.background-color]="
-                (tab.path !== 'more' && isActive(tab.path)) ||
-                (tab.path === 'more' && showMoreSheet)
-                  ? 'var(--color-primary)'
-                  : 'transparent'
+                isActive(tab.path) ? 'var(--color-primary)' : 'transparent'
               "
             >
               <i
                 [ngClass]="
-                  tab.path === 'more'
-                    ? showMoreSheet
-                      ? tab.activeIcon || tab.icon
-                      : tab.icon
-                    : isActive(tab.path)
-                      ? tab.activeIcon || tab.icon
-                      : tab.icon
+                  isActive(tab.path) ? tab.activeIcon || tab.icon : tab.icon
                 "
                 class="text-[20px] leading-none flex-shrink-0 text-white"
               ></i>
               <span
-                *ngIf="
-                  (tab.path !== 'more' && isActive(tab.path)) ||
-                  (tab.path === 'more' && showMoreSheet)
-                "
+                *ngIf="isActive(tab.path)"
                 class="text-white text-xs font-semibold whitespace-nowrap overflow-hidden"
                 style="max-width: 80px"
                 >{{ tab.label }}</span
@@ -313,176 +402,90 @@ import { ThemeService } from "@core/services/theme.service";
             </a>
           </div>
         </nav>
-
-        <!-- ══════════════════════════════════════
-             MORE BOTTOM SHEET
-        ══════════════════════════════════════ -->
-        <!-- Overlay -->
-        <div
-          *ngIf="showMoreSheet"
-          class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 lg:hidden"
-          (click)="showMoreSheet = false"
-        ></div>
-
-        <!-- Sheet Panel -->
-        <div
-          class="fixed bottom-0 left-0 right-0 lg:hidden transition-transform duration-300 ease-out z-50"
-          [ngClass]="showMoreSheet ? 'translate-y-0' : 'translate-y-full'"
-        >
-          <div
-            class="rounded-t-3xl shadow-2xl overflow-hidden"
-            style="background-color: var(--color-surface)"
-            (click)="$event.stopPropagation()"
-          >
-            <!-- Handle + header -->
-            <div
-              class="px-5 pt-3 pb-4 border-b"
-              style="border-color: var(--color-border)"
-            >
-              <div
-                class="w-10 h-1 rounded-full mx-auto mb-4"
-                style="background-color: var(--color-border)"
-              ></div>
-              <div class="flex items-center justify-between">
-                <h3
-                  class="font-bold text-base text-[var(--color-text-primary)]"
-                >
-                  More Options
-                </h3>
-                <button
-                  (click)="showMoreSheet = false"
-                  class="w-8 h-8 flex items-center justify-center rounded-full"
-                  style="background-color: var(--color-background)"
-                >
-                  <i
-                    class="ri-close-line text-[var(--color-text-secondary)]"
-                  ></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Grid items -->
-            <div class="p-4 grid grid-cols-3 gap-3">
-              <button
-                *ngFor="let item of moreItems"
-                (click)="navigateTo(item.path)"
-                class="flex flex-col items-center gap-2.5 p-3 rounded-2xl hover:opacity-80 transition-all active:scale-95"
-                style="background-color: var(--color-background)"
-              >
-                <div
-                  class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                  [ngStyle]="{ background: item.bg }"
-                >
-                  <i
-                    [ngClass]="item.icon"
-                    class="text-2xl"
-                    [ngStyle]="{ color: item.color }"
-                  ></i>
-                </div>
-                <span
-                  class="text-xs font-semibold text-[var(--color-text-secondary)] text-center leading-tight"
-                >
-                  {{ item.label }}
-                </span>
-              </button>
-            </div>
-
-            <!-- Divider + Logout -->
-            <div
-              class="mx-4 border-t pb-2"
-              style="border-color: var(--color-border)"
-            ></div>
-            <div class="px-4 pb-10">
-              <button
-                (click)="confirmLogout()"
-                class="w-full flex items-center gap-3 p-4 rounded-2xl bg-red-50 dark:bg-red-900/15 hover:bg-red-100 dark:hover:bg-red-900/25 transition-colors"
-              >
-                <div
-                  class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0"
-                >
-                  <i class="ri-logout-box-r-line text-xl text-red-500"></i>
-                </div>
-                <span class="font-bold text-sm text-red-500">Log Out</span>
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-
-    <!-- Logout Confirm Modal -->
-    <app-confirm-modal
-      *ngIf="showLogoutModal"
-      title="Log Out"
-      message="Are you sure you want to log out?"
-      confirmText="Log Out"
-      type="warning"
-      (confirmed)="logout()"
-      (cancelled)="showLogoutModal = false"
-    >
-    </app-confirm-modal>
   `,
 })
 export class BeauticianLayoutComponent implements OnInit, OnDestroy {
   user: any = null;
   currentUrl = "";
-  showLogoutModal = false;
-  isDark = false;
-  showMoreSheet = false;
   private destroy$ = new Subject<void>();
 
-  navLinks = [
+  // Loaded once on init; drives all badge/banner visibility reactively via getter
+  verificationStatus: string | null = null;
+
+  /** True only when fully approved — used in *ngIf throughout the template */
+  get isVerified(): boolean {
+    return this.verificationStatus === "APPROVED";
+  }
+
+  // ── Sidebar nav ──────────────────────────────────────────────────────────
+  // All items use `path` consistently so [routerLink]="link.path" never breaks.
+  // The first 4 appear under "Main", the rest under "Manage".
+
+  mainNavLinks = [
     {
       path: "/beautician/dashboard",
       label: "Dashboard",
       icon: "ri-dashboard-line",
       activeIcon: "ri-dashboard-fill",
-      badge: null,
+      badge: null as string | null,
     },
     {
       path: "/beautician/bookings",
       label: "Bookings",
       icon: "ri-calendar-line",
       activeIcon: "ri-calendar-fill",
-      badge: null,
+      badge: null as string | null,
     },
     {
       path: "/beautician/services",
       label: "Services",
       icon: "ri-scissors-2-line",
       activeIcon: "ri-scissors-2-fill",
-      badge: null,
+      badge: null as string | null,
     },
     {
       path: "/beautician/schedule",
       label: "Schedule",
       icon: "ri-time-line",
       activeIcon: "ri-time-fill",
-      badge: null,
+      badge: null as string | null,
+    },
+  ];
+
+  manageNavLinks = [
+    {
+      path: "/beautician/verification",
+      label: "Verification",
+      icon: "ri-shield-check-line",
+      activeIcon: "ri-shield-check-fill",
+      badge: null as string | null,
     },
     {
       path: "/beautician/clients",
       label: "Clients",
       icon: "ri-group-line",
       activeIcon: "ri-group-fill",
-      badge: null,
+      badge: null as string | null,
     },
     {
       path: "/beautician/reviews",
       label: "Reviews",
       icon: "ri-star-line",
       activeIcon: "ri-star-fill",
-      badge: null,
+      badge: null as string | null,
     },
     {
       path: "/beautician/profile",
       label: "My Profile",
       icon: "ri-user-line",
       activeIcon: "ri-user-fill",
-      badge: null,
+      badge: null as string | null,
     },
   ];
 
+  // ── Mobile bottom tabs ────────────────────────────────────────────────────
   mobileTabs = [
     {
       path: "/beautician/dashboard",
@@ -503,68 +506,27 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
       activeIcon: "ri-scissors-2-fill",
     },
     {
-      path: "more",
-      label: "More",
-      icon: "ri-menu-line",
-      activeIcon: "ri-close-line",
-    },
-  ];
-
-  moreItems = [
-    {
-      path: "/beautician/schedule",
-      label: "Schedule",
-      icon: "ri-time-line",
-      bg: "#EEF2FF",
-      color: "#6366F1",
-    },
-    {
-      path: "/beautician/clients",
-      label: "Clients",
-      icon: "ri-group-line",
-      bg: "#F0FDF4",
-      color: "#22C55E",
-    },
-    {
-      path: "/beautician/reviews",
-      label: "Reviews",
-      icon: "ri-star-line",
-      bg: "#FFFBEB",
-      color: "#F59E0B",
-    },
-    {
-      path: "/beautician/profile",
-      label: "My Profile",
-      icon: "ri-user-line",
-      bg: "#FFF7ED",
-      color: "#F97316",
-    },
-    {
-      path: "/beautician/business-profile",
-      label: "Business",
-      icon: "ri-store-2-line",
-      bg: "#FDF4FF",
-      color: "#A855F7",
-    },
-    {
-      path: "/beautician/verification",
-      label: "Verification",
-      icon: "ri-shield-check-line",
-      bg: "#F0FDF4",
-      color: "#16A34A",
+      path: "/beautician/settings",
+      label: "Settings",
+      icon: "ri-settings-3-line",
+      activeIcon: "ri-settings-3-fill",
     },
   ];
 
   constructor(
-    private router: Router,
+    public router: Router,
     private auth: AuthService,
-    private themeService: ThemeService,
+    private http: HttpClient,
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
+    // Keep user in sync
     this.auth.user$
       .pipe(takeUntil(this.destroy$))
       .subscribe((u) => (this.user = u));
+
+    // Track active route for nav highlighting
+    this.currentUrl = this.router.url;
     this.router.events
       .pipe(
         filter((e) => e instanceof NavigationEnd),
@@ -572,38 +534,32 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
       )
       .subscribe((e: any) => {
         this.currentUrl = e.urlAfterRedirects;
-        this.showMoreSheet = false; // close sheet on navigation
       });
-    this.currentUrl = this.router.url;
-    this.isDark = this.themeService.getMode() === "dark";
+
+    // Load verification status — only once per session is sufficient here;
+    // the component re-mounts on hard navigation anyway
+    this.loadVerificationStatus();
   }
 
-  isActive(path: string) {
+  private loadVerificationStatus(): void {
+    this.http
+      .get<any>(`${environment.apiUrl}/verification/status`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.verificationStatus = res?.data?.verificationStatus ?? null;
+        },
+        error: () => {
+          // Silently ignore — banner simply won't appear if we can't load
+        },
+      });
+  }
+
+  isActive(path: string): boolean {
     return this.currentUrl.startsWith(path);
   }
 
-  toggleTheme() {
-    const next = this.isDark ? "light" : "dark";
-    this.isDark = !this.isDark;
-    this.themeService.setMode(next as any);
-  }
-
-  navigateTo(path: string) {
-    this.showMoreSheet = false;
-    this.router.navigate([path]);
-  }
-
-  confirmLogout() {
-    this.showMoreSheet = false;
-    this.showLogoutModal = true;
-  }
-
-  logout() {
-    this.showLogoutModal = false;
-    this.auth.logout();
-  }
-
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }

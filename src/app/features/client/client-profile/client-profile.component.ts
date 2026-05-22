@@ -44,7 +44,7 @@ import { User } from "@core/models";
             <i class="ri-arrow-right-s-line menu-arrow"></i>
           </button>
 
-          <button class="menu-row">
+          <button class="menu-row" (click)="navigate('/settings/security')">
             <div class="menu-row-left">
               <i class="ri-lock-line"></i>
               <span>Password & Security</span>
@@ -52,13 +52,16 @@ import { User } from "@core/models";
             <i class="ri-arrow-right-s-line menu-arrow"></i>
           </button>
 
-          <!-- <button class="menu-row" (click)="navigate('/client/notifications')">
+          <button
+            class="menu-row"
+            (click)="navigate('/settings/notification-preference')"
+          >
             <div class="menu-row-left">
               <i class="ri-notification-3-line"></i>
-              <span>Notifications</span>
+              <span>Notification Preference</span>
             </div>
             <i class="ri-arrow-right-s-line menu-arrow"></i>
-          </button> -->
+          </button>
 
           <!-- Theme inline toggle -->
           <div class="menu-row">
@@ -82,6 +85,14 @@ import { User } from "@core/models";
             <div class="menu-row-left">
               <i class="ri-calendar-event-line"></i>
               <span>Appointments</span>
+            </div>
+            <i class="ri-arrow-right-s-line menu-arrow"></i>
+          </button>
+
+          <button class="menu-row" (click)="navigate('/client/favorites')">
+            <div class="menu-row-left">
+              <i class="ri-heart-3-line"></i>
+              <span>Favourites</span>
             </div>
             <i class="ri-arrow-right-s-line menu-arrow"></i>
           </button>

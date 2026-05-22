@@ -27,6 +27,7 @@ import { CustomerServiceComponent } from "./customer-service/customer-service.co
 import { AiAssistantComponent } from "./ai-assistant/ai-assistant.component";
 import { AiVirtualTryonComponent } from "./ai-virtual-tryon/ai-virtual-tryon.component";
 import { AiSmartScheduleComponent } from "./ai-smart-schedule/ai-smart-schedule.component";
+import { CategoriesComponent } from './categories/categories.component';
 
 const routes: Routes = [
   {
@@ -49,6 +50,7 @@ const routes: Routes = [
       { path: "settings", component: SettingsComponent },
       { path: "map", component: MapComponent },
       { path: "booking-success", component: BookingSuccessComponent },
+      { path: "categories", component: CategoriesComponent },
       { path: "privacy-policy", component: PrivacyPolicyComponent },
       { path: "ai-assistant", component: AiAssistantComponent },
       { path: "ai-virtual-tryon", component: AiVirtualTryonComponent },
@@ -88,6 +90,7 @@ const routes: Routes = [
     AiAssistantComponent,
     AiVirtualTryonComponent,
     AiSmartScheduleComponent,
+    CategoriesComponent,
   ],
   imports: [SharedModule, RouterModule.forChild(routes)],
 })

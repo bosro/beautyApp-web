@@ -3,6 +3,8 @@ export const environment = {
   apiUrl: "https://api-bigluxx.thedonkomi.com/api/v1",
 
   googleMapsApiKey: "AIzaSyAk8BLnZJ0PzUOJXdU2IUmTJTDwwsbS_3s",
+  googleMapsMapId: "",
+
   googleClientId:
     "494853091341-0f9s2kfhevebe3cn6f4sd2jn65nmmg6h.apps.googleusercontent.com",
 

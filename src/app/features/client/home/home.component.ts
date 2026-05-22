@@ -1,5 +1,14 @@
-// home.component.ts
-import { Component, OnInit } from "@angular/core";
+// ============================================================
+// HOME COMPONENT
+// ============================================================
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+} from "@angular/core";
 import { Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { AuthService } from "../../../core/services/auth.service";
@@ -54,13 +63,6 @@ import { environment } from "../../../../environments/environment";
         </div>
       </div>
 
-      <!-- ===== GREETING ===== -->
-      <!-- <div class="px-4 lg:px-6 pb-4">
-        <p class="text-sm mt-0.5" style="color: var(--color-text-secondary)">
-          What service do you need today?
-        </p>
-      </div> -->
-
       <!-- ===== SEARCH BAR ===== -->
       <div class="px-4 lg:px-6 mb-5">
         <div class="flex gap-2">
@@ -107,21 +109,25 @@ import { environment } from "../../../../environments/environment";
             </div>
             <div
               class="flex gap-3 overflow-x-auto px-4 lg:px-0 pb-2 snap-x snap-mandatory
-                     lg:grid lg:grid-cols-2 lg:overflow-visible lg:pb-0"
+                        lg:grid lg:grid-cols-2 lg:overflow-visible lg:pb-0"
               style="-ms-overflow-style: none; scrollbar-width: none;"
             >
-              <div
-                *ngIf="loading.featured"
-                class="skeleton h-40 w-64 flex-shrink-0 rounded-xl lg:w-full"
-              ></div>
-              <div
-                *ngIf="loading.featured"
-                class="skeleton h-40 w-64 flex-shrink-0 rounded-xl lg:w-full"
-              ></div>
+              <!-- Skeletons -->
+              <ng-container *ngIf="loading.featured">
+                <div
+                  class="skeleton h-40 w-64 flex-shrink-0 rounded-2xl lg:w-full"
+                ></div>
+                <div
+                  class="skeleton h-40 w-64 flex-shrink-0 rounded-2xl lg:w-full"
+                ></div>
+              </ng-container>
 
+              <!-- Cards -->
               <div
-                *ngFor="let salon of featuredSalons.slice(0, 4)"
-                class="relative flex-shrink-0 w-64 h-40 rounded-xl overflow-hidden cursor-pointer lg:w-full"
+                *ngFor="let salon of featuredSalons.slice(0, 4); let i = index"
+                class="relative flex-shrink-0 w-64 h-40 rounded-2xl overflow-hidden cursor-pointer
+                          card-animate lg:w-full"
+                [style.animation-delay]="i * 60 + 'ms'"
                 (click)="goToSalon(salon.id)"
               >
                 <img
@@ -131,10 +137,12 @@ import { environment } from "../../../../environments/environment";
                     'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800'
                   "
                   [alt]="salon.businessName"
+                  loading="lazy"
                   class="w-full h-full object-cover"
                 />
                 <div
-                  class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-3"
+                  class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent
+                            flex flex-col justify-end p-3"
                 >
                   <p class="text-white font-bold text-sm">
                     {{ salon.businessName }}
@@ -150,7 +158,7 @@ import { environment } from "../../../../environments/environment";
 
               <div
                 *ngIf="!loading.featured && featuredSalons.length === 0"
-                class="flex-shrink-0 w-64 h-40 rounded-xl flex items-center justify-center lg:w-full"
+                class="flex-shrink-0 w-64 h-40 rounded-2xl flex items-center justify-center lg:w-full"
                 style="background-color: var(--color-bg-secondary)"
               >
                 <p class="text-xs" style="color: var(--color-text-secondary)">
@@ -170,14 +178,13 @@ import { environment } from "../../../../environments/environment";
                 Categories
               </h2>
               <a
-                routerLink="/client/discover"
+                routerLink="/client/categories"
                 class="text-xs font-semibold"
                 style="color: var(--color-primary)"
                 >View all</a
               >
             </div>
 
-            <!-- Skeleton -->
             <div
               *ngIf="loading.categories"
               class="flex gap-3 overflow-x-auto px-4 lg:px-0 pb-2"
@@ -189,13 +196,12 @@ import { environment } from "../../../../environments/environment";
               >
                 <div
                   class="skeleton rounded-xl"
-                  style="width: 72px; height: 62px;"
+                  style="width:72px;height:62px;"
                 ></div>
                 <div class="skeleton h-3 w-12 rounded"></div>
               </div>
             </div>
 
-            <!-- Category tiles — rounded square image + label below, matching HTML reference -->
             <div
               *ngIf="!loading.categories"
               class="flex gap-3 overflow-x-auto px-4 lg:px-0 pb-2"
@@ -206,18 +212,17 @@ import { environment } from "../../../../environments/environment";
                 (click)="goToCategory(cat)"
                 class="flex flex-col items-center gap-2 flex-shrink-0 active:scale-95 transition-all"
               >
-                <!-- Square rounded image tile -->
                 <div
                   class="rounded-xl overflow-hidden flex-shrink-0"
-                  style="width: 72px; height: 62px;"
+                  style="width:72px;height:62px;"
                 >
                   <img
                     *ngIf="cat.image"
                     [src]="cat.image"
                     [alt]="cat.name"
+                    loading="lazy"
                     class="w-full h-full object-cover"
                   />
-                  <!-- Fallback: tinted icon tile when no image -->
                   <div
                     *ngIf="!cat.image"
                     class="w-full h-full flex items-center justify-center"
@@ -232,11 +237,10 @@ import { environment } from "../../../../environments/environment";
                     ></i>
                   </div>
                 </div>
-
-                <!-- Category name -->
                 <span
                   class="text-xs font-medium text-center"
-                  style="color: var(--color-text-primary); max-width: 72px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;"
+                  style="color: var(--color-text-primary); max-width:72px; overflow:hidden;
+                             display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical;"
                 >
                   {{ cat.name }}
                 </span>
@@ -244,118 +248,7 @@ import { environment } from "../../../../environments/environment";
             </div>
           </section>
 
-          <!-- ===== AI FEATURES SECTION ===== -->
-          <div class="px-4 lg:px-6 mt-6">
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <div
-                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center"
-                >
-                  <i class="ri-robot-2-line text-white text-sm"></i>
-                </div>
-                <h2
-                  class="text-base font-bold text-[var(--color-text-primary)]"
-                >
-                  AI Beauty Tools
-                </h2>
-              </div>
-              <span
-                class="text-xs px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 font-semibold"
-              >
-                Powered by Gemini
-              </span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <!-- AI Chat Assistant -->
-              <button
-                (click)="router.navigate(['/client/ai-assistant'])"
-                class="group relative overflow-hidden rounded-2xl p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
-                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-              >
-                <div
-                  class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl"
-                ></div>
-                <div class="relative z-10">
-                  <div
-                    class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3"
-                  >
-                    <i class="ri-chat-ai-line text-white text-xl"></i>
-                  </div>
-                  <p class="text-white font-bold text-sm mb-1">AI Assistant</p>
-                  <p class="text-white/75 text-xs leading-relaxed">
-                    Chat to book appointments & discover styles
-                  </p>
-                  <div
-                    class="mt-3 flex items-center gap-1 text-white/80 text-xs font-medium"
-                  >
-                    Start chatting <i class="ri-arrow-right-line"></i>
-                  </div>
-                </div>
-              </button>
-
-              <!-- Virtual Try-On -->
-              <button
-                (click)="router.navigate(['/client/ai-virtual-tryon'])"
-                class="group relative overflow-hidden rounded-2xl p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
-                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
-              >
-                <div
-                  class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl"
-                ></div>
-                <div class="relative z-10">
-                  <div
-                    class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3"
-                  >
-                    <i class="ri-magic-line text-white text-xl"></i>
-                  </div>
-                  <p class="text-white font-bold text-sm mb-1">
-                    Virtual Try-On
-                  </p>
-                  <p class="text-white/75 text-xs leading-relaxed">
-                    Upload a photo & get AI hairstyle recommendations
-                  </p>
-                  <div
-                    class="mt-3 flex items-center gap-1 text-white/80 text-xs font-medium"
-                  >
-                    Try it <i class="ri-arrow-right-line"></i>
-                  </div>
-                </div>
-              </button>
-
-              <!-- Smart Scheduling -->
-              <button
-                (click)="router.navigate(['/client/ai-smart-schedule'])"
-                class="group relative overflow-hidden rounded-2xl p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
-                style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
-              >
-                <div
-                  class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl"
-                ></div>
-                <div class="relative z-10">
-                  <div
-                    class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3"
-                  >
-                    <i class="ri-calendar-ai-line text-white text-xl"></i>
-                  </div>
-                  <p class="text-white font-bold text-sm mb-1">
-                    Smart Schedule
-                  </p>
-                  <p class="text-white/75 text-xs leading-relaxed">
-                    AI picks the best appointment time for you
-                  </p>
-                  <div
-                    class="mt-3 flex items-center gap-1 text-white/80 text-xs font-medium"
-                  >
-                    Find best time <i class="ri-arrow-right-line"></i>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-          <!-- ===== END AI FEATURES SECTION ===== -->
-
-          <!-- ===== NEAR YOU ===== -->
+          <!-- ===== NEAR YOU — Pinterest masonry ===== -->
           <section class="mb-6">
             <div class="flex items-center justify-between px-4 lg:px-0 mb-3">
               <h2
@@ -372,23 +265,23 @@ import { environment } from "../../../../environments/environment";
               >
             </div>
 
-            <div
-              *ngIf="loading.nearby"
-              class="grid grid-cols-2 gap-3 px-4 lg:px-0"
-            >
+            <!-- Skeleton masonry -->
+            <div *ngIf="loading.nearby" class="masonry-grid px-4 lg:px-0">
               <div
-                *ngFor="let _ of [1, 2, 3, 4]"
-                class="skeleton rounded-2xl"
-                style="aspect-ratio: 0.75;"
+                *ngFor="let h of skeletonHeights"
+                class="masonry-item skeleton rounded-2xl"
+                [style.height]="h + 'px'"
               ></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 px-4 lg:px-0">
+            <!-- Masonry grid -->
+            <div *ngIf="!loading.nearby" class="masonry-grid px-4 lg:px-0">
               <div
-                *ngFor="let salon of nearbySalons.slice(0, 6)"
+                *ngFor="let salon of nearbySalons; let i = index"
                 (click)="goToSalon(salon.id)"
-                class="relative rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-all"
-                style="aspect-ratio: 0.75;"
+                class="masonry-item relative rounded-2xl overflow-hidden cursor-pointer
+                          active:scale-[0.98] transition-transform card-animate"
+                [style.animation-delay]="i * 50 + 'ms'"
               >
                 <img
                   [src]="
@@ -397,8 +290,23 @@ import { environment } from "../../../../environments/environment";
                     'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=530&fit=crop'
                   "
                   [alt]="salon.businessName"
-                  class="w-full h-full object-cover block"
+                  loading="lazy"
+                  class="w-full block object-cover"
+                  [style.aspect-ratio]="cardRatio(i)"
                 />
+
+                <!-- Verified badge -->
+                <div
+                  *ngIf="salon.verificationStatus === 'APPROVED'"
+                  class="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full"
+                  style="background: rgba(255,255,255,0.92);"
+                >
+                  <i class="ri-verified-badge-fill text-blue-500 text-xs"></i>
+                  <span class="text-xs font-semibold" style="color: #1D4ED8;"
+                    >Verified</span
+                  >
+                </div>
+
                 <div
                   class="absolute inset-0 flex flex-col justify-end p-3"
                   style="background: linear-gradient(transparent, rgba(0,0,0,0.65))"
@@ -420,10 +328,16 @@ import { environment } from "../../../../environments/environment";
                     </div>
                     <button
                       (click)="toggleFavorite(salon, $event)"
-                      class="w-7 h-7 rounded-full flex items-center justify-center"
+                      class="w-7 h-7 rounded-full flex items-center justify-center transition-all"
                       style="background: rgba(255,255,255,0.2)"
                     >
-                      <i class="ri-heart-3-line text-white text-xs"></i>
+                      <i
+                        [class]="
+                          isFavorited(salon)
+                            ? 'ri-heart-3-fill text-red-400 text-xs'
+                            : 'ri-heart-3-line text-white text-xs'
+                        "
+                      ></i>
                     </button>
                   </div>
                   <p
@@ -434,6 +348,14 @@ import { environment } from "../../../../environments/environment";
                   </p>
                 </div>
               </div>
+            </div>
+
+            <!-- Lazy-load sentinel -->
+            <div #nearbysentinel class="h-4"></div>
+
+            <!-- Load-more spinner (auto-triggered, shown while fetching next page) -->
+            <div *ngIf="loadingMoreNearby" class="flex justify-center py-4">
+              <span class="spinner"></span>
             </div>
 
             <app-empty-state
@@ -607,20 +529,162 @@ import { environment } from "../../../../environments/environment";
 
       <div class="h-8 lg:h-4"></div>
     </div>
+
+    <!-- ===== AI FAB ===== -->
+    <div
+      style="position:fixed;bottom:96px;right:20px;z-index:9999;
+                display:flex;flex-direction:column;align-items:flex-end;gap:12px;"
+      [ngClass]="{ 'lg-fab': true }"
+    >
+      <ng-container *ngIf="aiFabOpen">
+        <button
+          (click)="
+            router.navigate(['/client/ai-smart-schedule']); aiFabOpen = false
+          "
+          class="flex items-center gap-3 pr-4 pl-1 py-1 rounded-full transition-all active:scale-95"
+          style="background-color:#1C1C1E;border:1px solid #2C2C2E"
+        >
+          <div
+            class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+            style="background-color:rgba(255,255,255,0.1)"
+          >
+            <img
+              src="assets/images/smart-schedule.png"
+              alt="Smart Schedule"
+              class="w-5 h-5 object-contain"
+            />
+          </div>
+          <span class="text-sm font-semibold whitespace-nowrap text-white"
+            >Smart Schedule</span
+          >
+        </button>
+
+        <button
+          (click)="
+            router.navigate(['/client/ai-virtual-tryon']); aiFabOpen = false
+          "
+          class="flex items-center gap-3 pr-4 pl-1 py-1 rounded-full transition-all active:scale-95"
+          style="background-color:#1C1C1E;border:1px solid #2C2C2E"
+        >
+          <div
+            class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+            style="background-color:rgba(255,255,255,0.1)"
+          >
+            <img
+              src="assets/images/try-on.png"
+              alt="Virtual Try-On"
+              class="w-5 h-5 object-contain"
+            />
+          </div>
+          <span class="text-sm font-semibold whitespace-nowrap text-white"
+            >Virtual Try-On</span
+          >
+        </button>
+
+        <button
+          (click)="router.navigate(['/client/ai-assistant']); aiFabOpen = false"
+          class="flex items-center gap-3 pr-4 pl-1 py-1 rounded-full transition-all active:scale-95"
+          style="background-color:#1C1C1E;border:1px solid #2C2C2E"
+        >
+          <div
+            class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+            style="background-color:rgba(255,255,255,0.1)"
+          >
+            <img
+              src="assets/images/ai-assistant.png"
+              alt="AI Assistant"
+              class="w-5 h-5 object-contain"
+            />
+          </div>
+          <span class="text-sm font-semibold whitespace-nowrap text-white"
+            >AI Assistant</span
+          >
+        </button>
+      </ng-container>
+
+      <button
+        (click)="aiFabOpen = !aiFabOpen"
+        class="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95"
+        style="background-color:#000;box-shadow:0 8px 32px rgba(0,0,0,0.28),0 2px 8px rgba(0,0,0,0.18);"
+      >
+        <ng-container *ngIf="!aiFabOpen">
+          <img
+            src="assets/images/ai-fab-logo.png"
+            alt="AI"
+            class="w-10 h-10 object-contain"
+          />
+        </ng-container>
+        <i *ngIf="aiFabOpen" class="ri-close-line text-white text-2xl"></i>
+      </button>
+    </div>
   `,
+  styles: [
+    `
+      @media (min-width: 1024px) {
+        div[style*="position: fixed"] {
+          bottom: 32px !important;
+          right: 32px !important;
+        }
+      }
+      .masonry-grid {
+        columns: 2;
+        column-gap: 12px;
+      }
+      @media (min-width: 768px) {
+        .masonry-grid {
+          columns: 3;
+        }
+      }
+      @media (min-width: 1280px) {
+        .masonry-grid {
+          columns: 4;
+        }
+      }
+
+      .masonry-item {
+        break-inside: avoid;
+        display: block;
+        margin-bottom: 12px;
+      }
+      @keyframes cardIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .card-animate {
+        animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+    `,
+  ],
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild("nearbysentinel") nearbySentinel!: ElementRef;
+
   searchQuery = "";
   user = this.authService.user;
-
   loading = { featured: true, categories: true, nearby: true };
 
   featuredSalons: BeauticianProfile[] = [];
   nearbySalons: BeauticianProfile[] = [];
   categories: Category[] = [];
   latestPromo: Promotion | null = null;
-
   stats = { bookings: 0, favorites: 0, referrals: 0, wallet: 0 };
+  aiFabOpen = false;
+  favoriteIds = new Set<string>();
+
+  // Lazy-load state for "Near you"
+  nearbyPage = 1;
+  nearbyTotal = 0;
+  loadingMoreNearby = false;
+  private nearbyObserver?: IntersectionObserver;
+
+  // Skeleton heights — alternating tall/short for masonry look before real data arrives
+  skeletonHeights = [220, 160, 280, 180, 240, 150, 200, 190];
 
   quickLinks = [
     {
@@ -636,6 +700,12 @@ export class HomeComponent implements OnInit {
     },
   ];
 
+  /** Returns a varied aspect-ratio string so masonry cards have different heights */
+  cardRatio(index: number): string {
+    const ratios = ["3/4", "4/5", "2/3", "3/5", "4/6", "3/4", "5/7", "2/3"];
+    return ratios[index % ratios.length];
+  }
+
   get firstName(): string {
     return this.user?.name?.split(" ")[0] || "Guest";
   }
@@ -649,6 +719,32 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+    this.loadFavoriteIds();
+  }
+
+  ngAfterViewInit(): void {
+    // Set up IntersectionObserver on the sentinel div below "Near you"
+    this.nearbyObserver = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !this.loadingMoreNearby &&
+          !this.loading.nearby
+        ) {
+          if (this.nearbySalons.length < this.nearbyTotal) {
+            this.loadMoreNearby();
+          }
+        }
+      },
+      { threshold: 0.1 },
+    );
+    if (this.nearbySentinel) {
+      this.nearbyObserver.observe(this.nearbySentinel.nativeElement);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.nearbyObserver?.disconnect();
   }
 
   private loadData(): void {
@@ -675,17 +771,8 @@ export class HomeComponent implements OnInit {
       },
     });
 
-    this.http
-      .get<any>(`${base}/beauticians`, { params: { limit: "5" } })
-      .subscribe({
-        next: (res) => {
-          this.nearbySalons = res?.data?.beauticians || res?.beauticians || [];
-          this.loading.nearby = false;
-        },
-        error: () => {
-          this.loading.nearby = false;
-        },
-      });
+    // Initial "near you" page
+    this.loadNearbyPage(1, false);
 
     this.http.get<any>(`${base}/users/stats`).subscribe({
       next: (res) => {
@@ -712,8 +799,56 @@ export class HomeComponent implements OnInit {
       });
   }
 
+  private loadNearbyPage(page: number, append: boolean): void {
+    if (!append) {
+      this.loading.nearby = true;
+    } else {
+      this.loadingMoreNearby = true;
+    }
+
+    this.http
+      .get<any>(`${environment.apiUrl}/beauticians`, {
+        params: { limit: "8", page: String(page) },
+      })
+      .subscribe({
+        next: (res) => {
+          const items: BeauticianProfile[] =
+            res?.data?.beauticians || res?.beauticians || [];
+          this.nearbyTotal = res?.meta?.total || items.length;
+          this.nearbySalons = append ? [...this.nearbySalons, ...items] : items;
+          this.loading.nearby = false;
+          this.loadingMoreNearby = false;
+        },
+        error: () => {
+          this.loading.nearby = false;
+          this.loadingMoreNearby = false;
+        },
+      });
+  }
+
+  loadMoreNearby(): void {
+    this.nearbyPage++;
+    this.loadNearbyPage(this.nearbyPage, true);
+  }
+
+  private loadFavoriteIds(): void {
+    this.http.get<any>(`${environment.apiUrl}/favorites`).subscribe({
+      next: (res) => {
+        const favs = res.data?.favorites || [];
+        this.favoriteIds = new Set(
+          favs.map((f: any) => f.beautician?.id || f.beauticianId),
+        );
+      },
+      error: () => {},
+    });
+  }
+
+  isFavorited(salon: BeauticianProfile): boolean {
+    return this.favoriteIds.has(salon.id);
+  }
+
   search(): void {
-    this.router.navigate(["/client/map"], {
+    this.router.navigate(["/client/search"], {
       queryParams: this.searchQuery.trim()
         ? { q: this.searchQuery.trim() }
         : {},
@@ -732,6 +867,29 @@ export class HomeComponent implements OnInit {
 
   toggleFavorite(salon: BeauticianProfile, event: Event): void {
     event.stopPropagation();
-    this.toast.info("Added to favorites");
+    const alreadyFaved = this.favoriteIds.has(salon.id);
+    if (alreadyFaved) {
+      this.favoriteIds.delete(salon.id);
+      this.http
+        .delete(`${environment.apiUrl}/favorites/${salon.id}`)
+        .subscribe({
+          error: () => {
+            this.favoriteIds.add(salon.id);
+            this.toast.error("Failed to remove");
+          },
+        });
+      this.toast.success("Removed from favorites");
+    } else {
+      this.favoriteIds.add(salon.id);
+      this.http
+        .post(`${environment.apiUrl}/favorites`, { beauticianId: salon.id })
+        .subscribe({
+          error: () => {
+            this.favoriteIds.delete(salon.id);
+            this.toast.error("Failed to add");
+          },
+        });
+      this.toast.success("Added to favorites");
+    }
   }
 }

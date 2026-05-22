@@ -368,6 +368,6 @@ export class BeauticianReviewsComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(["/beautician/profile"]);
+    this.router.navigate(["/beautician/settings"]);
   }
 }

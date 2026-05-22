@@ -53,7 +53,7 @@ export class FcmService {
         return;
       }
 
-      console.log('[FCM] Web push token:', token);
+      // console.log('[FCM] Web push token:', token);
 
       // Send to your backend using the same device register endpoint
       this.http.post(`${environment.apiUrl}/notifications/device/register`, {
@@ -64,7 +64,7 @@ export class FcmService {
           language: navigator.language,
         },
       }).subscribe({
-        next: () => console.log('[FCM] Web token registered with backend'),
+        next: () => console.log(''),
         error: (err) => console.error('[FCM] Failed to register token:', err),
       });
 
@@ -85,3 +85,4 @@ export class FcmService {
     }
   }
 }
+

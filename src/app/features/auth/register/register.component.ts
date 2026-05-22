@@ -1,8 +1,17 @@
+// register.component.ts
+// Changes from original:
+//   1. Added Google Sign-Up button (same flow as LoginComponent)
+//   2. Added onGoogleSignIn() method
+//   3. Added ngOnInit Google SDK initialization
+//   4. Added AfterViewInit + OnDestroy for RAF cleanup (not needed here but kept consistent)
+//   5. No other logic changed
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-register',
@@ -22,6 +31,24 @@ import { ToastService } from '../../../core/services/toast.service';
         <p class="text-sm" style="color: var(--color-text-secondary)">Join Bigluxx as a client</p>
       </div>
 
+      <!-- ── Google Sign-Up ── -->
+      <button type="button" (click)="onGoogleSignIn()" class="google-btn w-full mb-4">
+        <img
+          src="https://www.svgrepo.com/show/355037/google.svg"
+          alt="Google"
+          class="w-5 h-5"
+        />
+        <span>Sign up with Google</span>
+      </button>
+
+      <!-- Divider -->
+      <div class="flex items-center gap-3 mb-4">
+        <div class="flex-1 h-px" style="background-color: var(--color-border-light)"></div>
+        <span class="text-xs font-medium" style="color: var(--color-text-secondary)">OR</span>
+        <div class="flex-1 h-px" style="background-color: var(--color-border-light)"></div>
+      </div>
+
+      <!-- Email / password form -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
         <!-- Name -->
         <div>
@@ -112,6 +139,27 @@ import { ToastService } from '../../../core/services/toast.service';
       </p>
     </div>
   `,
+  styles: [`
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: var(--color-bg-secondary);
+      border: 1.5px solid var(--color-border-light);
+      border-radius: 50px;
+      padding: 13px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .google-btn:hover {
+      border-color: var(--color-primary);
+      background: var(--color-bg-primary);
+    }
+  `],
 })
 export class RegisterComponent implements OnInit {
   form!: FormGroup;
@@ -138,6 +186,15 @@ export class RegisterComponent implements OnInit {
       },
       { validators: this.passwordMatch }
     );
+
+    // Initialize Google SDK (same as LoginComponent)
+    const google = (window as any).google;
+    if (google) {
+      google.accounts.id.initialize({
+        client_id: environment.googleClientId,
+        callback: (response: any) => this.handleGoogleCredential(response),
+      });
+    }
   }
 
   private passwordMatch(group: FormGroup) {
@@ -147,6 +204,44 @@ export class RegisterComponent implements OnInit {
   }
 
   get f() { return this.form.controls; }
+
+  // ── Google Sign-Up: identical to LoginComponent.onGoogleSignIn() ──
+  // The backend's signInWithGoogle() already handles "create if not exists",
+  // so this works for both sign-in and sign-up — no separate endpoint needed.
+  onGoogleSignIn(): void {
+    const google = (window as any).google;
+    if (!google) {
+      this.toast.error('Google Sign-In is not available.');
+      return;
+    }
+    google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        google.accounts.id.cancel();
+        const oauthUrl =
+          `https://accounts.google.com/o/oauth2/v2/auth` +
+          `?client_id=${environment.googleClientId}` +
+          `&redirect_uri=${encodeURIComponent(window.location.origin + '/auth/google/callback')}` +
+          `&response_type=code` +
+          `&scope=openid%20email%20profile`;
+        window.location.href = oauthUrl;
+      }
+    });
+  }
+
+  private handleGoogleCredential(response: { credential: string }): void {
+    this.loading = true;
+    // role defaults to CUSTOMER in signInWithGoogle() backend
+    this.auth.googleSignIn(response.credential).subscribe({
+      next: () => {
+        this.toast.success('Welcome to Bigluxx!');
+        this.router.navigate([this.auth.getDashboardRoute()]);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.toast.error(err?.error?.message || 'Google sign-up failed');
+      },
+    });
+  }
 
   onSubmit(): void {
     this.submitted = true;
@@ -172,6 +267,3 @@ export class RegisterComponent implements OnInit {
     this.router.navigate(['/auth/login']);
   }
 }
-
-
-

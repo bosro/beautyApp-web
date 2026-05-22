@@ -8,10 +8,7 @@ import { ConfirmModalComponent } from "./components/confirm-modal/confirm-modal.
 import { SpinnerComponent } from "./components/spinner/spinner.component";
 import { StarRatingComponent } from "./components/star-rating/star-rating.component";
 import { EmptyStateComponent } from "./components/empty-state/empty-state.component";
-import { ChangePasswordComponent } from "../features/settings/change-password/change-password.component";
-import { PasswordSecurityComponent } from "../features/settings/password-security/password-security.component";
-import { NotificationPreferencesComponent } from "../features/settings/notification-preferences/notification-preferences.component";
-import { SettingsLayoutComponent } from "../features/settings/settings-layout/settings-layout.component";
+
 
 
 

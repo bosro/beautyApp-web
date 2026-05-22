@@ -123,6 +123,9 @@ export class AuthService {
   }
 
   logout(): void {
+    // Fire and forget API logout
+    this.api.post("/auth/logout", {}).subscribe({ error: () => {} });
+
     localStorage.removeItem("@access_token");
     localStorage.removeItem("@refresh_token");
     localStorage.removeItem("@user_data");
@@ -135,9 +138,6 @@ export class AuthService {
       isAuthenticated: false,
       isLoading: false,
     });
-
-    // Fire and forget API logout
-    this.api.post("/auth/logout", {}).subscribe({ error: () => {} });
 
     // Navigate after state is cleared
     this.router.navigate(["/auth/login"]);
@@ -248,3 +248,5 @@ export class AuthService {
       : "/client/home";
   }
 }
+
+

@@ -12,8 +12,8 @@ import { ToastService } from "@core/services/toast.service";
   selector: "app-booking-details",
   standalone: false,
   template: `
-    <div class="min-h-screen bg-[var(--color-background)] pb-36 lg:pb-8">
-      <!-- ── Header ── -->
+    <div class="min-h-screen bg-[var(--color-background)]">
+      <!-- Header -->
       <div
         class="sticky top-0 z-20 bg-[var(--color-surface)]/95 backdrop-blur-md border-b border-[var(--color-border)] px-4 py-3 flex items-center gap-3"
       >
@@ -68,7 +68,7 @@ import { ToastService } from "@core/services/toast.service";
 
       <div
         *ngIf="!loading && booking"
-        class="p-4 lg:p-6 max-w-2xl mx-auto space-y-3"
+        class="p-4 lg:p-6 max-w-2xl mx-auto space-y-3 pb-8"
       >
         <!-- Status Banner -->
         <div
@@ -90,7 +90,6 @@ import { ToastService } from "@core/services/toast.service";
             Client
           </h3>
 
-          <!-- Client identity -->
           <div class="flex items-center gap-3">
             <div
               class="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 bg-[var(--color-primary)]/10 flex items-center justify-center"
@@ -329,42 +328,36 @@ import { ToastService } from "@core/services/toast.service";
             Cancelled on {{ booking.cancelledAt | date: "MMM d, y" }}
           </p>
         </div>
-      </div>
 
-      <!-- ── Sticky Action Footer ── -->
-      <div
-        *ngIf="
-          booking &&
-          (booking.status === 'PENDING' || booking.status === 'CONFIRMED')
-        "
-        class="fixed bottom-0 left-0 right-0 z-10 p-4 bg-[var(--color-surface)]/95 backdrop-blur-md border-t border-[var(--color-border)]
-               lg:static lg:border-0 lg:bg-transparent lg:backdrop-blur-none lg:px-0 lg:max-w-2xl lg:mx-auto lg:mt-2 lg:mb-6"
-      >
-        <div class="max-w-2xl mx-auto">
-          <!-- PENDING -->
+        <!-- ── Action Buttons — in scroll flow ── -->
+        <div
+          *ngIf="booking.status === 'PENDING' || booking.status === 'CONFIRMED'"
+          class="pt-2 pb-2"
+        >
+          <!-- PENDING: Decline + Accept -->
           <div *ngIf="booking.status === 'PENDING'" class="flex gap-3">
             <button
               (click)="showCancelModal = true"
               [disabled]="updating"
-              class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-red-400 text-red-500 font-bold text-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+              class="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-red-400 text-red-500 font-bold text-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
             >
               <i class="ri-close-line text-base"></i> Decline
             </button>
             <button
               (click)="showAcceptModal = true"
               [disabled]="updating"
-              class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition-colors disabled:opacity-50"
+              class="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition-colors disabled:opacity-50"
             >
               <i class="ri-check-line text-base"></i> Accept Booking
             </button>
           </div>
 
-          <!-- CONFIRMED -->
+          <!-- CONFIRMED: Mark Complete -->
           <button
             *ngIf="booking.status === 'CONFIRMED'"
             (click)="showCompleteModal = true"
             [disabled]="updating"
-            class="w-full btn-primary py-3.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50"
+            class="w-full btn-primary py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm disabled:opacity-50"
           >
             <i *ngIf="updating" class="ri-loader-4-line animate-spin"></i>
             <i *ngIf="!updating" class="ri-checkbox-circle-line text-base"></i>
@@ -375,7 +368,7 @@ import { ToastService } from "@core/services/toast.service";
 
       <!-- Modals -->
       <app-confirm-modal
-        *ngIf="showAcceptModal"
+        [visible]="showAcceptModal"
         title="Accept Booking"
         message="Confirm this booking?"
         confirmText="Accept"
@@ -386,7 +379,7 @@ import { ToastService } from "@core/services/toast.service";
       ></app-confirm-modal>
 
       <app-confirm-modal
-        *ngIf="showCompleteModal"
+        [visible]="showCompleteModal"
         title="Complete Booking"
         message="Mark this booking as completed?"
         confirmText="Complete"
@@ -397,7 +390,7 @@ import { ToastService } from "@core/services/toast.service";
       ></app-confirm-modal>
 
       <app-confirm-modal
-        *ngIf="showCancelModal"
+        [visible]="showCancelModal"
         title="Decline Booking"
         message="Are you sure you want to decline this booking? The client will be notified."
         confirmText="Decline Booking"
@@ -431,7 +424,7 @@ export class BookingDetailsComponent implements OnInit {
       {
         icon: "ri-calendar-line",
         label: "Date",
-        value: new Date(this.booking.date).toLocaleDateString("en-US", {
+        value: new Date(this.booking.bookingDate).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
           year: "numeric",
@@ -441,7 +434,7 @@ export class BookingDetailsComponent implements OnInit {
       {
         icon: "ri-time-line",
         label: "Time",
-        value: `${this.booking.time} (${this.booking.service?.duration || 0} mins)`,
+        value: `${this.booking.bookingTime} (${this.booking.service?.durationMinutes || this.booking.service?.duration || 0} mins)`,
         primary: false,
       },
       {

@@ -84,7 +84,7 @@ import { ToastService } from "@core/services/toast.service";
       >
         <div
           *ngFor="let booking of filteredBookings"
-          class="card rounded-2xl p-4 space-y-3"
+          class="card shadow-none rounded-2xl p-4 space-y-3"
         >
           <!-- Top row: avatar + name + status -->
           <div class="flex items-start gap-3">
@@ -223,7 +223,7 @@ import { ToastService } from "@core/services/toast.service";
 
       <!-- Confirm Action Modal -->
       <app-confirm-modal
-        *ngIf="showActionModal"
+        [visible]="showActionModal"
         [title]="
           modalAction === 'accept'
             ? 'Accept Booking'

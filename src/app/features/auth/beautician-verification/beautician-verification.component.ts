@@ -143,3 +143,6 @@ export class BeauticianVerificationComponent implements OnInit, OnDestroy {
     });
   }
 }
+
+
+

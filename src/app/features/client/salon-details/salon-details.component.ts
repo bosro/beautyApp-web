@@ -1,9 +1,21 @@
-import { Component, OnInit } from "@angular/core";
+// ============================================================
+// salon-details.component.ts
+//
+// Changes vs previous version:
+//  1. Location section in About tab now uses real latitude/longitude
+//     from the beautician record to embed a Google Maps iframe
+//  2. Falls back gracefully to the placeholder grid if no coords
+//  3. "Get directions" button opens Google Maps in a new tab
+// ============================================================
+
+import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
+import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { ToastService } from "../../../core/services/toast.service";
 import { BeauticianProfile, BeautyService, Review } from "../../../core/models";
 import { environment } from "../../../../environments/environment";
+import { NgZone } from "@angular/core";
 
 type TabType = "services" | "about" | "reviews";
 
@@ -265,8 +277,7 @@ type TabType = "services" | "about" | "reviews";
                             *ngIf="svc.totalBookings > 20"
                             class="text-xs px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0"
                             style="background: color-mix(in srgb, var(--color-primary) 15%, transparent); color: var(--color-primary)"
-                          >
-                            Popular</span
+                            >Popular</span
                           >
                         </div>
                         <div class="flex items-center gap-3 mt-2">
@@ -280,8 +291,7 @@ type TabType = "services" | "about" | "reviews";
                             class="text-xs flex items-center gap-1"
                             style="color: var(--color-text-secondary)"
                           >
-                            <i class="ri-time-line"></i>
-                            {{ svc.duration }}
+                            <i class="ri-time-line"></i>{{ svc.duration }}
                           </span>
                         </div>
                       </div>
@@ -348,8 +358,6 @@ type TabType = "services" | "about" | "reviews";
                         Working Hours
                       </h3>
                     </div>
-
-                    <!-- CHANGED: holiday-aware status badge -->
                     <span
                       class="text-xs font-semibold px-2.5 py-1 rounded-full"
                       [style.background-color]="
@@ -365,7 +373,6 @@ type TabType = "services" | "about" | "reviews";
                     </span>
                   </div>
 
-                  <!-- CHANGED: day chips now tappable to select day -->
                   <div class="flex justify-between px-4 pb-4">
                     <div
                       *ngFor="let day of getDayChips()"
@@ -396,7 +403,6 @@ type TabType = "services" | "about" | "reviews";
                     </div>
                   </div>
 
-                  <!-- NEW: holiday notice banner -->
                   <div
                     *ngIf="isOnHoliday"
                     class="mx-4 mb-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center gap-2"
@@ -408,7 +414,6 @@ type TabType = "services" | "about" | "reviews";
                     </p>
                   </div>
 
-                  <!-- CHANGED: hours now reflect selected day's override -->
                   <div
                     class="mx-4 mb-4 flex items-center justify-between px-4 py-3 rounded-2xl"
                     style="background-color: var(--color-bg-primary)"
@@ -443,7 +448,6 @@ type TabType = "services" | "about" | "reviews";
                     </div>
                   </div>
 
-                  <!-- Break times for selected day -->
                   <div
                     *ngIf="getBreakTimes().length > 0"
                     class="mx-4 mb-4 space-y-2"
@@ -469,37 +473,121 @@ type TabType = "services" | "about" | "reviews";
                   </div>
                 </div>
 
-                <!-- Location -->
+                <!-- ===== LOCATION ===== -->
                 <div
                   class="rounded-2xl overflow-hidden"
                   style="background-color: var(--color-bg-secondary)"
                 >
-                  <div class="px-4 pt-4 pb-3 flex items-center gap-2">
-                    <div
-                      class="w-8 h-8 rounded-xl flex items-center justify-center"
-                      style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent)"
-                    >
-                      <i
-                        class="ri-map-pin-2-line text-sm"
-                        style="color: var(--color-primary)"
-                      ></i>
+                  <!-- Header -->
+                  <div class="px-4 pt-4 pb-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <div
+                        class="w-8 h-8 rounded-xl flex items-center justify-center"
+                        style="background-color: color-mix(in srgb, var(--color-primary) 12%, transparent)"
+                      >
+                        <i
+                          class="ri-map-pin-2-line text-sm"
+                          style="color: var(--color-primary)"
+                        ></i>
+                      </div>
+                      <h3
+                        class="font-semibold text-sm"
+                        style="color: var(--color-text-primary)"
+                      >
+                        Location
+                      </h3>
                     </div>
-                    <h3
-                      class="font-semibold text-sm"
-                      style="color: var(--color-text-primary)"
+                    <button
+                      *ngIf="
+                        salon?.latitude &&
+                        salon?.longitude &&
+                        directionsMode === 'none'
+                      "
+                      (click)="showInAppDirections()"
+                      class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
+                      style="background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--color-primary)"
                     >
-                      Location
-                    </h3>
+                      <i class="ri-navigation-line text-sm"></i> Directions
+                    </button>
+                    <button
+                      *ngIf="directionsMode !== 'none'"
+                      (click)="clearInAppDirections()"
+                      class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+                      style="background: #FEE2E2; color: #EF4444"
+                    >
+                      <i class="ri-close-line"></i> Clear
+                    </button>
                   </div>
 
+                  <!-- Travel mode chips (shown while directions active) -->
                   <div
+                    *ngIf="directionsMode !== 'none'"
+                    class="flex gap-2 px-4 pb-3"
+                  >
+                    <button
+                      *ngFor="let m of travelModes"
+                      (click)="setInAppTravelMode(m.value)"
+                      class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                      [style.background-color]="
+                        activeTravelMode === m.value
+                          ? 'var(--color-primary)'
+                          : 'var(--color-bg-primary)'
+                      "
+                      [style.color]="
+                        activeTravelMode === m.value
+                          ? 'white'
+                          : 'var(--color-text-secondary)'
+                      "
+                    >
+                      <i [class]="m.icon"></i> {{ m.label }}
+                    </button>
+                  </div>
+
+                  <!-- Route summary -->
+                  <div
+                    *ngIf="routeSummary"
+                    class="mx-4 mb-3 flex items-center gap-3 px-4 py-3 rounded-2xl"
+                    style="background: color-mix(in srgb, var(--color-primary) 8%, transparent)"
+                  >
+                    <i
+                      class="ri-time-line"
+                      style="color: var(--color-primary)"
+                    ></i>
+                    <span
+                      class="text-sm font-bold"
+                      style="color: var(--color-text-primary)"
+                      >{{ routeSummary.duration }}</span
+                    >
+                    <span
+                      class="text-xs"
+                      style="color: var(--color-text-secondary)"
+                      >·</span
+                    >
+                    <i
+                      class="ri-road-map-line"
+                      style="color: var(--color-primary)"
+                    ></i>
+                    <span
+                      class="text-sm font-semibold"
+                      style="color: var(--color-text-primary)"
+                      >{{ routeSummary.distance }}</span
+                    >
+                  </div>
+
+                  <!-- In-app map container -->
+                  <div
+                    *ngIf="salon?.latitude && salon?.longitude"
+                    #inlineMapContainer
+                    class="mx-4 rounded-2xl overflow-hidden"
+                    style="height: 200px;"
+                  ></div>
+
+                  <!-- Static placeholder fallback -->
+                  <div
+                    *ngIf="!salon?.latitude || !salon?.longitude"
                     class="mx-4 rounded-2xl overflow-hidden relative"
                     style="height: 110px; background: linear-gradient(135deg, #e8f4f8 0%, #d0eae8 100%)"
                   >
-                    <div
-                      class="absolute inset-0 opacity-10"
-                      style="background-image: repeating-linear-gradient(0deg, transparent, transparent 20px, var(--color-primary) 20px, var(--color-primary) 21px), repeating-linear-gradient(90deg, transparent, transparent 20px, var(--color-primary) 20px, var(--color-primary) 21px)"
-                    ></div>
                     <div
                       class="absolute inset-0 flex items-center justify-center"
                     >
@@ -520,6 +608,45 @@ type TabType = "services" | "about" | "reviews";
                     </div>
                   </div>
 
+                  <!-- Turn-by-turn steps -->
+                  <div
+                    *ngIf="routeSteps.length > 0"
+                    class="mx-4 mt-3 mb-2 max-h-48 overflow-y-auto rounded-2xl"
+                    style="background-color: var(--color-bg-primary)"
+                  >
+                    <div
+                      *ngFor="let step of routeSteps; let last = last"
+                      class="flex gap-3 px-3 py-2.5"
+                      [style.border-bottom]="
+                        last ? 'none' : '1px solid var(--color-border-light)'
+                      "
+                    >
+                      <div
+                        class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style="background: color-mix(in srgb, var(--color-primary) 10%, transparent)"
+                      >
+                        <i
+                          [class]="getStepIcon(step.maneuver) + ' text-xs'"
+                          style="color: var(--color-primary)"
+                        ></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p
+                          class="text-xs leading-relaxed"
+                          style="color: var(--color-text-primary)"
+                          [innerHTML]="step.instructions"
+                        ></p>
+                        <p
+                          class="text-xs mt-0.5"
+                          style="color: var(--color-text-secondary)"
+                        >
+                          {{ step.distance }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Address text -->
                   <div class="px-4 py-3 flex items-start gap-3">
                     <i
                       class="ri-map-pin-line text-sm mt-0.5 flex-shrink-0"
@@ -541,30 +668,19 @@ type TabType = "services" | "about" | "reviews";
                     </div>
                   </div>
 
+                  <!-- External Google Maps button (always available) -->
                   <div
-                    *ngIf="salon?.user?.phone"
-                    class="mx-4 mb-4 flex items-center justify-between px-4 py-3 rounded-2xl cursor-pointer active:opacity-80"
-                    style="background-color: color-mix(in srgb, var(--color-primary) 8%, transparent)"
-                    (click)="call()"
+                    *ngIf="salon?.latitude && salon?.longitude"
+                    class="mx-4 mb-4 flex gap-2"
                   >
-                    <div class="flex items-center gap-2">
-                      <i
-                        class="ri-phone-fill text-sm"
-                        style="color: var(--color-primary)"
-                      ></i>
-                      <span
-                        class="text-sm font-semibold"
-                        style="color: var(--color-primary)"
-                      >
-                        {{ salon?.user?.phone }}
-                      </span>
-                    </div>
-                    <i
-                      class="ri-arrow-right-s-line"
-                      style="color: var(--color-primary)"
-                    ></i>
+                    <button
+                      (click)="openDirections()"
+                      class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold"
+                      style="background: #f5f5f5; color: #555"
+                    >
+                      <i class="ri-external-link-line"></i> Open in Google Maps
+                    </button>
                   </div>
-                  <div *ngIf="!salon?.user?.phone" class="pb-4"></div>
                 </div>
               </div>
 
@@ -819,8 +935,7 @@ type TabType = "services" | "about" | "reviews";
                       ? 'ri-arrow-right-line'
                       : 'ri-scissors-2-line'
                 "
-              >
-              </i>
+              ></i>
             </button>
           </div>
 
@@ -844,8 +959,7 @@ type TabType = "services" | "about" | "reviews";
                     ? 'var(--color-primary)'
                     : 'var(--color-text-secondary)'
                 "
-              >
-              </i>
+              ></i>
             </button>
           </div>
 
@@ -902,6 +1016,22 @@ export class SalonDetailsComponent implements OnInit {
   selectedServices: string[] = [];
   fabOpen = false;
 
+  // Directions
+  directionsMode: "none" | "preview" | "navigating" = "none";
+  activeTravelMode: "DRIVING" | "WALKING" | "TRANSIT" = "DRIVING";
+  routeSummary: { duration: string; distance: string } | null = null;
+  routeSteps: { instructions: string; distance: string; maneuver: string }[] =
+    [];
+  private inlineMap: any = null;
+  private directionsService: any = null;
+  private directionsRenderer: any = null;
+
+  travelModes = [
+    { label: "Drive", value: "DRIVING" as const, icon: "ri-car-line" },
+    { label: "Walk", value: "WALKING" as const, icon: "ri-walk-line" },
+    { label: "Transit", value: "TRANSIT" as const, icon: "ri-bus-line" },
+  ];
+
   tabList = [
     { label: "Services", value: "services" as TabType },
     { label: "About", value: "about" as TabType },
@@ -909,21 +1039,25 @@ export class SalonDetailsComponent implements OnInit {
   ];
 
   ratingBars: { star: number; pct: number }[] = [];
-
   salonHolidays: any[] = [];
   dayOverrides: Record<string, any> = {};
   isOnHoliday = false;
-
   selectedDayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
-
   salonBreakTimes: Record<string, { startTime: string; endTime: string }[]> =
     {};
+
+  // Safe URL for Google Maps embed
+  mapUrl: SafeResourceUrl = "";
+
+  @ViewChild("inlineMapContainer") inlineMapContainer!: ElementRef;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
     private toast: ToastService,
+    private sanitizer: DomSanitizer,
+    private ngZone: NgZone,
   ) {}
 
   ngOnInit(): void {
@@ -939,9 +1073,10 @@ export class SalonDetailsComponent implements OnInit {
           this.salon = res?.data?.beautician || res?.data || null;
           this.loading = false;
           this.computeRatingBars();
+          this.buildMapUrl();
           this.loadServices();
           this.loadReviews();
-          this.loadHolidaysAndOverrides(); // Add this
+          this.loadHolidaysAndOverrides();
         },
         error: () => {
           this.loading = false;
@@ -949,27 +1084,45 @@ export class SalonDetailsComponent implements OnInit {
       });
   }
 
+  /** Build a sanitized Google Maps embed URL from the beautician's coordinates */
+  private buildMapUrl(): void {
+    if (!this.salon?.latitude || !this.salon?.longitude) return;
+    const lat = parseFloat(this.salon.latitude as any);
+    const lng = parseFloat(this.salon.longitude as any);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    const key = environment.googleMapsApiKey || "";
+    const raw = key
+      ? `https://www.google.com/maps/embed/v1/place?key=${key}&q=${lat},${lng}&zoom=16`
+      : `https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
+    this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(raw);
+  }
+
+  openDirections(): void {
+    if (!this.salon?.latitude || !this.salon?.longitude) return;
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${this.salon.latitude},${this.salon.longitude}`,
+      "_blank",
+    );
+  }
+
   loadHolidaysAndOverrides(): void {
-    // Fetch holidays
     this.http
       .get<any>(`${environment.apiUrl}/schedule/${this.salonId}/holidays`)
       .subscribe({
         next: (res) => {
           this.dayOverrides = res.data?.overrides || {};
-          // Extract break times per day for display
           this.salonBreakTimes = {};
           Object.entries(this.dayOverrides).forEach(
             ([day, override]: [string, any]) => {
-              if (override.breakTimes?.length) {
+              if (override.breakTimes?.length)
                 this.salonBreakTimes[day] = override.breakTimes;
-              }
             },
           );
         },
         error: () => {},
       });
 
-    // Fetch per-day overrides
     this.http
       .get<any>(`${environment.apiUrl}/schedule/${this.salonId}/day-overrides`)
       .subscribe({
@@ -1046,6 +1199,133 @@ export class SalonDetailsComponent implements OnInit {
     return this.services.filter((s) => this.selectedServices.includes(s.id));
   }
 
+  showInAppDirections(): void {
+    const lat = parseFloat(this.salon?.latitude as any);
+    const lng = parseFloat(this.salon?.longitude as any);
+
+    if (!this.salon || isNaN(lat) || isNaN(lng)) {
+      this.openDirections();
+      return;
+    }
+    this.directionsMode = "preview";
+    setTimeout(() => this.initInlineMap(), 50);
+  }
+
+  private initInlineMap(): void {
+    if (typeof google === "undefined" || !this.inlineMapContainer) return;
+
+    const lat = parseFloat(this.salon!.latitude as any);
+    const lng = parseFloat(this.salon!.longitude as any);
+
+    this.inlineMap = new google.maps.Map(
+      this.inlineMapContainer.nativeElement,
+      {
+        center: { lat, lng },
+        zoom: 14,
+        disableDefaultUI: true,
+        mapId: "DEMO_MAP_ID",
+      },
+    );
+
+    this.directionsService = new google.maps.DirectionsService();
+    this.directionsRenderer = new google.maps.DirectionsRenderer({
+      suppressMarkers: false,
+      polylineOptions: {
+        strokeColor: "#6366F1",
+        strokeWeight: 5,
+        strokeOpacity: 0.85,
+      },
+    });
+    this.directionsRenderer.setMap(this.inlineMap);
+    this.requestInlineRoute();
+  }
+
+  setInAppTravelMode(mode: "DRIVING" | "WALKING" | "TRANSIT"): void {
+    this.activeTravelMode = mode;
+    if (this.directionsService) this.requestInlineRoute();
+  }
+
+  private requestInlineRoute(): void {
+    if (!this.directionsService || !this.salon) return;
+
+    const destLat = parseFloat(this.salon.latitude as any);
+    const destLng = parseFloat(this.salon.longitude as any);
+
+    if (isNaN(destLat) || isNaN(destLng)) {
+      this.toast.warning("Salon location not available");
+      return;
+    }
+
+    const doRoute = (userLat: number, userLng: number) => {
+      this.directionsService.route(
+        {
+          origin: new google.maps.LatLng(userLat, userLng),
+          destination: new google.maps.LatLng(destLat, destLng),
+          travelMode: google.maps.TravelMode[this.activeTravelMode],
+        },
+        (result: any, status: any) => {
+          this.ngZone.run(() => {
+            if (status === "OK") {
+              this.directionsRenderer.setDirections(result);
+              const leg = result.routes[0].legs[0];
+              this.routeSummary = {
+                duration: leg.duration.text,
+                distance: leg.distance.text,
+              };
+              this.routeSteps = leg.steps.map((s: any) => ({
+                instructions: s.instructions,
+                distance: s.distance.text,
+                maneuver: s.maneuver || "",
+              }));
+              this.inlineMap.fitBounds(result.routes[0].bounds, {
+                padding: 30,
+              });
+            } else {
+              this.toast.warning("Could not calculate route");
+            }
+          });
+        },
+      );
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => doRoute(pos.coords.latitude, pos.coords.longitude),
+        () => doRoute(5.6037, -0.187),
+      );
+    } else {
+      doRoute(5.6037, -0.187);
+    }
+  }
+
+  clearInAppDirections(): void {
+    this.directionsMode = "none";
+    this.routeSummary = null;
+    this.routeSteps = [];
+    this.inlineMap = null;
+    if (this.directionsRenderer) {
+      this.directionsRenderer.setMap(null);
+      this.directionsRenderer = null;
+    }
+  }
+
+  getStepIcon(maneuver: string): string {
+    const map: Record<string, string> = {
+      "turn-left": "ri-arrow-left-line",
+      "turn-right": "ri-arrow-right-line",
+      "turn-slight-left": "ri-arrow-left-up-line",
+      "turn-slight-right": "ri-arrow-right-up-line",
+      "uturn-left": "ri-arrow-go-back-line",
+      "uturn-right": "ri-arrow-go-forward-line",
+      merge: "ri-merge-cells-horizontal",
+      straight: "ri-arrow-up-line",
+      "roundabout-left": "ri-recycle-line",
+      "roundabout-right": "ri-recycle-line",
+      ferry: "ri-ship-line",
+    };
+    return map[maneuver] || "ri-arrow-up-line";
+  }
+
   book(): void {
     if (this.activeTab === "reviews") {
       this.router.navigate(["/client/review", this.salonId]);
@@ -1097,7 +1377,6 @@ export class SalonDetailsComponent implements OnInit {
     }));
   }
 
-  // Add helper for per-day hours display in About tab:
   getDayHours(dayName: string): { open: string; close: string } {
     const override = this.dayOverrides[dayName];
     if (override)

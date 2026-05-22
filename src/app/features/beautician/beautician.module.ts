@@ -18,7 +18,9 @@ import { ClientDetailsComponent } from "./client-details/client-details.componen
 import { PrivacyPolicyComponent } from "./privacy-policy/privacy-policy.component";
 import { TermsConditionsComponent } from "./terms-conditions/terms-conditions.component";
 import { CustomerServiceComponent } from "./customer-service/customer-service.component";
-import { BeauticianVerificationComponent } from './beautician-verification/beautician-verification.component';
+import { BeauticianVerificationComponent } from "./beautician-verification/beautician-verification.component";
+import { BeauticianSettingsComponent } from "./beautician-settings/beautician-settings.component";
+import { NotificationsComponent } from "./notifications/notifications.component";
 
 const routes: Routes = [
   {
@@ -34,9 +36,12 @@ const routes: Routes = [
       { path: "clients", component: ClientsComponent },
       { path: "profile", component: BeauticianProfileComponent },
       { path: "business-profile", component: BusinessProfileComponent },
+      { path: "notifications", component: NotificationsComponent },
+      { path: "verification", component: BeauticianVerificationComponent },
       { path: "privacy-policy", component: PrivacyPolicyComponent },
       { path: "terms", component: TermsConditionsComponent },
       { path: "support", component: CustomerServiceComponent },
+      { path: "settings", component: BeauticianSettingsComponent },
       { path: "services", component: BeauticianServicesComponent },
       { path: "services/add", component: AddEditServiceComponent },
       { path: "services/edit/:id", component: AddEditServiceComponent },
@@ -65,6 +70,8 @@ const routes: Routes = [
     TermsConditionsComponent,
     CustomerServiceComponent,
     BeauticianVerificationComponent,
+    BeauticianSettingsComponent,
+    NotificationsComponent
   ],
   imports: [SharedModule, RouterModule.forChild(routes)],
 })

@@ -101,7 +101,7 @@ import { ToastService } from "@core/services/toast.service";
         *ngIf="!loading && filteredServices.length > 0"
         class="p-4 lg:p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"
       >
-        <div *ngFor="let service of filteredServices" class="card p-4">
+        <div *ngFor="let service of filteredServices" class="card p-4 shadow-none">
           <!-- Image -->
           <div
             *ngIf="service.image"
@@ -212,7 +212,7 @@ import { ToastService } from "@core/services/toast.service";
       </div>
 
       <app-confirm-modal
-        *ngIf="showDeleteModal"
+        [visible]="showDeleteModal"
         title="Delete Service"
         [message]="'Are you sure you want to delete &quot;' + serviceToDelete?.name + '&quot;? This action cannot be undone.'"
         confirmText="Delete"

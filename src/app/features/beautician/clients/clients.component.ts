@@ -17,6 +17,14 @@ import { environment } from "@environments/environment";
         class="sticky top-0 z-20 bg-[var(--color-surface)]/95 backdrop-blur-md border-b border-[var(--color-border)] px-4 pt-3 pb-3 space-y-3"
       >
         <div class="flex items-center justify-between">
+          <button
+            (click)="goBack()"
+            class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--color-background)] transition-colors"
+          >
+            <i
+              class="ri-arrow-left-line text-lg text-[var(--color-text-primary)]"
+            ></i>
+          </button>
           <h1
             class="text-base font-bold text-[var(--color-text-primary)] tracking-tight"
           >
@@ -67,7 +75,7 @@ import { environment } from "@environments/environment";
       >
         <div
           *ngFor="let client of filtered"
-          class="card rounded-2xl flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:border-[var(--color-primary)] transition-colors group"
+          class="border-b-1 flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:border-[var(--color-primary)] transition-colors group"
           (click)="viewClient(client.id)"
         >
           <!-- Avatar -->
@@ -150,5 +158,9 @@ export class ClientsComponent implements OnInit {
 
   viewClient(id: string) {
     this.router.navigate(["/beautician/clients", id]);
+  }
+
+  goBack() {
+    this.router.navigate(["/beautician/settings"]);
   }
 }
