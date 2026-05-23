@@ -55,8 +55,11 @@ interface Message {
             </p>
             <div class="flex items-center gap-1.5">
               <div class="w-2 h-2 rounded-full bg-green-400"></div>
-              <p class="text-xs text-[var(--color-text-secondary)]">
+              <!-- <p class="text-xs text-[var(--color-text-secondary)]">
                 Online • Powered by Gemini
+              </p> -->
+                 <p class="text-xs text-[var(--color-text-secondary)]">
+                Online
               </p>
             </div>
           </div>
