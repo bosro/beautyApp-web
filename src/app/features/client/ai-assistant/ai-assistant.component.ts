@@ -366,3 +366,7 @@ export class AiAssistantComponent implements OnInit, AfterViewChecked {
     } catch {}
   }
 }
+
+
+
+

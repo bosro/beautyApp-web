@@ -394,3 +394,5 @@ export class AiVirtualTryonComponent {
     this.router.navigate(['/client/search'], { queryParams: { q: query } });
   }
 }
+
+
