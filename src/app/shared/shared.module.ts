@@ -8,6 +8,7 @@ import { ConfirmModalComponent } from "./components/confirm-modal/confirm-modal.
 import { SpinnerComponent } from "./components/spinner/spinner.component";
 import { StarRatingComponent } from "./components/star-rating/star-rating.component";
 import { EmptyStateComponent } from "./components/empty-state/empty-state.component";
+import { AiUpgradePromptComponent } from './components/ai-upgrade-prompt/ai-upgrade-prompt.component';
 
 
 
@@ -19,6 +20,7 @@ import { EmptyStateComponent } from "./components/empty-state/empty-state.compon
     SpinnerComponent,
     StarRatingComponent,
     EmptyStateComponent,
+    AiUpgradePromptComponent,
   ],
   imports: [
     CommonModule,
@@ -36,6 +38,7 @@ import { EmptyStateComponent } from "./components/empty-state/empty-state.compon
     SpinnerComponent,
     StarRatingComponent,
     EmptyStateComponent,
+    AiUpgradePromptComponent
   ],
 })
 export class SharedModule {}

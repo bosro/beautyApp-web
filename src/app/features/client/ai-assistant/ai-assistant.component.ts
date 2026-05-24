@@ -1,5 +1,10 @@
 // src/app/features/client/ai-assistant/ai-assistant.component.ts
-// Web equivalent of ConversationalBookingScreen for Angular
+//
+// Changes vs previous version:
+//  1. Loads quota from GET /api/ai/quota on init
+//  2. Shows a usage pill at the top: "18 / 20 messages today"
+//  3. On 402 error: shows the AiUpgradePrompt bottom sheet
+//  4. Chat logic unchanged
 
 import {
   Component,
@@ -26,6 +31,13 @@ interface Message {
   quickReplies?: string[];
   isLoading?: boolean;
   generatedImages?: { styleName: string; uri: SafeUrl; description: string }[];
+}
+
+interface QuotaFeature {
+  used: number;
+  limit: number;
+  window: string;
+  remaining: number;
 }
 
 @Component({
@@ -55,15 +67,21 @@ interface Message {
             </p>
             <div class="flex items-center gap-1.5">
               <div class="w-2 h-2 rounded-full bg-green-400"></div>
-              <!-- <p class="text-xs text-[var(--color-text-secondary)]">
-                Online • Powered by Gemini
-              </p> -->
-                 <p class="text-xs text-[var(--color-text-secondary)]">
-                Online
-              </p>
+              <p class="text-xs text-[var(--color-text-secondary)]">Online</p>
             </div>
           </div>
         </div>
+
+        <!-- ── Usage quota pill (new) ── -->
+        <button
+          *ngIf="chatQuota"
+          (click)="router.navigate(['/client/ai-plans'])"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+          [ngClass]="chatQuotaClass()"
+        >
+          <i class="ri-message-3-line text-xs"></i>
+          {{ chatQuota.limit >= 999 ? "∞" : chatQuota.remaining + " left" }}
+        </button>
       </div>
 
       <!-- Messages -->
@@ -204,6 +222,14 @@ interface Message {
         </div>
       </div>
     </div>
+
+    <!-- ── Upgrade prompt bottom sheet (new) ── -->
+    <app-ai-upgrade-prompt
+      *ngIf="showUpgradePrompt"
+      [message]="upgradeMessage"
+      [currentPlan]="currentPlan"
+      (dismissed)="showUpgradePrompt = false"
+    ></app-ai-upgrade-prompt>
   `,
 })
 export class AiAssistantComponent implements OnInit, AfterViewChecked {
@@ -212,12 +238,19 @@ export class AiAssistantComponent implements OnInit, AfterViewChecked {
   messages: Message[] = [];
   inputText = "";
   isTyping = false;
+  chatQuota: QuotaFeature | null = null;
+  currentPlan = "free";
+
+  // Upgrade prompt state
+  showUpgradePrompt = false;
+  upgradeMessage = "";
+
   private chatHistory: ChatMessage[] = [];
   private shouldScroll = false;
 
   constructor(
     private http: HttpClient,
-    private router: Router,
+    public router: Router,
     private sanitizer: DomSanitizer,
   ) {}
 
@@ -237,6 +270,7 @@ export class AiAssistantComponent implements OnInit, AfterViewChecked {
         ],
       },
     ];
+    this.loadQuota();
   }
 
   ngAfterViewChecked() {
@@ -246,11 +280,32 @@ export class AiAssistantComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  onEnter(event: Event) {
-    const keyboardEvent = event as KeyboardEvent;
+  // ── Load quota from API ──
+  loadQuota() {
+    this.http.get<any>(`${environment.apiUrl}/ai/quota`).subscribe({
+      next: (res) => {
+        this.chatQuota = res.data?.features?.chat;
+        this.currentPlan = res.data?.plan || "free";
+      },
+      error: () => {},
+    });
+  }
 
-    if (!keyboardEvent.shiftKey) {
-      keyboardEvent.preventDefault();
+  // ── Color the quota pill based on remaining messages ──
+  chatQuotaClass(): string {
+    if (!this.chatQuota || this.chatQuota.limit >= 999) {
+      return "bg-green-100 text-green-700";
+    }
+    const pct = this.chatQuota.remaining / this.chatQuota.limit;
+    if (pct <= 0) return "bg-red-100 text-red-600 cursor-pointer";
+    if (pct <= 0.2) return "bg-amber-100 text-amber-700 cursor-pointer";
+    return "bg-green-100 text-green-700";
+  }
+
+  onEnter(event: Event) {
+    const ke = event as KeyboardEvent;
+    if (!ke.shiftKey) {
+      ke.preventDefault();
       this.sendMessage(this.inputText);
     }
   }
@@ -264,7 +319,6 @@ export class AiAssistantComponent implements OnInit, AfterViewChecked {
       content: text,
       timestamp: new Date(),
     };
-
     const typingId = `typing-${Date.now()}`;
     const typingMsg: Message = {
       id: typingId,
@@ -306,9 +360,17 @@ export class AiAssistantComponent implements OnInit, AfterViewChecked {
           this.messages = this.messages
             .filter((m) => m.id !== typingId)
             .concat(botMsg);
-
           this.isTyping = false;
           this.shouldScroll = true;
+
+          // Refresh quota after each message
+          if (aiRes.quota) {
+            this.chatQuota = {
+              ...this.chatQuota,
+              ...aiRes.quota,
+              remaining: aiRes.quota.limit - aiRes.quota.used,
+            } as QuotaFeature;
+          }
 
           // Generate images if user asked about hairstyles
           const wantsImages =
@@ -317,19 +379,30 @@ export class AiAssistantComponent implements OnInit, AfterViewChecked {
             this.generateImages(text, botMsgId);
           }
         },
-        error: () => {
-          this.messages = this.messages
-            .filter((m) => m.id !== typingId)
-            .concat({
+        error: (err) => {
+          this.messages = this.messages.filter((m) => m.id !== typingId);
+          this.isTyping = false;
+          this.shouldScroll = true;
+
+          // ── Handle quota exceeded ──
+          if (err?.status === 402 && err?.error?.code === "QUOTA_EXCEEDED") {
+            this.upgradeMessage = err.error.message;
+            this.currentPlan = err.error.currentPlan || "free";
+            this.showUpgradePrompt = true;
+            return;
+          }
+
+          this.messages = [
+            ...this.messages,
+            {
               id: `err-${Date.now()}`,
               type: "bot",
               content:
                 "Sorry, I'm having trouble connecting. Please try again.",
               timestamp: new Date(),
               quickReplies: ["Try again", "Find salons"],
-            });
-          this.isTyping = false;
-          this.shouldScroll = true;
+            },
+          ];
         },
       });
   }
@@ -348,13 +421,12 @@ export class AiAssistantComponent implements OnInit, AfterViewChecked {
               `data:${img.mimeType};base64,${img.imageBase64}`,
             ),
           }));
-
           this.messages = this.messages.map((m) =>
             m.id === botMsgId ? { ...m, generatedImages: images } : m,
           );
           this.shouldScroll = true;
         },
-        error: () => {}, // Images are bonus — silent fail
+        error: () => {}, // Images are bonus — silent fail (including 402 billing)
       });
   }
 
@@ -369,7 +441,3 @@ export class AiAssistantComponent implements OnInit, AfterViewChecked {
     } catch {}
   }
 }
-
-
-
-

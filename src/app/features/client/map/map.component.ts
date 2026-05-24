@@ -1350,34 +1350,87 @@ export class MapComponent implements OnInit, OnDestroy {
   private dropMarkers(): void {
     if (!this.map || typeof google === "undefined") return;
     this.clearMarkers();
+
     const AdvancedMarkerElement = google.maps.marker?.AdvancedMarkerElement;
-    if (!AdvancedMarkerElement) return;
+    if (!AdvancedMarkerElement) {
+      console.warn("AdvancedMarkerElement not available.");
+      return;
+    }
 
     const bounds = new google.maps.LatLngBounds();
-    let hasCoords = false;
+    let hasValidCoords = false;
+    const now = new Date();
 
     this.salons.forEach((salon) => {
       if (!salon.latitude || !salon.longitude) return;
-      hasCoords = true;
+      hasValidCoords = true;
+
       const position = { lat: salon.latitude, lng: salon.longitude };
       bounds.extend(position);
 
+      // ── Determine if this salon has an active map/bundle featured listing ──
+      const isMapFeatured =
+        salon.isFeatured === true &&
+        salon.featuredUntil &&
+        new Date(salon.featuredUntil) > now &&
+        ["map", "bundle"].includes(salon.featuredPlan || "");
+
+      // ── Build the pin element ──
       const pinEl = document.createElement("div");
-      pinEl.innerHTML = `
+
+      if (isMapFeatured) {
+        // Golden highlighted pin — larger, shows profile image or initial
+        const initial = (salon.businessName || "B").charAt(0).toUpperCase();
+        const imageUrl = salon.profileImage || salon.coverImage || null;
+
+        pinEl.style.cssText =
+          "display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.3))";
+        pinEl.innerHTML = `
+        <div style="
+          width: 52px; height: 52px; border-radius: 50%;
+          border: 3px solid #F59E0B;
+          overflow: hidden; background: #F59E0B;
+          box-shadow: 0 0 0 3px rgba(245,158,11,0.3);
+        ">
+          ${
+            imageUrl
+              ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover" alt="${salon.businessName}" />`
+              : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+                           color:#fff;font-size:20px;font-weight:700;background:#F59E0B">${initial}</div>`
+          }
+        </div>
+        <div style="
+          margin-top: 2px;
+          background: #F59E0B; color: #fff;
+          font-size: 9px; font-weight: 700;
+          padding: 1px 6px; border-radius: 20px;
+          letter-spacing: 0.03em; white-space: nowrap;
+        ">★ RECOMMENDED</div>
+        <div style="width:2px;height:8px;background:#F59E0B;margin:0 auto"></div>
+        <div style="width:5px;height:5px;border-radius:50%;background:#F59E0B;opacity:0.4;margin:0 auto"></div>
+      `;
+      } else {
+        // Standard red scissor pin (unchanged from original)
+        pinEl.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="48" viewBox="0 0 40 48">
           <ellipse cx="20" cy="44" rx="8" ry="4" fill="rgba(0,0,0,0.15)"/>
           <path d="M20 0C11.163 0 4 7.163 4 16c0 10 16 32 16 32S36 26 36 16C36 7.163 28.837 0 20 0z" fill="#E84A4A"/>
           <circle cx="20" cy="16" r="8" fill="white"/>
-          <text x="20" y="20" text-anchor="middle" font-size="10" fill="#E84A4A" font-family="sans-serif">✂</text>
+          <text x="20" y="20" text-anchor="middle" font-size="10"
+                fill="#E84A4A" font-family="sans-serif">✂</text>
         </svg>`;
-      pinEl.style.cursor = "pointer";
+        pinEl.style.cursor = "pointer";
+      }
 
       const marker = new AdvancedMarkerElement({
         map: this.map,
         position,
         content: pinEl,
         title: salon.businessName,
+        // Featured markers render above organic ones
+        zIndex: isMapFeatured ? 10 : 1,
       });
+
       marker.addListener("click", () => {
         this.ngZone.run(() => {
           this.selectedSalon = salon;
@@ -1385,12 +1438,13 @@ export class MapComponent implements OnInit, OnDestroy {
           if (this.sheetState === "hidden") this.sheetState = "peek";
         });
       });
+
       this.markers.push(marker);
     });
 
-    if (hasCoords && this.salons.length > 1)
+    if (hasValidCoords && this.salons.length > 1) {
       this.map.fitBounds(bounds, { padding: 60 });
-    else if (hasCoords) {
+    } else if (hasValidCoords) {
       this.map.setCenter({
         lat: this.salons[0].latitude,
         lng: this.salons[0].longitude,

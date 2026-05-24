@@ -28,6 +28,7 @@ import { AiAssistantComponent } from "./ai-assistant/ai-assistant.component";
 import { AiVirtualTryonComponent } from "./ai-virtual-tryon/ai-virtual-tryon.component";
 import { AiSmartScheduleComponent } from "./ai-smart-schedule/ai-smart-schedule.component";
 import { CategoriesComponent } from './categories/categories.component';
+import { AiPlansComponent } from './ai-plans/ai-plans.component';
 
 const routes: Routes = [
   {
@@ -91,6 +92,7 @@ const routes: Routes = [
     AiVirtualTryonComponent,
     AiSmartScheduleComponent,
     CategoriesComponent,
+    AiPlansComponent,
   ],
   imports: [SharedModule, RouterModule.forChild(routes)],
 })

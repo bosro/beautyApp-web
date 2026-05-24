@@ -1,5 +1,12 @@
 // ============================================================
 // DISCOVER COMPONENT — full lazy-load Pinterest masonry
+// Changes vs original:
+//  1. BeauticianCard interface extends BeauticianProfile with
+//     isFeatured, featuredPlan, isSponsored optional fields
+//  2. isSponsoredCard() helper method added
+//  3. "Recommended" badge shown on sponsored/featured salon cards
+//  4. Array type changed from BeauticianProfile[] to BeauticianCard[]
+//  5. Everything else (filter sheet, price slider, lazy load) unchanged
 // ============================================================
 import {
   Component,
@@ -13,6 +20,16 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../../environments/environment";
 import { BeauticianProfile } from "../../../core/models";
+
+// Extend BeauticianProfile to include featured listing fields
+// returned by the backend on /beauticians, /beauticians/search,
+// and /beauticians/featured responses
+interface BeauticianCard extends BeauticianProfile {
+  isFeatured?: boolean;
+  featuredPlan?: string; // "discover" | "map" | "bundle" | "category"
+  featuredUntil?: string;
+  isSponsored?: boolean; // set by backend on featured/search responses
+}
 
 @Component({
   selector: "app-discover",
@@ -123,6 +140,20 @@ import { BeauticianProfile } from "../../../core/models";
             class="w-full block object-cover"
             [style.aspect-ratio]="cardRatio(i)"
           />
+
+          <!-- ── RECOMMENDED badge (new) — shown for featured/sponsored salons ── -->
+          <div
+            *ngIf="isSponsoredCard(salon)"
+            class="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full z-10"
+            style="background: rgba(245, 158, 11, 0.92);"
+          >
+            <i class="ri-star-fill text-white" style="font-size: 9px"></i>
+            <span
+              class="text-white font-bold"
+              style="font-size: 9px; letter-spacing: 0.03em"
+              >RECOMMENDED</span
+            >
+          </div>
 
           <!-- Verified badge -->
           <div
@@ -616,7 +647,8 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   loadingMore = false;
   showFilters = false;
   activeSort = "";
-  beauticians: BeauticianProfile[] = [];
+  // ── Changed from BeauticianProfile[] to BeauticianCard[] ──
+  beauticians: BeauticianCard[] = [];
   total = 0;
   page = 1;
   maxPrice = 10000;
@@ -677,6 +709,11 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
     return ratios[index % ratios.length];
   }
 
+  // ── NEW: returns true if salon should show the Recommended badge ──
+  isSponsoredCard(salon: BeauticianCard): boolean {
+    return salon.isSponsored === true || salon.isFeatured === true;
+  }
+
   constructor(
     private http: HttpClient,
     public router: Router,
@@ -700,7 +737,6 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Auto-load next page when sentinel scrolls into view
     this.observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !this.loadingMore && !this.loading) {
@@ -793,7 +829,8 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.http.get<any>(endpoint, { params }).subscribe({
       next: (res) => {
-        const items = res?.data?.beauticians || res?.beauticians || [];
+        const items: BeauticianCard[] =
+          res?.data?.beauticians || res?.beauticians || [];
         this.total = res?.meta?.total || items.length;
         this.beauticians = append ? [...this.beauticians, ...items] : items;
         this.loading = false;
@@ -814,7 +851,7 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(["/client/salon", id]);
   }
 
-  favorite(event: Event, salon: BeauticianProfile): void {
+  favorite(event: Event, salon: BeauticianCard): void {
     event.stopPropagation();
     const alreadyFaved = this.favoriteIds.has(salon.id);
     if (alreadyFaved) {
