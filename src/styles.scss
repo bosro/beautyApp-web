@@ -67,13 +67,21 @@ body.dark {
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* ── FIX: lock the viewport to prevent horizontal scroll and zoom ── */
   html {
     font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont,
       system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', sans-serif;
     scroll-behavior: smooth;
-    /* Prevent text size adjustment on iOS rotation */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+
+    /* Prevent horizontal overflow at the root */
+    overflow-x: hidden;
+    /* Ensure full height is available */
+    height: 100%;
+    /* Lock width to viewport — prevents content from expanding the page */
+    width: 100%;
+    max-width: 100vw;
   }
 
   body {
@@ -82,9 +90,24 @@ body.dark {
     color: var(--color-text-primary);
     line-height: 1.5;
     font-feature-settings: "kern" 1, "liga" 1;
-    /* Native-feel overscroll */
     overscroll-behavior: none;
     transition: background-color 0.3s var(--ease-smooth), color 0.3s var(--ease-smooth);
+
+    /* ── FIX: prevent any child from causing horizontal scroll ── */
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    /* ── FIX: prevent iOS Safari rubber-band horizontal scroll ── */
+    position: relative;
+    /* ── FIX: native app feel — disable text selection on UI elements ── */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Re-enable text selection for content that needs it */
+  p, span, h1, h2, h3, h4, h5, h6, label, li, td, th, blockquote, pre, code {
+    -webkit-user-select: text;
+    user-select: text;
   }
 
   a {
@@ -97,21 +120,37 @@ body.dark {
     border: none;
     background: none;
     font-family: inherit;
-    /* Native press feel */
     -webkit-user-select: none;
     user-select: none;
   }
 
   input, textarea, select {
     font-family: inherit;
+    /* ── FIX: prevent iOS from zooming into inputs (font-size must be >= 16px) ── */
+    font-size: 16px;
+    -webkit-user-select: text;
+    user-select: text;
   }
 
-  /* Prevent image drag */
+  /* Keep visual size of inputs consistent — scale them down visually
+     but keep font-size at 16px to prevent iOS zoom */
+  input, textarea, select {
+    transform-origin: left top;
+  }
+
   img {
     -webkit-user-drag: none;
     user-drag: none;
     -webkit-user-select: none;
     user-select: none;
+    /* ── FIX: prevent images from overflowing their containers ── */
+    max-width: 100%;
+  }
+
+  /* ── FIX: ensure every direct child of body and app-root is constrained ── */
+  body > *, app-root, app-root > * {
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   /* Scrollbar */
@@ -177,10 +216,15 @@ body.dark {
 
   /* --- Form Input --- */
   .form-input {
-    @apply w-full px-4 py-3 rounded-xl text-sm outline-none;
+    @apply w-full px-4 py-3 rounded-xl outline-none;
+    /* ── FIX: 16px prevents iOS zoom on focus, visually looks like 14px via the
+       font-size reset above — or just keep at 16px, it's fine ── */
+    font-size: 16px;
     border: 1.5px solid var(--color-border);
     background-color: var(--color-surface);
     color: var(--color-text-primary);
+    /* ── FIX: inputs must not exceed their container width ── */
+    max-width: 100%;
     transition: border-color var(--duration-fast) var(--ease-smooth),
                 box-shadow var(--duration-fast) var(--ease-smooth),
                 background-color var(--duration-normal) var(--ease-smooth);
@@ -281,61 +325,43 @@ body.dark {
 /* =====================
    Page & Route Transitions
 ===================== */
-
-/* Slide up (main navigation) */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-/* Slide in from right (push navigation) */
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(24px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-
-/* Fade scale (modals, overlays) */
 @keyframes fadeScale {
   from { opacity: 0; transform: scale(0.96); }
   to   { opacity: 1; transform: scale(1); }
 }
-
-/* Fade in (general) */
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-
-/* Bottom sheet slide up */
 @keyframes slideUpSheet {
   from { opacity: 0; transform: translateY(100%); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-/* Bounce in (toasts, badges) */
 @keyframes bounceIn {
   0%   { opacity: 0; transform: scale(0.8) translateY(8px); }
   60%  { opacity: 1; transform: scale(1.04) translateY(-2px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
-
-/* Spin (loaders) */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-
-/* Pulse soft (skeleton alt) */
 @keyframes pulseSoft {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.5; }
 }
 
-/* Apply to route outlet children */
 router-outlet + * {
   animation: slideUp var(--duration-slow) var(--ease-out) both;
 }
 
-/* Page wrapper utility classes */
 .page-enter    { animation: slideUp       var(--duration-slow)   var(--ease-out)    both; }
 .page-push     { animation: slideInRight  var(--duration-slow)   var(--ease-out)    both; }
 .modal-enter   { animation: fadeScale     var(--duration-normal) var(--ease-spring) both; }
@@ -346,8 +372,6 @@ router-outlet + * {
 /* =====================
    Native-feel Micro-interactions
 ===================== */
-
-/* Pressable scale — add to any tappable element */
 .pressable {
   transition: transform var(--duration-fast) var(--ease-spring),
               opacity var(--duration-fast) var(--ease-smooth);
@@ -356,20 +380,11 @@ router-outlet + * {
 }
 .pressable:active { transform: scale(0.94); opacity: 0.85; }
 
-/* Image zoom on hover (cards) */
-.img-zoom {
-  overflow: hidden;
-}
-.img-zoom img {
-  transition: transform 0.4s var(--ease-smooth);
-}
+.img-zoom { overflow: hidden; }
+.img-zoom img { transition: transform 0.4s var(--ease-smooth); }
 .img-zoom:hover img { transform: scale(1.06); }
 
-/* Ripple-like tap flash */
-.tap-flash {
-  position: relative;
-  overflow: hidden;
-}
+.tap-flash { position: relative; overflow: hidden; }
 .tap-flash::after {
   content: '';
   position: absolute;
@@ -382,18 +397,13 @@ router-outlet + * {
 }
 .tap-flash:active::after { opacity: 1; }
 
-/* Smooth number transitions */
-.count-transition {
-  transition: all var(--duration-normal) var(--ease-spring);
-}
+.count-transition { transition: all var(--duration-normal) var(--ease-spring); }
 
-/* Bottom tab bar active indicator */
 .tab-active-dot {
   transition: transform var(--duration-normal) var(--ease-spring),
               opacity var(--duration-normal) var(--ease-smooth);
 }
 
-/* Inline spinner */
 .spinner {
   display: inline-block;
   width: 1.2rem;
@@ -411,22 +421,27 @@ router-outlet + * {
   background: linear-gradient(160deg, #E88B7B 0%, #D96E5D 50%, #C85A48 100%);
 }
 
-
- .masonry-grid {
-   columns: 2;
-   column-gap: 12px;
-   @media (min-width: 768px)  { columns: 3; }
-   @media (min-width: 1280px) { columns: 4; }
- }
- .masonry-item {
-   break-inside: avoid;
-   display: block;
-   margin-bottom: 12px;
- }
- @keyframes cardIn {
-   from { opacity: 0; transform: translateY(16px); }
-   to   { opacity: 1; transform: translateY(0);    }
- }
- .card-animate {
-   animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
- }
+/* =====================
+   Masonry grid (global — used by home + discover)
+===================== */
+.masonry-grid {
+  columns: 2;
+  column-gap: 12px;
+}
+@media (min-width: 768px)  { .masonry-grid { columns: 3; } }
+@media (min-width: 1280px) { .masonry-grid { columns: 4; } }
+.masonry-item {
+  break-inside: avoid;
+  display: block;
+  margin-bottom: 12px;
+  /* ── FIX: prevent masonry items from overflowing horizontally ── */
+  width: 100%;
+  max-width: 100%;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card-animate {
+  animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
