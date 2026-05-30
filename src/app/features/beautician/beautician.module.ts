@@ -21,6 +21,8 @@ import { CustomerServiceComponent } from "./customer-service/customer-service.co
 import { BeauticianVerificationComponent } from "./beautician-verification/beautician-verification.component";
 import { BeauticianSettingsComponent } from "./beautician-settings/beautician-settings.component";
 import { NotificationsComponent } from "./notifications/notifications.component";
+import { ManageProductsComponent } from "./manage-products/manage-products.component";
+import { ManageCoursesComponent } from "./manage-courses/manage-courses.component";
 
 const routes: Routes = [
   {
@@ -38,6 +40,8 @@ const routes: Routes = [
       { path: "business-profile", component: BusinessProfileComponent },
       { path: "notifications", component: NotificationsComponent },
       { path: "verification", component: BeauticianVerificationComponent },
+      { path: "products", component: ManageProductsComponent },
+      { path: "courses", component: ManageCoursesComponent },
       { path: "privacy-policy", component: PrivacyPolicyComponent },
       { path: "terms", component: TermsConditionsComponent },
       { path: "support", component: CustomerServiceComponent },
@@ -71,7 +75,9 @@ const routes: Routes = [
     CustomerServiceComponent,
     BeauticianVerificationComponent,
     BeauticianSettingsComponent,
-    NotificationsComponent
+    NotificationsComponent,
+    ManageProductsComponent,
+    ManageCoursesComponent,
   ],
   imports: [SharedModule, RouterModule.forChild(routes)],
 })

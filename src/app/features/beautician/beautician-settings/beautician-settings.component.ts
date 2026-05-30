@@ -1,5 +1,5 @@
-// beautician-settings.component.ts
-// Dedicated settings screen for the beautician flow — mirrors client settings structure.
+// beautician-settings.component.ts — updated
+// Changes vs previous: added Products and Courses rows to the Business section
 
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
@@ -53,13 +53,13 @@ import { environment } from "@environments/environment";
           <i class="ri-arrow-right-s-line profile-arrow"></i>
         </div>
 
-        <!-- Account Section -->
+        <!-- ── Account ──────────────────────────────────────────────── -->
         <p class="section-label">Account</p>
         <div class="menu-list">
           <button class="menu-row" (click)="navigate('/beautician/profile')">
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #EEF2FF">
-                <i class="ri-user-line" style="color: #6366F1"></i>
+              <div class="menu-icon-wrap" style="background:#EEF2FF">
+                <i class="ri-user-line" style="color:#6366F1"></i>
               </div>
               <span>My Profile</span>
             </div>
@@ -71,8 +71,8 @@ import { environment } from "@environments/environment";
             (click)="navigate('/beautician/business-profile')"
           >
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #FDF4FF">
-                <i class="ri-store-2-line" style="color: #A855F7"></i>
+              <div class="menu-icon-wrap" style="background:#FDF4FF">
+                <i class="ri-store-2-line" style="color:#A855F7"></i>
               </div>
               <span>Business Profile</span>
             </div>
@@ -84,8 +84,8 @@ import { environment } from "@environments/environment";
             (click)="navigate('/beautician/verification')"
           >
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #F0FDF4">
-                <i class="ri-shield-check-line" style="color: #16A34A"></i>
+              <div class="menu-icon-wrap" style="background:#F0FDF4">
+                <i class="ri-shield-check-line" style="color:#16A34A"></i>
               </div>
               <span>Verification</span>
             </div>
@@ -97,8 +97,8 @@ import { environment } from "@environments/environment";
             (click)="navigate('/settings/notification-preference')"
           >
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #FFF7ED">
-                <i class="ri-notification-3-line" style="color: #F97316"></i>
+              <div class="menu-icon-wrap" style="background:#FFF7ED">
+                <i class="ri-notification-3-line" style="color:#F97316"></i>
               </div>
               <span>Notification Preference</span>
             </div>
@@ -107,8 +107,8 @@ import { environment } from "@environments/environment";
 
           <button class="menu-row" (click)="navigate('/settings/security')">
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #FFF7ED">
-                <i class="ri-lock-line" style="color: #F97316"></i>
+              <div class="menu-icon-wrap" style="background:#FFF7ED">
+                <i class="ri-lock-line" style="color:#F97316"></i>
               </div>
               <span>Password &amp; Security</span>
             </div>
@@ -116,13 +116,13 @@ import { environment } from "@environments/environment";
           </button>
         </div>
 
-        <!-- Business Section -->
+        <!-- ── Business ─────────────────────────────────────────────── -->
         <p class="section-label">Business</p>
         <div class="menu-list">
           <button class="menu-row" (click)="navigate('/beautician/services')">
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #FFF1F2">
-                <i class="ri-scissors-2-line" style="color: #F43F5E"></i>
+              <div class="menu-icon-wrap" style="background:#FFF1F2">
+                <i class="ri-scissors-2-line" style="color:#F43F5E"></i>
               </div>
               <span>Services</span>
             </div>
@@ -131,8 +131,8 @@ import { environment } from "@environments/environment";
 
           <button class="menu-row" (click)="navigate('/beautician/schedule')">
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #EFF6FF">
-                <i class="ri-time-line" style="color: #3B82F6"></i>
+              <div class="menu-icon-wrap" style="background:#EFF6FF">
+                <i class="ri-time-line" style="color:#3B82F6"></i>
               </div>
               <span>Schedule &amp; Availability</span>
             </div>
@@ -141,8 +141,8 @@ import { environment } from "@environments/environment";
 
           <button class="menu-row" (click)="navigate('/beautician/clients')">
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #F0FDF4">
-                <i class="ri-group-line" style="color: #22C55E"></i>
+              <div class="menu-icon-wrap" style="background:#F0FDF4">
+                <i class="ri-group-line" style="color:#22C55E"></i>
               </div>
               <span>Clients</span>
             </div>
@@ -151,23 +151,50 @@ import { environment } from "@environments/environment";
 
           <button class="menu-row" (click)="navigate('/beautician/reviews')">
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #FFFBEB">
-                <i class="ri-star-line" style="color: #F59E0B"></i>
+              <div class="menu-icon-wrap" style="background:#FFFBEB">
+                <i class="ri-star-line" style="color:#F59E0B"></i>
               </div>
               <span>Reviews</span>
             </div>
             <i class="ri-arrow-right-s-line menu-arrow"></i>
           </button>
+
+          <!-- ── NEW: Products ── -->
+          <button class="menu-row" (click)="navigate('/beautician/products')">
+            <div class="menu-row-left">
+              <div class="menu-icon-wrap" style="background:#FFF1F2">
+                <i class="ri-shopping-bag-3-line" style="color:#F43F5E"></i>
+              </div>
+              <span>Products</span>
+            </div>
+            <div class="menu-row-right">
+              <span class="menu-badge">New</span>
+              <i class="ri-arrow-right-s-line menu-arrow"></i>
+            </div>
+          </button>
+
+          <!-- ── NEW: Courses ── -->
+          <button class="menu-row" (click)="navigate('/beautician/courses')">
+            <div class="menu-row-left">
+              <div class="menu-icon-wrap" style="background:#EEF2FF">
+                <i class="ri-play-circle-line" style="color:#6366F1"></i>
+              </div>
+              <span>Courses &amp; Content</span>
+            </div>
+            <div class="menu-row-right">
+              <span class="menu-badge">New</span>
+              <i class="ri-arrow-right-s-line menu-arrow"></i>
+            </div>
+          </button>
         </div>
 
-        <!-- Preferences Section -->
+        <!-- ── Preferences ───────────────────────────────────────────── -->
         <p class="section-label">Preferences</p>
         <div class="menu-list">
-          <!-- Theme inline toggle -->
           <div class="menu-row">
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #F8FAFC">
-                <i class="ri-contrast-2-line" style="color: #64748B"></i>
+              <div class="menu-icon-wrap" style="background:#F8FAFC">
+                <i class="ri-contrast-2-line" style="color:#64748B"></i>
               </div>
               <span>Theme</span>
             </div>
@@ -184,16 +211,13 @@ import { environment } from "@environments/environment";
           </div>
         </div>
 
-        <!-- Support Section -->
+        <!-- ── Support ───────────────────────────────────────────────── -->
         <p class="section-label">Support</p>
         <div class="menu-list">
           <button class="menu-row" (click)="navigate('/beautician/support')">
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #F0F9FF">
-                <i
-                  class="ri-customer-service-2-line"
-                  style="color: #0EA5E9"
-                ></i>
+              <div class="menu-icon-wrap" style="background:#F0F9FF">
+                <i class="ri-customer-service-2-line" style="color:#0EA5E9"></i>
               </div>
               <span>Contact Us</span>
             </div>
@@ -205,8 +229,8 @@ import { environment } from "@environments/environment";
             (click)="navigate('/beautician/privacy-policy')"
           >
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #F0FDF4">
-                <i class="ri-shield-check-line" style="color: #22C55E"></i>
+              <div class="menu-icon-wrap" style="background:#F0FDF4">
+                <i class="ri-shield-check-line" style="color:#22C55E"></i>
               </div>
               <span>Privacy Policy</span>
             </div>
@@ -215,8 +239,8 @@ import { environment } from "@environments/environment";
 
           <button class="menu-row" (click)="navigate('/beautician/terms')">
             <div class="menu-row-left">
-              <div class="menu-icon-wrap" style="background: #FAFAF9">
-                <i class="ri-file-text-line" style="color: #78716C"></i>
+              <div class="menu-icon-wrap" style="background:#FAFAF9">
+                <i class="ri-file-text-line" style="color:#78716C"></i>
               </div>
               <span>Terms of Service</span>
             </div>
@@ -224,7 +248,7 @@ import { environment } from "@environments/environment";
           </button>
         </div>
 
-        <!-- Danger Section -->
+        <!-- ── Account Actions ───────────────────────────────────────── -->
         <p class="section-label">Account Actions</p>
         <div class="menu-list">
           <button
@@ -233,8 +257,8 @@ import { environment } from "@environments/environment";
             [disabled]="loggingOut"
           >
             <div class="menu-row-left danger">
-              <div class="menu-icon-wrap" style="background: #FEF2F2">
-                <i class="ri-logout-box-r-line" style="color: #EF4444"></i>
+              <div class="menu-icon-wrap" style="background:#FEF2F2">
+                <i class="ri-logout-box-r-line" style="color:#EF4444"></i>
               </div>
               <span>{{ loggingOut ? "Logging out..." : "Log Out" }}</span>
             </div>
@@ -242,8 +266,8 @@ import { environment } from "@environments/environment";
 
           <button class="menu-row danger-row" (click)="showDeleteModal = true">
             <div class="menu-row-left danger">
-              <div class="menu-icon-wrap" style="background: #FEF2F2">
-                <i class="ri-delete-bin-line" style="color: #EF4444"></i>
+              <div class="menu-icon-wrap" style="background:#FEF2F2">
+                <i class="ri-delete-bin-line" style="color:#EF4444"></i>
               </div>
               <span>Delete Account</span>
             </div>
@@ -264,7 +288,8 @@ import { environment } from "@environments/environment";
         (confirmed)="logout()"
         (cancelled)="showLogoutModal = false"
         (closed)="showLogoutModal = false"
-      ></app-confirm-modal>
+      >
+      </app-confirm-modal>
 
       <!-- Delete Modal -->
       <app-confirm-modal
@@ -277,7 +302,8 @@ import { environment } from "@environments/environment";
         (confirmed)="deleteAccount()"
         (cancelled)="showDeleteModal = false"
         (closed)="showDeleteModal = false"
-      ></app-confirm-modal>
+      >
+      </app-confirm-modal>
     </div>
   `,
   styles: [
@@ -288,7 +314,6 @@ import { environment } from "@environments/environment";
         padding-bottom: 120px;
       }
 
-      /* Header */
       .settings-header {
         padding: 20px 20px 12px;
         background-color: var(--color-background);
@@ -306,7 +331,6 @@ import { environment } from "@environments/environment";
         margin: 0 auto;
       }
 
-      /* Section label */
       .section-label {
         font-size: 11px;
         font-weight: 700;
@@ -389,7 +413,6 @@ import { environment } from "@environments/environment";
         border-radius: 20px;
         overflow: hidden;
       }
-
       .menu-row {
         display: flex;
         align-items: center;
@@ -423,7 +446,13 @@ import { environment } from "@environments/environment";
         color: var(--color-text-primary);
       }
 
-      /* Icon wraps with coloured background */
+      /* Right side of a row (badge + arrow together) */
+      .menu-row-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
       .menu-icon-wrap {
         width: 36px;
         height: 36px;
@@ -442,7 +471,18 @@ import { environment } from "@environments/environment";
         color: var(--color-text-muted);
       }
 
-      /* Theme toggle inline */
+      /* "New" badge */
+      .menu-badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 20px;
+        background-color: var(--color-primary);
+        color: white;
+        letter-spacing: 0.02em;
+      }
+
+      /* Theme toggle */
       .theme-toggle {
         display: flex;
         gap: 4px;
@@ -475,7 +515,6 @@ import { environment } from "@environments/environment";
         color: #ef4444;
       }
 
-      /* Version */
       .version-label {
         text-align: center;
         font-size: 12px;
@@ -527,8 +566,8 @@ export class BeauticianSettingsComponent implements OnInit {
     this.showLogoutModal = false;
     try {
       this.auth.logout();
-    } catch (error) {
-      console.error("Logout error:", error);
+    } catch (e) {
+      console.error("Logout error:", e);
     }
     this.loggingOut = false;
     this.router.navigate(["/auth/login"]);
