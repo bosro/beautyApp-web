@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: "https://api-bigluxx.thedonkomi.com/api/v1",
+  apiUrl: "https://api.bigluxx.com/api/v1",
 
   googleMapsApiKey: "AIzaSyAk8BLnZJ0PzUOJXdU2IUmTJTDwwsbS_3s",
   googleMapsMapId: "",

@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
   // apiUrl: "http://localhost:3000/api/v1",
-  apiUrl: "https://api-bigluxx.thedonkomi.com/api/v1",
+  apiUrl: "https://api.bigluxx.com/api/v1",
   googleMapsApiKey: "AIzaSyAk8BLnZJ0PzUOJXdU2IUmTJTDwwsbS_3s",
   googleMapsMapId:"",
   googleClientId:
