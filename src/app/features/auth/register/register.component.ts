@@ -217,13 +217,17 @@ export class RegisterComponent implements OnInit {
     google.accounts.id.prompt((notification: any) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
         google.accounts.id.cancel();
-        const oauthUrl =
-          `https://accounts.google.com/o/oauth2/v2/auth` +
-          `?client_id=${environment.googleClientId}` +
-          `&redirect_uri=${encodeURIComponent(window.location.origin + '/auth/google/callback')}` +
-          `&response_type=code` +
-          `&scope=openid%20email%20profile`;
-        window.location.href = oauthUrl;
+        // One Tap blocked/dismissed — fall back to a full redirect through
+        // Google's consent screen. Ask the backend for the URL since it
+        // owns the client secret and the correctly-registered redirect_uri.
+        this.auth.getGoogleAuthUrl().subscribe({
+          next: (res) => {
+            window.location.href = res.url;
+          },
+          error: () => {
+            this.toast.error('Google Sign-In is not available right now.');
+          },
+        });
       }
     });
   }
@@ -232,8 +236,13 @@ export class RegisterComponent implements OnInit {
     this.loading = true;
     // role defaults to CUSTOMER in signInWithGoogle() backend
     this.auth.googleSignIn(response.credential).subscribe({
-      next: () => {
-        this.toast.success('Welcome to Bigluxx!');
+      next: (res: any) => {
+        const isNewUser = res?.data?.isNewUser ?? res?.isNewUser;
+        this.toast.success(
+          isNewUser
+            ? "Welcome to Bigluxx!"
+            : "You already have an account — signed you in.",
+        );
         this.router.navigate([this.auth.getDashboardRoute()]);
       },
       error: (err) => {

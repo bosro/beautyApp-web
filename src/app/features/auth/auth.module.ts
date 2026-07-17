@@ -10,6 +10,7 @@ import { ForgotPasswordComponent } from './forgot-password/forgot-password.compo
 import { NewPasswordComponent } from './new-password/new-password.component';
 import { BeauticianRegisterComponent } from './beautician-register/beautician-register.component';
 import { BeauticianVerificationComponent } from './beautician-verification/beautician-verification.component';
+import { GoogleSuccessComponent } from './google-success/google-success.component';
 
 const routes: Routes = [
   {
@@ -24,6 +25,7 @@ const routes: Routes = [
       { path: 'new-password', component: NewPasswordComponent },
       { path: 'beautician-register', component: BeauticianRegisterComponent },
       { path: 'beautician-verify', component: BeauticianVerificationComponent },
+      { path: 'google/success', component: GoogleSuccessComponent },
     ],
   },
 ];
@@ -38,6 +40,7 @@ const routes: Routes = [
     NewPasswordComponent,
     BeauticianRegisterComponent,
     BeauticianVerificationComponent,
+    GoogleSuccessComponent,
   ],
   imports: [SharedModule, RouterModule.forChild(routes)],
 })

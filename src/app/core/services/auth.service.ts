@@ -3,6 +3,7 @@ import { BehaviorSubject, map, Observable, tap } from "rxjs";
 import { Router } from "@angular/router";
 import { User, AuthTokens, AuthState } from "../models";
 import { ApiService } from "./api.service";
+import { FcmService } from "./fcm.service";
 
 const ACCESS_TOKEN_KEY = "@access_token";
 const REFRESH_TOKEN_KEY = "@refresh_token";
@@ -63,6 +64,7 @@ export class AuthService {
   constructor(
     private api: ApiService,
     private router: Router,
+    private fcmService: FcmService,
   ) {
     this.hydrate();
   }
@@ -106,6 +108,11 @@ export class AuthService {
       isAuthenticated: true,
       isLoading: false,
     });
+
+    // Now that we have a valid session, it's safe to register this device
+    // for push notifications (previously this ran unconditionally on app
+    // boot, including on public pages, causing 401s).
+    this.fcmService.requestPermissionAndRegister();
   }
 
   setUser(user: User): void {
@@ -176,6 +183,49 @@ export class AuthService {
         if (res?.data?.tokens && res?.data?.user) {
           this.setAuth(res.data.tokens, res.data.user);
         }
+      }),
+    );
+  }
+
+  /**
+   * Fetches the backend-generated Google OAuth URL. Used for the redirect
+   * fallback when the One Tap popup is blocked/dismissed (e.g. Safari ITP,
+   * Firefox ETP, or ad blockers that block Google's third-party cookies).
+   * The redirect_uri baked into this URL points at OUR BACKEND, not the
+   * frontend, because only the backend holds the client secret needed to
+   * exchange the auth code for tokens.
+   */
+  getGoogleAuthUrl(): Observable<{ url: string }> {
+    return this.api
+      .get<any>("/auth/google/url")
+      .pipe(map((res: any) => res.data));
+  }
+
+  /**
+   * Completes the redirect-based Google OAuth flow: the backend already
+   * exchanged the code for tokens and redirected here with them in the
+   * query string. We just need to fetch the user's profile and store the
+   * session the same way a normal login would.
+   */
+  completeGoogleRedirectAuth(
+    accessToken: string,
+    refreshToken: string,
+  ): Observable<User> {
+    // The auth interceptor reads the token from in-memory state (not
+    // localStorage) to attach the Authorization header, so update state
+    // first or the /auth/me call below would go out unauthenticated.
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    this._state.next({
+      ...this._state.value,
+      accessToken,
+      refreshToken,
+    });
+
+    return this.getMe().pipe(
+      map((res: any) => (res?.data?.user ?? res?.data ?? res) as User),
+      tap((user: User) => {
+        this.setAuth({ accessToken, refreshToken }, user);
       }),
     );
   }

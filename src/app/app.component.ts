@@ -67,7 +67,12 @@ export class AppComponent implements OnInit {
     this.loadGoogleMaps();
     this.loadGoogleIdentity();
     this.initAuth();
-    this.fcmService.requestPermissionAndRegister(); // NOW WORKS
+    // Only register a device token once we actually have a logged-in user —
+    // calling this on public pages (login, forgot-password, etc.) hits the
+    // API with no auth and always 401s.
+    if (this.auth.isAuthenticated) {
+      this.fcmService.requestPermissionAndRegister();
+    }
   }
 
   // app.component.ts — loadGoogleMaps() only
@@ -95,13 +100,11 @@ export class AppComponent implements OnInit {
     script.async = true;
     script.defer = true;
     script.dataset["googleIdentity"] = "true";
-    script.onload = () => {
-      if ((window as any).__gsiInitialized) return;
-      (window as any).__gsiInitialized = true;
-      (window as any).google?.accounts.id.initialize({
-        client_id: environment.googleClientId,
-      });
-    };
+    // Just load the script here. Each page that needs Google Sign-In
+    // (login, register) calls google.accounts.id.initialize() itself with
+    // its own callback — initializing it a second time here with no
+    // callback was harmless but triggered Google's "initialize() called
+    // multiple times" warning on every auth page.
     document.head.appendChild(script);
   }
 

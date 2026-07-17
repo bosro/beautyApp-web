@@ -1022,8 +1022,19 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     google.accounts.id.prompt((notification: any) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
         google.accounts.id.cancel();
-        const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${environment.googleClientId}&redirect_uri=${encodeURIComponent(window.location.origin + "/auth/google/callback")}&response_type=code&scope=openid%20email%20profile`;
-        window.location.href = oauthUrl;
+        // One Tap was blocked/dismissed (common on Safari/Firefox or with
+        // ad blockers) — fall back to a full-page redirect through Google's
+        // consent screen. The redirect_uri must point at our backend (it
+        // holds the client secret needed to exchange the code), so we ask
+        // the backend for the URL rather than building it here.
+        this.auth.getGoogleAuthUrl().subscribe({
+          next: (res) => {
+            window.location.href = res.url;
+          },
+          error: () => {
+            this.toast.error("Google Sign-In is not available right now.");
+          },
+        });
       }
     });
   }
@@ -1031,8 +1042,13 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   private handleGoogleCredential(response: { credential: string }): void {
     this.loading = true;
     this.auth.googleSignIn(response.credential).subscribe({
-      next: () => {
-        this.toast.success("Welcome!");
+      next: (res: any) => {
+        const isNewUser = res?.data?.isNewUser ?? res?.isNewUser;
+        this.toast.success(
+          isNewUser
+            ? "Account created — welcome to BigLuxx!"
+            : "Welcome back!",
+        );
         this.router.navigate([this.auth.getDashboardRoute()]);
       },
       error: (err) => {

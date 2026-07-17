@@ -19,7 +19,10 @@ import { filter } from 'rxjs/operators';
       style="background-color: var(--color-background)"
     >
       <!-- RIGHT / FULL-WIDTH PANEL -->
-      <div class="flex-1 flex flex-col min-w-0 min-h-0">
+      <div
+        class="flex-1 flex flex-col min-w-0"
+        [class.min-h-0]="isLoginRoute"
+      >
 
         <!-- Top bar — only on non-login routes -->
         <ng-container *ngIf="!isLoginRoute">
@@ -45,8 +48,9 @@ import { filter } from 'rxjs/operators';
 
         <!-- Form area -->
         <div
-          class="flex-1 flex items-center justify-center min-h-0"
-          [ngClass]="isLoginRoute ? 'p-0 overflow-hidden' : 'px-6 py-8 lg:px-12 xl:px-16'"
+          [class]="isLoginRoute
+            ? 'flex-1 flex items-center justify-center min-h-0 p-0 overflow-hidden'
+            : 'flex-1 flex items-start justify-center overflow-y-auto px-6 py-8 lg:px-12 xl:px-16'"
         >
           <div [ngClass]="isLoginRoute ? 'w-full h-full' : 'w-full max-w-md'">
             <router-outlet></router-outlet>
