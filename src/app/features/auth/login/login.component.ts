@@ -236,7 +236,7 @@ import { environment } from "@environments/environment";
 
           <div class="form-head">
             <h2 class="form-title">Welcome back</h2>
-            <p class="form-sub">Sign in to book your next beauty appointment</p>
+            <p class="form-sub">Sign in to your BigLuxx account — for both customers and beauticians</p>
           </div>
 
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">

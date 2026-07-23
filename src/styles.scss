@@ -11,8 +11,8 @@
    CSS Custom Properties
 ===================== */
 :root {
-  --color-primary:      #E88B7B;
-  --color-primary-dark: #D96E5D;
+  --color-primary:      #DE3939;
+  --color-primary-dark: #B82E2E;
 
   /* Light mode */
   --color-background:      #ffffff;
@@ -418,7 +418,7 @@ router-outlet + * {
    Auth gradient bg
 ===================== */
 .auth-gradient {
-  background: linear-gradient(160deg, #E88B7B 0%, #D96E5D 50%, #C85A48 100%);
+  background: linear-gradient(160deg, #DE3939 0%, #B82E2E 50%, #9E2424 100%);
 }
 
 /* =====================

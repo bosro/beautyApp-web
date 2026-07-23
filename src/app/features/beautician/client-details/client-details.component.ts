@@ -72,7 +72,7 @@ import { ToastService } from "@core/services/toast.service";
         <!-- Hero Banner -->
         <div
           class="relative px-6 pt-10 pb-8 flex flex-col items-center text-white overflow-hidden"
-          style="background: linear-gradient(145deg, var(--color-primary) 0%, #C84428 100%)"
+          style="background: linear-gradient(145deg, var(--color-primary) 0%, #9E2424 100%)"
         >
           <!-- Decorative circles -->
           <div

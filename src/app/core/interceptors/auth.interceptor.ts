@@ -102,12 +102,12 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private forceLogout(): void {
-    // Clear storage directly to avoid circular dependency issues
-    localStorage.removeItem("@access_token");
-    localStorage.removeItem("@refresh_token");
-    localStorage.removeItem("@user_data");
-    localStorage.removeItem("@user_role");
-    // Use router directly rather than auth.logout() to avoid any state issues
-    this.router.navigate(["/auth/login"], { replaceUrl: true });
+    // IMPORTANT: must reset AuthService's in-memory state, not just
+    // localStorage. Previously this only cleared localStorage directly,
+    // leaving auth.isAuthenticated still reporting true (stale in-memory
+    // BehaviorSubject) — so navigating to /auth/login right after got
+    // immediately bounced back to the dashboard by GuestGuard, instead of
+    // showing the login page.
+    this.auth.logout();
   }
 }

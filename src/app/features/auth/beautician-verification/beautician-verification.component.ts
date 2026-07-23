@@ -24,7 +24,7 @@ import { ToastService } from '../../../core/services/toast.service';
 
       <div class="flex gap-2.5 justify-center mb-6">
         <input
-          *ngFor="let c of code; let i = index"
+          *ngFor="let c of code; let i = index; trackBy: trackByIndex"
           #otpInput
           type="text" inputmode="numeric" maxlength="1"
           [value]="code[i]"
@@ -67,6 +67,10 @@ export class BeauticianVerificationComponent implements OnInit, OnDestroy {
 
   email = '';
   code = ['', '', '', '', '', ''];
+
+  trackByIndex(index: number): number {
+    return index;
+  }
   loading = false;
   resending = false;
   timer = 60;

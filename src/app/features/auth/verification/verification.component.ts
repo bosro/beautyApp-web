@@ -27,7 +27,7 @@ import { ToastService } from '../../../core/services/toast.service';
       <!-- OTP inputs -->
       <div class="flex gap-2.5 justify-center mb-6">
         <input
-          *ngFor="let c of code; let i = index"
+          *ngFor="let c of code; let i = index; trackBy: trackByIndex"
           #otpInput
           type="text"
           inputmode="numeric"
@@ -72,6 +72,10 @@ export class VerificationComponent implements OnInit, OnDestroy {
 
   email = '';
   code = ['', '', '', '', '', ''];
+
+  trackByIndex(index: number): number {
+    return index;
+  }
   loading = false;
   resending = false;
   timer = 60;

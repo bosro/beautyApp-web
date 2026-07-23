@@ -1541,10 +1541,24 @@ export class SalonDetailsComponent implements OnInit {
 
   openDirections(): void {
     if (!this.salon?.latitude || !this.salon?.longitude) return;
-    window.open(
-      `https://www.google.com/maps/dir/?api=1&destination=${this.salon.latitude},${this.salon.longitude}`,
-      "_blank",
-    );
+    const dest = `${this.salon.latitude},${this.salon.longitude}`;
+    const openWithOrigin = (lat: number, lng: number) => {
+      window.open(
+        `https://www.google.com/maps/dir/?api=1&origin=${lat},${lng}&destination=${dest}`,
+        "_blank",
+      );
+    };
+    // Pass origin explicitly — without it, Google Maps has to re-request
+    // location permission in the new tab/session, which often just shows
+    // an unfilled "Your location" placeholder instead of routing.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => openWithOrigin(pos.coords.latitude, pos.coords.longitude),
+        () => openWithOrigin(5.6037, -0.187), // Accra fallback, matches in-app default
+      );
+    } else {
+      openWithOrigin(5.6037, -0.187);
+    }
   }
 
   showInAppDirections(): void {

@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, map, Observable, tap } from "rxjs";
 import { Router } from "@angular/router";
+import { jwtDecode } from "jwt-decode";
 import { User, AuthTokens, AuthState } from "../models";
 import { ApiService } from "./api.service";
 import { FcmService } from "./fcm.service";
@@ -75,8 +76,14 @@ export class AuthService {
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       const userRaw = localStorage.getItem(USER_KEY);
 
-      if (accessToken && userRaw) {
-        const user: User = JSON.parse(userRaw);
+      if (!accessToken || !userRaw) {
+        this._state.next({ ...this._state.value, isLoading: false });
+        return;
+      }
+
+      const user: User = JSON.parse(userRaw);
+
+      if (!this.isTokenExpired(accessToken)) {
         this._state.next({
           user,
           accessToken,
@@ -84,12 +91,59 @@ export class AuthService {
           isAuthenticated: true,
           isLoading: false,
         });
+        return;
+      }
+
+      // Access token has expired (this happens routinely — it's only
+      // valid for an hour). If we still have a refresh token, try a
+      // silent refresh before deciding the session is dead. Don't grant
+      // isAuthenticated on the known-dead access token in the meantime —
+      // that previously let route guards render the full authenticated
+      // sidebar for a session that couldn't actually make any API call,
+      // and clicking a tab silently bounced the user back to the
+      // dashboard instead of telling them to log in.
+      if (refreshToken && !this.isTokenExpired(refreshToken)) {
+        this._state.next({ ...this._state.value, isLoading: true });
+        this.refreshTokenRequest(refreshToken).subscribe({
+          next: () => {
+            // refreshTokenRequest already updates storage + state internally
+            this._state.next({ ...this._state.value, isLoading: false });
+          },
+          error: () => this.clearSessionState(),
+        });
       } else {
-        this._state.next({ ...this._state.value, isLoading: false });
+        this.clearSessionState();
       }
     } catch {
       this._state.next({ ...this._state.value, isLoading: false });
     }
+  }
+
+  /** Decodes a JWT client-side and checks its exp claim. Treats malformed tokens as expired. */
+  private isTokenExpired(token: string): boolean {
+    try {
+      const decoded = jwtDecode<{ exp?: number }>(token);
+      if (!decoded.exp) return false;
+      // Small buffer so we don't treat a token as valid right as it expires.
+      return decoded.exp * 1000 < Date.now() + 5000;
+    } catch {
+      return true;
+    }
+  }
+
+  /** Clears both localStorage and in-memory state without hitting the API (used when we already know the session is dead). */
+  clearSessionState(): void {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(USER_ROLE_KEY);
+    this._state.next({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
   }
 
   setAuth(tokens: AuthTokens, user: User): void {
@@ -167,6 +221,13 @@ export class AuthService {
     phone?: string;
     password: string;
     role: "CUSTOMER" | "BEAUTICIAN";
+    // ── Beautician signup categorization (all optional) ──────────────────
+    worksOnCampus?: boolean;
+    campusName?: string;
+    hostelName?: string;
+    residencyStatus?: "RESIDENT" | "NON_RESIDENT" | "NOT_APPLICABLE";
+    employmentType?: "SELF_EMPLOYED" | "EMPLOYED" | "SALON_OWNER";
+    offersHomeService?: boolean;
   }): Observable<unknown> {
     return this.api.post("/auth/register", payload).pipe(
       tap((res: any) => {
@@ -177,8 +238,8 @@ export class AuthService {
     );
   }
 
-  googleSignIn(idToken: string): Observable<any> {
-    return this.api.post("/auth/google", { idToken, role: "CUSTOMER" }).pipe(
+  googleSignIn(idToken: string, role: "CUSTOMER" | "BEAUTICIAN" = "CUSTOMER"): Observable<any> {
+    return this.api.post("/auth/google", { idToken, role }).pipe(
       tap((res: any) => {
         if (res?.data?.tokens && res?.data?.user) {
           this.setAuth(res.data.tokens, res.data.user);
@@ -195,9 +256,9 @@ export class AuthService {
    * frontend, because only the backend holds the client secret needed to
    * exchange the auth code for tokens.
    */
-  getGoogleAuthUrl(): Observable<{ url: string }> {
+  getGoogleAuthUrl(role: "CUSTOMER" | "BEAUTICIAN" = "CUSTOMER"): Observable<{ url: string }> {
     return this.api
-      .get<any>("/auth/google/url")
+      .get<any>(`/auth/google/url?role=${role}`)
       .pipe(map((res: any) => res.data));
   }
 

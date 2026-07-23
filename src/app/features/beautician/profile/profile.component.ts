@@ -61,9 +61,32 @@ declare const google: any;
         <div class="rounded-3xl overflow-hidden" style="background-color: var(--color-surface)">
           <!-- Banner -->
           <div
-            class="h-24 relative"
-            style="background: linear-gradient(135deg, var(--color-primary) 0%, #C84428 100%)"
+            class="h-24 relative group"
+            [style.background]="!(coverPreviewUrl || beautician?.coverImage)
+              ? 'linear-gradient(135deg, var(--color-primary) 0%, #9E2424 100%)'
+              : null"
           >
+            <img
+              *ngIf="coverPreviewUrl || beautician?.coverImage"
+              [src]="coverPreviewUrl || beautician?.coverImage"
+              alt="Cover"
+              class="absolute inset-0 w-full h-full object-cover"
+            />
+            <!-- Change cover control (always visible — this is a touch-first app, hover states don't work on mobile) -->
+            <label
+              class="absolute top-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg cursor-pointer text-xs font-semibold text-white bg-black/40 hover:bg-black/60 transition-colors"
+            >
+              <i *ngIf="uploadingCover" class="ri-loader-4-line animate-spin text-sm"></i>
+              <i *ngIf="!uploadingCover" class="ri-camera-line text-sm"></i>
+              {{ uploadingCover ? 'Uploading…' : 'Change cover' }}
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                [disabled]="uploadingCover"
+                (change)="onCoverFile($event)"
+              />
+            </label>
             <div class="absolute -bottom-11 left-1/2 -translate-x-1/2">
               <div class="relative">
                 <img
@@ -351,6 +374,10 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
   selectedFile: File | null = null;
   previewUrl: string | null = null;
 
+  uploadingCover = false;
+  selectedCoverFile: File | null = null;
+  coverPreviewUrl: string | null = null;
+
   // Personal fields
   nameInput = "";
   phone = "";
@@ -446,11 +473,10 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
       zoom: this.hasLocation ? 15 : 13,
       disableDefaultUI: true,
       zoomControl: true,
+      // NOTE: styles previously set here were being silently ignored —
+      // once a mapId is present, styling must be configured against that
+      // Map ID in Google Cloud Console instead of via the styles array.
       mapId: environment['googleMapsMapId'] || 'DEMO_MAP_ID',
-      styles: [
-        { featureType: 'poi',     elementType: 'labels', stylers: [{ visibility: 'off' }] },
-        { featureType: 'transit',                        stylers: [{ visibility: 'off' }] },
-      ],
     });
 
     this.mapReady = true;
@@ -712,6 +738,42 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
       error: () => {
         this.uploading = false;
         this.toast.error('Upload failed');
+      },
+    });
+  }
+
+  onCoverFile(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.selectedCoverFile = file;
+    const r = new FileReader();
+    r.onload = (e) => {
+      this.coverPreviewUrl = e.target?.result as string;
+    };
+    r.readAsDataURL(file);
+    // Upload immediately — matches the "change cover" pattern used on the
+    // business profile page rather than requiring a separate save step.
+    this.uploadCoverPhoto();
+  }
+
+  uploadCoverPhoto() {
+    if (!this.selectedCoverFile) return;
+    this.uploadingCover = true;
+    const fd = new FormData();
+    fd.append('coverImage', this.selectedCoverFile);
+    this.http.post<any>(`${environment.apiUrl}/users/beautician/images`, fd).subscribe({
+      next: (res) => {
+        if (res.data?.beautician?.coverImage && this.beautician) {
+          this.beautician.coverImage = res.data.beautician.coverImage;
+        }
+        this.uploadingCover = false;
+        this.selectedCoverFile = null;
+        this.coverPreviewUrl = null;
+        this.toast.success('Cover photo updated!');
+      },
+      error: () => {
+        this.uploadingCover = false;
+        this.toast.error('Cover photo upload failed');
       },
     });
   }

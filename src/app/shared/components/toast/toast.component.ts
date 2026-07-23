@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   selector: 'app-toast',
   standalone: false,
   template: `
-    <div class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+    <div class="fixed left-4 right-4 sm:left-auto sm:right-6 bottom-24 sm:bottom-6 z-[9999] flex flex-col gap-3 sm:max-w-sm sm:w-full pointer-events-none" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
       <div *ngFor="let toast of toasts$ | async; trackBy: trackById"
         class="flex items-start gap-3 px-4 py-3.5 rounded-xl shadow-xl text-white text-sm font-medium pointer-events-auto"
         [ngClass]="{

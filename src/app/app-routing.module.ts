@@ -11,8 +11,13 @@ import {
 } from './core/guards/auth.guard';
 
 const routes: Routes = [
-  // Default redirect
-  { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
+  // Public landing — browsable without an account. Logged-in users who
+  // land here get bounced to their real dashboard inside PublicHomeComponent.
+  {
+    path: '',
+    loadChildren: () =>
+      import('./features/public/public.module').then((m) => m.PublicModule),
+  },
 
   // Auth (public)
   {
@@ -46,8 +51,9 @@ const routes: Routes = [
     canActivate: [BeauticianGuard],
   },
 
-  // Catch-all
-  { path: '**', redirectTo: '/auth/login' },
+  // Catch-all — send unknown paths to the public homepage rather than
+  // forcing a login wall.
+  { path: '**', redirectTo: '' },
 ];
 
 @NgModule({

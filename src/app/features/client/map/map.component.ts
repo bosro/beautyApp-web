@@ -164,6 +164,8 @@ type TravelMode = "DRIVING" | "WALKING" | "TRANSIT";
         [class.sheet-half]="sheetState === 'half'"
         [class.sheet-full]="sheetState === 'full'"
         [class.sheet-hidden]="sheetState === 'hidden'"
+        [class.sheet-dragging]="isDragging"
+        [style.height.px]="isDragging ? dragHeightPx : null"
         (touchstart)="onSheetTouchStart($event)"
         (touchmove)="onSheetTouchMove($event)"
         (touchend)="onSheetTouchEnd($event)"
@@ -330,13 +332,17 @@ type TravelMode = "DRIVING" | "WALKING" | "TRANSIT";
         border-radius: 30px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         padding: 12px 16px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
         z-index: 10;
       }
+      .search-bar-float > i {
+        flex-shrink: 0;
+      }
       .search-input-float {
         flex: 1;
+        min-width: 0;
         border: none;
         outline: none;
         font-size: 14px;
@@ -358,6 +364,7 @@ type TravelMode = "DRIVING" | "WALKING" | "TRANSIT";
         padding: 0;
         display: flex;
         align-items: center;
+        flex-shrink: 0;
       }
       .locate-btn,
       .list-view-btn {
@@ -663,6 +670,9 @@ type TravelMode = "DRIVING" | "WALKING" | "TRANSIT";
         flex-shrink: 0;
         padding: 0 20px 16px;
         touch-action: none;
+      }
+      .bottom-sheet.sheet-dragging {
+        transition: none;
       }
       .bottom-sheet.sheet-hidden {
         height: 60px;
@@ -1069,15 +1079,19 @@ export class MapComponent implements OnInit, OnDestroy {
       zoom: 13,
       disableDefaultUI: true,
       zoomControl: true,
+      // NOTE: "DEMO_MAP_ID" is Google's shared public testing Map ID — fine
+      // for development, but for production you should create a real Map
+      // ID in Google Cloud Console (Maps > Map Management) and put it here
+      // instead. A mapId is required for Advanced Markers to render.
+      //
+      // The `styles` array that used to live here was being silently
+      // ignored — once a mapId is set, Google requires styling to be
+      // configured against that Map ID in Cloud Console instead of via
+      // the styles array (that's what the "styles property cannot be set
+      // when a mapId is present" console warning was about). To hide POI
+      // and transit labels like this used to, open your Map ID's style in
+      // Cloud Console and turn those layers off there.
       mapId: "DEMO_MAP_ID",
-      styles: [
-        {
-          featureType: "poi",
-          elementType: "labels",
-          stylers: [{ visibility: "off" }],
-        },
-        { featureType: "transit", stylers: [{ visibility: "off" }] },
-      ],
     });
 
     // Init directions services
@@ -1171,8 +1185,13 @@ export class MapComponent implements OnInit, OnDestroy {
             `${this.selectedSalon.businessName}, ${this.selectedSalon.city}`,
           );
     const mode = this.activeTravelMode.toLowerCase();
+    // Pass the origin explicitly using coordinates we already have from
+    // navigator.geolocation — without this, Google Maps has to re-request
+    // location permission in the new tab/session, which is why "Your
+    // location" was showing as an unfilled placeholder instead of routing.
+    const origin = `${this.userLat},${this.userLng}`;
     window.open(
-      `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=${mode}`,
+      `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${mode}`,
       "_blank",
     );
   }
@@ -1201,33 +1220,63 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   // ── Bottom sheet drag ────────────────────────────────────────────────────
+  // Previously this only detected a swipe gesture (>60px threshold) and
+  // jumped straight to the next/prev snap state with no visual feedback
+  // while dragging. Now the sheet actually follows the finger in real time
+  // (isDragging=true disables the CSS transition so it tracks 1:1), and
+  // snaps to the nearest of the four states on release.
+
+  isDragging = false;
+  dragHeightPx = 0;
+
+  private stateHeightPx(state: "hidden" | "peek" | "half" | "full"): number {
+    const vh = window.innerHeight;
+    const map: Record<string, number> = {
+      hidden: 60,
+      peek: 220,
+      half: vh * 0.55,
+      full: vh * 0.78,
+    };
+    return map[state];
+  }
 
   onSheetTouchStart(e: TouchEvent): void {
     this.dragStartY = e.touches[0].clientY;
     this.dragStartState = this.sheetState;
+    this.dragHeightPx = this.stateHeightPx(this.sheetState);
+    this.isDragging = true;
   }
 
   onSheetTouchMove(e: TouchEvent): void {
     e.preventDefault();
+    if (!this.isDragging) return;
+    const dy = this.dragStartY - e.touches[0].clientY; // positive = finger moved up
+    const startHeight = this.stateHeightPx(this.dragStartState);
+    const minHeight = this.stateHeightPx("hidden");
+    const maxHeight = this.stateHeightPx("full");
+    this.dragHeightPx = Math.min(maxHeight, Math.max(minHeight, startHeight + dy));
   }
 
   onSheetTouchEnd(e: TouchEvent): void {
-    const dy = e.changedTouches[0].clientY - this.dragStartY;
+    this.isDragging = false;
     const states: Array<"hidden" | "peek" | "half" | "full"> = [
       "hidden",
       "peek",
       "half",
       "full",
     ];
-    const idx = states.indexOf(this.dragStartState);
-
-    if (dy > 60) {
-      // Swiped down → collapse one level
-      this.sheetState = states[Math.max(0, idx - 1)];
-    } else if (dy < -60) {
-      // Swiped up → expand one level
-      this.sheetState = states[Math.min(states.length - 1, idx + 1)];
+    // Snap to whichever state's height is closest to where the sheet was
+    // released, rather than only reacting to total swipe distance.
+    let closest = states[0];
+    let closestDiff = Infinity;
+    for (const state of states) {
+      const diff = Math.abs(this.stateHeightPx(state) - this.dragHeightPx);
+      if (diff < closestDiff) {
+        closestDiff = diff;
+        closest = state;
+      }
     }
+    this.sheetState = closest;
   }
 
   cycleSheet(): void {
@@ -1427,11 +1476,12 @@ export class MapComponent implements OnInit, OnDestroy {
         position,
         content: pinEl,
         title: salon.businessName,
+        gmpClickable: true,
         // Featured markers render above organic ones
         zIndex: isMapFeatured ? 10 : 1,
       });
 
-      marker.addListener("click", () => {
+      marker.addListener("gmp-click", () => {
         this.ngZone.run(() => {
           this.selectedSalon = salon;
           this.map.panTo(position);
