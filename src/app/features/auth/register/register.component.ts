@@ -1,17 +1,17 @@
 // register.component.ts
-// Changes from original:
-//   1. Added Google Sign-Up button (same flow as LoginComponent)
-//   2. Added onGoogleSignIn() method
-//   3. Added ngOnInit Google SDK initialization
-//   4. Added AfterViewInit + OnDestroy for RAF cleanup (not needed here but kept consistent)
-//   5. No other logic changed
+// Fix: Google Sign-Up button now goes straight to the OAuth redirect flow
+// instead of calling google.accounts.id.prompt() (One Tap). One Tap is meant
+// for an automatic, silent prompt on page load — under Google's FedCM
+// migration its dismissal callbacks (isNotDisplayed/isSkippedMoment) are
+// unreliable, so a button wired to prompt() can end up doing nothing when
+// One Tap doesn't show. A clicked "Sign up with Google" button should just
+// redirect to the consent screen directly.
 
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-register',
@@ -32,13 +32,20 @@ import { environment } from '@environments/environment';
       </div>
 
       <!-- ── Google Sign-Up ── -->
-      <button type="button" (click)="onGoogleSignIn()" class="google-btn w-full mb-4">
+      <button
+        type="button"
+        (click)="onGoogleSignIn()"
+        class="google-btn w-full mb-4"
+        [disabled]="googleLoading"
+      >
+        <span class="spinner" *ngIf="googleLoading"></span>
         <img
+          *ngIf="!googleLoading"
           src="https://www.svgrepo.com/show/355037/google.svg"
           alt="Google"
           class="w-5 h-5"
         />
-        <span>Sign up with Google</span>
+        <span>{{ googleLoading ? 'Redirecting…' : 'Sign up with Google' }}</span>
       </button>
 
       <!-- Divider -->
@@ -145,6 +152,7 @@ import { environment } from '@environments/environment';
       align-items: center;
       justify-content: center;
       gap: 10px;
+      width: 100%;
       background: var(--color-bg-secondary);
       border: 1.5px solid var(--color-border-light);
       border-radius: 50px;
@@ -153,17 +161,31 @@ import { environment } from '@environments/environment';
       font-weight: 600;
       color: var(--color-text-primary);
       cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
+      transition: border-color 0.2s, background 0.2s, opacity 0.2s;
     }
-    .google-btn:hover {
+    .google-btn:hover:not(:disabled) {
       border-color: var(--color-primary);
       background: var(--color-bg-primary);
     }
+    .google-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .google-btn .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   `],
 })
 export class RegisterComponent implements OnInit {
   form!: FormGroup;
   loading = false;
+  googleLoading = false;
   submitted = false;
   showPwd = false;
   showConfirmPwd = false;
@@ -186,15 +208,6 @@ export class RegisterComponent implements OnInit {
       },
       { validators: this.passwordMatch }
     );
-
-    // Initialize Google SDK (same as LoginComponent)
-    const google = (window as any).google;
-    if (google) {
-      google.accounts.id.initialize({
-        client_id: environment.googleClientId,
-        callback: (response: any) => this.handleGoogleCredential(response),
-      });
-    }
   }
 
   private passwordMatch(group: FormGroup) {
@@ -205,49 +218,21 @@ export class RegisterComponent implements OnInit {
 
   get f() { return this.form.controls; }
 
-  // ── Google Sign-Up: identical to LoginComponent.onGoogleSignIn() ──
-  // The backend's signInWithGoogle() already handles "create if not exists",
-  // so this works for both sign-in and sign-up — no separate endpoint needed.
+  // ── Google Sign-Up ──
+  // Goes straight to the backend-issued OAuth consent URL. The backend's
+  // signInWithGoogle() already handles "create if not exists" with role
+  // defaulting to CUSTOMER, so this single endpoint covers both sign-in
+  // and sign-up — no separate endpoint needed.
   onGoogleSignIn(): void {
-    const google = (window as any).google;
-    if (!google) {
-      this.toast.error('Google Sign-In is not available.');
-      return;
-    }
-    google.accounts.id.prompt((notification: any) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        google.accounts.id.cancel();
-        // One Tap blocked/dismissed — fall back to a full redirect through
-        // Google's consent screen. Ask the backend for the URL since it
-        // owns the client secret and the correctly-registered redirect_uri.
-        this.auth.getGoogleAuthUrl().subscribe({
-          next: (res) => {
-            window.location.href = res.url;
-          },
-          error: () => {
-            this.toast.error('Google Sign-In is not available right now.');
-          },
-        });
-      }
-    });
-  }
-
-  private handleGoogleCredential(response: { credential: string }): void {
-    this.loading = true;
-    // role defaults to CUSTOMER in signInWithGoogle() backend
-    this.auth.googleSignIn(response.credential).subscribe({
-      next: (res: any) => {
-        const isNewUser = res?.data?.isNewUser ?? res?.isNewUser;
-        this.toast.success(
-          isNewUser
-            ? "Welcome to Bigluxx!"
-            : "You already have an account — signed you in.",
-        );
-        this.router.navigate([this.auth.getDashboardRoute()]);
+    if (this.googleLoading) return;
+    this.googleLoading = true;
+    this.auth.getGoogleAuthUrl().subscribe({
+      next: (res) => {
+        window.location.href = res.url;
       },
-      error: (err) => {
-        this.loading = false;
-        this.toast.error(err?.error?.message || 'Google sign-up failed');
+      error: () => {
+        this.googleLoading = false;
+        this.toast.error('Google Sign-In is not available right now.');
       },
     });
   }
@@ -276,4 +261,3 @@ export class RegisterComponent implements OnInit {
     this.router.navigate(['/auth/login']);
   }
 }
-
