@@ -336,3 +336,4 @@ export class BeauticianRegisterComponent implements OnInit {
 }
 
 
+

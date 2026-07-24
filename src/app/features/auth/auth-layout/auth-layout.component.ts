@@ -1,6 +1,7 @@
 // ============================================================
-// auth-layout.component.ts — h-screen + overflow-hidden
-// Prevents any outer scroll on the login route.
+// auth-layout.component.ts — h-screen + overflow-hidden always,
+// with min-h-0 on the nested flex column so the form-area's
+// overflow-y-auto actually gets a bounded box to scroll within.
 // ============================================================
 
 import { Component, OnInit } from '@angular/core';
@@ -12,17 +13,11 @@ import { filter } from 'rxjs/operators';
   selector: 'app-auth-layout',
   template: `
     <div
-      class="flex"
-      [class.h-screen]="isLoginRoute"
-      [class.overflow-hidden]="isLoginRoute"
-      [class.min-h-screen]="!isLoginRoute"
+      class="flex h-screen overflow-hidden"
       style="background-color: var(--color-background)"
     >
       <!-- RIGHT / FULL-WIDTH PANEL -->
-      <div
-        class="flex-1 flex flex-col min-w-0"
-        [class.min-h-0]="isLoginRoute"
-      >
+      <div class="flex-1 flex flex-col min-w-0 min-h-0">
 
         <!-- Top bar — only on non-login routes -->
         <ng-container *ngIf="!isLoginRoute">
@@ -50,7 +45,7 @@ import { filter } from 'rxjs/operators';
         <div
           [class]="isLoginRoute
             ? 'flex-1 flex items-center justify-center min-h-0 p-0 overflow-hidden'
-            : 'flex-1 flex items-start justify-center overflow-y-auto px-6 py-8 lg:px-12 xl:px-16'"
+            : 'flex-1 flex items-start justify-center overflow-y-auto min-h-0 px-6 py-8 lg:px-12 xl:px-16'"
         >
           <div [ngClass]="isLoginRoute ? 'w-full h-full' : 'w-full max-w-md'">
             <router-outlet></router-outlet>
@@ -67,7 +62,7 @@ export class AuthLayoutComponent implements OnInit {
   constructor(
     public themeService: ThemeService,
     private router: Router,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.checkRoute(this.router.url);
