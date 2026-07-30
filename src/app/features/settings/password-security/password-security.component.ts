@@ -18,6 +18,8 @@ import { Router } from "@angular/router";
 import { environment } from "@environments/environment";
 import { ToastService } from "@core/services/toast.service";
 import { AuthService } from "@core/services/auth.service";
+import { startRegistration } from "@simplewebauthn/browser";
+import { firstValueFrom } from "rxjs";
 
 interface SecurityInfo {
   lastLogin: string | null;
@@ -272,6 +274,61 @@ interface SecurityInfo {
           </button>
         </div>
 
+        <!-- ── Passkeys ── -->
+        <p class="section-label">Passkeys</p>
+        <div class="menu-list">
+          <div
+            *ngFor="let pk of passkeys; let last = last"
+            class="menu-row"
+            [ngClass]="last && !addingPasskey ? 'no-border' : ''"
+          >
+            <div class="menu-row-left">
+              <div class="menu-icon-wrap" style="background: #F0FDF4">
+                <i
+                  [class]="pk.deviceType === 'platform' ? 'ri-fingerprint-line' : 'ri-usb-line'"
+                  style="color: #22C55E"
+                ></i>
+              </div>
+              <div>
+                <span class="text-sm font-medium text-[var(--color-text-primary)]">
+                  {{ pk.nickname || (pk.deviceType === 'platform' ? 'This device' : 'Security key') }}
+                </span>
+                <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
+                  Added {{ pk.createdAt | date: 'mediumDate' }}
+                  <span *ngIf="pk.lastUsedAt"> · last used {{ pk.lastUsedAt | date: 'mediumDate' }}</span>
+                </p>
+              </div>
+            </div>
+            <button
+              (click)="removePasskey(pk.id)"
+              class="text-xs font-semibold px-3 py-1.5 rounded-xl text-red-500"
+              style="background: #FEF2F2"
+            >
+              Remove
+            </button>
+          </div>
+
+          <button
+            class="menu-row no-border"
+            (click)="addPasskey()"
+            [disabled]="addingPasskey"
+          >
+            <div class="menu-row-left">
+              <div class="menu-icon-wrap" style="background: #EFF6FF">
+                <i class="ri-fingerprint-line" style="color: #3B82F6"></i>
+              </div>
+              <div>
+                <span class="text-sm font-medium text-[var(--color-text-primary)]">Add a passkey</span>
+                <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
+                  Sign in with Face ID, Touch ID, or your device PIN — no password needed
+                </p>
+              </div>
+            </div>
+            <i *ngIf="!addingPasskey" class="ri-arrow-right-s-line menu-arrow"></i>
+            <i *ngIf="addingPasskey" class="ri-loader-4-line animate-spin text-[var(--color-text-muted)]"></i>
+          </button>
+        </div>
+
         <!-- Active Devices -->
         <ng-container *ngIf="info?.activeDevices?.length">
           <p class="section-label">Active Devices</p>
@@ -480,6 +537,10 @@ export class PasswordSecurityComponent implements OnInit, OnDestroy {
   // Resolved from auth user
   userPhone = '';
 
+  // Passkeys
+  passkeys: any[] = [];
+  addingPasskey = false;
+
   constructor(
     private http: HttpClient,
     private location: Location,
@@ -492,6 +553,7 @@ export class PasswordSecurityComponent implements OnInit, OnDestroy {
     // Grab the phone number from the logged-in user
     this.userPhone = this.auth.user?.phone || '';
     this.loadSecurityInfo();
+    this.loadPasskeys();
   }
 
   ngOnDestroy() {
@@ -523,6 +585,69 @@ export class PasswordSecurityComponent implements OnInit, OnDestroy {
     // Both roles have a profile page; navigate based on role
     const role = this.auth.user?.role;
     this.router.navigate([role === 'BEAUTICIAN' ? '/beautician/profile' : '/client/profile']);
+  }
+
+  // ─────────────────────────────────────────────
+  // Passkeys
+  // ─────────────────────────────────────────────
+
+  loadPasskeys() {
+    this.http.get<any>(`${environment.apiUrl}/auth/passkeys`).subscribe({
+      next: (res) => (this.passkeys = res.data.passkeys || []),
+      error: () => (this.passkeys = []),
+    });
+  }
+
+  async addPasskey() {
+    this.addingPasskey = true;
+    try {
+      const optionsRes: any = await firstValueFrom(
+        this.http.post(`${environment.apiUrl}/auth/passkeys/register-options`, {}),
+      );
+
+      const attResp = await startRegistration({ optionsJSON: optionsRes.data });
+
+      const nickname = this.guessDeviceName();
+      await firstValueFrom(
+        this.http.post(`${environment.apiUrl}/auth/passkeys/register-verify`, {
+          response: attResp,
+          nickname,
+        }),
+      );
+
+      this.toast.success('Passkey added');
+      this.loadPasskeys();
+    } catch (err: any) {
+      if (err?.name === 'InvalidStateError') {
+        this.toast.error('This device already has a passkey for this account');
+      } else if (err?.name === 'NotAllowedError') {
+        // User cancelled the prompt — not an error worth surfacing loudly.
+      } else {
+        this.toast.error(err?.error?.message || 'Could not add passkey');
+      }
+    } finally {
+      this.addingPasskey = false;
+    }
+  }
+
+  removePasskey(id: string) {
+    this.http.delete<any>(`${environment.apiUrl}/auth/passkeys/${id}`).subscribe({
+      next: () => {
+        this.toast.success('Passkey removed');
+        this.passkeys = this.passkeys.filter((p) => p.id !== id);
+      },
+      error: () => this.toast.error('Could not remove passkey'),
+    });
+  }
+
+  private guessDeviceName(): string {
+    const ua = navigator.userAgent;
+    if (/iPhone/.test(ua)) return 'iPhone';
+    if (/iPad/.test(ua)) return 'iPad';
+    if (/Android/.test(ua)) return 'Android device';
+    if (/Macintosh/.test(ua)) return 'Mac';
+    if (/Windows/.test(ua)) return 'Windows PC';
+    return 'This device';
   }
 
   // ─────────────────────────────────────────────

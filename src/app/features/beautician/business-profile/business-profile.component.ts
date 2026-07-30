@@ -198,6 +198,88 @@ import { ToastService } from "@core/services/toast.service";
           </form>
         </div>
 
+        <!-- ── Business Type ── -->
+        <div
+          class="rounded-2xl p-5 space-y-4"
+          style="background-color: var(--color-surface)"
+        >
+          <p
+            class="text-[11px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest"
+          >
+            Business Type
+          </p>
+
+          <form [formGroup]="form" class="space-y-4">
+            <label
+              class="flex items-center justify-between p-3.5 rounded-xl cursor-pointer"
+              style="background-color: var(--color-background)"
+            >
+              <span class="text-sm font-medium" style="color: var(--color-text-primary)">
+                I'm a student entrepreneur working on campus
+              </span>
+              <input
+                type="checkbox"
+                formControlName="worksOnCampus"
+                class="accent-primary w-5 h-5 rounded flex-shrink-0 ml-3"
+              />
+            </label>
+
+            <ng-container *ngIf="form.value.worksOnCampus">
+              <div>
+                <label class="field-label">School / Campus</label>
+                <input
+                  formControlName="campusName"
+                  type="text"
+                  class="form-input rounded-xl"
+                  placeholder="e.g., University of Ghana, Legon"
+                />
+              </div>
+              <div>
+                <label class="field-label">Hostel (optional)</label>
+                <input
+                  formControlName="hostelName"
+                  type="text"
+                  class="form-input rounded-xl"
+                  placeholder="e.g., Jean Nelson Aka Hall"
+                />
+              </div>
+              <div>
+                <label class="field-label">Residency status</label>
+                <select formControlName="residencyStatus" class="form-input rounded-xl">
+                  <option value="">Select one</option>
+                  <option value="RESIDENT">Resident (I live in a hostel/dorm)</option>
+                  <option value="NON_RESIDENT">Non-resident (I commute)</option>
+                  <option value="NOT_APPLICABLE">Not applicable</option>
+                </select>
+              </div>
+            </ng-container>
+
+            <div *ngIf="!form.value.worksOnCampus">
+              <label class="field-label">Which best describes you?</label>
+              <select formControlName="employmentType" class="form-input rounded-xl">
+                <option value="">Select one</option>
+                <option value="SELF_EMPLOYED">Self-employed / freelance</option>
+                <option value="SALON_OWNER">Salon owner</option>
+                <option value="EMPLOYED">Employed at a salon/spa</option>
+              </select>
+            </div>
+
+            <label
+              class="flex items-center justify-between p-3.5 rounded-xl cursor-pointer"
+              style="background-color: var(--color-background)"
+            >
+              <span class="text-sm font-medium" style="color: var(--color-text-primary)">
+                I offer home service (I travel to clients)
+              </span>
+              <input
+                type="checkbox"
+                formControlName="offersHomeService"
+                class="accent-primary w-5 h-5 rounded flex-shrink-0 ml-3"
+              />
+            </label>
+          </form>
+        </div>
+
         <!-- ── Social Links ── -->
         <div
           class="rounded-2xl p-5 space-y-3"
@@ -317,6 +399,12 @@ export class BusinessProfileComponent implements OnInit {
       city: [""],
       region: [""],
       businessAddress: [""],
+      worksOnCampus: [false],
+      campusName: [""],
+      hostelName: [""],
+      residencyStatus: [""],
+      employmentType: [""],
+      offersHomeService: [false],
     });
   }
 
@@ -333,6 +421,12 @@ export class BusinessProfileComponent implements OnInit {
             city: b.city || "",
             region: b.region || "",
             businessAddress: b.businessAddress || "",
+            worksOnCampus: !!b.worksOnCampus,
+            campusName: b.campusName || "",
+            hostelName: b.hostelName || "",
+            residencyStatus: b.residencyStatus || "",
+            employmentType: b.employmentType || "",
+            offersHomeService: !!b.offersHomeService,
           });
           this.coverPreview = b.coverImage || null;
           this.loading = false;
@@ -357,10 +451,27 @@ export class BusinessProfileComponent implements OnInit {
   save() {
     if (this.form.invalid) return;
     this.saving = true;
+
+    const {
+      worksOnCampus, campusName, hostelName, residencyStatus,
+      employmentType, offersHomeService, ...rest
+    } = this.form.getRawValue();
+
+    const payload = {
+      ...rest,
+      worksOnCampus: !!worksOnCampus,
+      // Enum fields reject empty strings server-side, and campus/employment
+      // fields are mutually exclusive depending on the toggle — only send
+      // the ones that actually apply, same rule the signup form follows.
+      campusName: worksOnCampus && campusName ? campusName : undefined,
+      hostelName: worksOnCampus && hostelName ? hostelName : undefined,
+      residencyStatus: worksOnCampus && residencyStatus ? residencyStatus : undefined,
+      employmentType: !worksOnCampus && employmentType ? employmentType : undefined,
+      offersHomeService: !!offersHomeService,
+    };
+
     this.http
-      .put(`${environment.apiUrl}/users/beautician/profile`, {
-        ...this.form.getRawValue(),
-      })
+      .put(`${environment.apiUrl}/users/beautician/profile`, payload)
       .subscribe({
         next: () => {
           if (this.coverFile) {

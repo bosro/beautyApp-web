@@ -71,6 +71,50 @@ type Period = "today" | "week" | "month";
       </div>
 
       <!-- ══════════════════════════════════════════
+           FIRST-VISIT VERIFICATION MODAL (once, unverified only)
+      ══════════════════════════════════════════ -->
+      <div
+        *ngIf="showFirstVerificationModal"
+        class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      >
+        <div class="absolute inset-0 bg-black/50" (click)="dismissFirstVerificationModal()"></div>
+        <div
+          class="relative w-full lg:max-w-sm max-h-[85vh] overflow-y-auto rounded-t-3xl lg:rounded-3xl p-6 text-center"
+          style="background-color: var(--color-surface)"
+        >
+          <div
+            class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            style="background: color-mix(in srgb, var(--color-primary) 12%, transparent)"
+          >
+            <i class="ri-shield-star-line text-3xl" style="color: var(--color-primary)"></i>
+          </div>
+          <h3 class="text-lg font-bold" style="color: var(--color-text-primary)">
+            Welcome to Bigluxx!
+          </h3>
+          <p class="text-sm mt-2 leading-relaxed" style="color: var(--color-text-secondary)">
+            Before clients can find and book you, we need to verify your identity.
+            Upload your Ghana Card and a quick selfie — it only takes a couple of minutes,
+            and our team will review it shortly after.
+          </p>
+          <div class="flex flex-col gap-2 mt-5">
+            <button
+              (click)="goToVerificationFromModal()"
+              class="btn-primary w-full py-3.5 rounded-2xl text-sm font-semibold"
+            >
+              Start Verification
+            </button>
+            <button
+              (click)="dismissFirstVerificationModal()"
+              class="w-full py-3 rounded-2xl text-sm font-semibold"
+              style="color: var(--color-text-secondary)"
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
            VERIFICATION BANNER
       ══════════════════════════════════════════ -->
       <div
@@ -1182,6 +1226,7 @@ export class BeauticianDashboardComponent
   updatingBooking: Record<string, boolean> = {};
   hasLocation = false;
   verificationStatus: "PENDING" | "APPROVED" | "REJECTED" | null = null;
+  showFirstVerificationModal = false;
 
   // Chart state
   activeChartTab: "earnings" | "bookings" = "earnings";
@@ -1451,9 +1496,33 @@ export class BeauticianDashboardComponent
     this.http.get<any>(`${environment.apiUrl}/verification/status`).subscribe({
       next: (res) => {
         this.verificationStatus = res?.data?.verificationStatus ?? null;
+        this.maybeShowFirstVerificationModal();
       },
       error: () => {},
     });
+  }
+
+  // Shown once, the first time an unverified beautician lands on the
+  // dashboard — separate from the persistent banner (which keeps reminding
+  // them on every visit). Dismissing either button marks it seen; the
+  // banner above still handles ongoing reminders after that.
+  private maybeShowFirstVerificationModal() {
+    if (this.verificationStatus === "APPROVED") return;
+    const userId = this.auth.user?.id;
+    if (!userId) return;
+    const key = `verif_modal_seen_${userId}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, "1");
+    this.showFirstVerificationModal = true;
+  }
+
+  dismissFirstVerificationModal() {
+    this.showFirstVerificationModal = false;
+  }
+
+  goToVerificationFromModal() {
+    this.showFirstVerificationModal = false;
+    this.router.navigate(["/beautician/verification"]);
   }
 
   setPeriod(period: Period) {

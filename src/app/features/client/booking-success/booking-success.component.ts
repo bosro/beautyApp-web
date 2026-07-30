@@ -104,7 +104,7 @@ import { ActivatedRoute, Router } from "@angular/router";
       </div>
 
       <!-- STICKY BUTTONS -->
-      <div class="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3"
+      <div class="fixed bottom-0 left-0 right-0 px-4 pb-[calc(104px+env(safe-area-inset-bottom,0px))] lg:pb-6 pt-3 z-30"
         style="background: linear-gradient(to top, var(--color-bg-primary) 80%, transparent)">
         <div class="max-w-2xl mx-auto space-y-2">
           <button (click)="viewBookingDetails()"

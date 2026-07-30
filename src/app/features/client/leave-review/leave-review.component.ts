@@ -114,7 +114,7 @@ import { environment } from "../../../../environments/environment";
 
       <!-- STICKY SUBMIT BUTTON -->
       <div
-        class="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3 lg:px-6"
+        class="fixed bottom-0 left-0 right-0 px-4 pb-[calc(104px+env(safe-area-inset-bottom,0px))] lg:pb-6 pt-3 lg:px-6 z-30"
         style="background: linear-gradient(to top, var(--color-bg-primary) 80%, transparent)"
       >
         <div class="max-w-2xl mx-auto">

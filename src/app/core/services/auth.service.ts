@@ -238,8 +238,46 @@ export class AuthService {
     );
   }
 
-  googleSignIn(idToken: string, role: "CUSTOMER" | "BEAUTICIAN" = "CUSTOMER"): Observable<any> {
-    return this.api.post("/auth/google", { idToken, role }).pipe(
+  /**
+   * Step 1 of passkey sign-in: get WebAuthn authentication options + a
+   * challengeId to pass back in step 2. `email` is optional — omit it to
+   * let the browser show any discoverable passkey for this site.
+   */
+  getPasskeyAuthOptions(email?: string): Observable<{ options: any; challengeId: string }> {
+    return this.api
+      .post<any>("/auth/passkeys/auth-options", email ? { email } : {})
+      .pipe(map((res: any) => res.data));
+  }
+
+  /**
+   * Step 2 of passkey sign-in: submit the signed challenge from the
+   * browser's WebAuthn API, get back tokens + user like a normal login.
+   */
+  verifyPasskeyAuthentication(challengeId: string, response: unknown): Observable<any> {
+    return this.api
+      .post("/auth/passkeys/auth-verify", { challengeId, response })
+      .pipe(
+        tap((res: any) => {
+          if (res?.data?.tokens && res?.data?.user) {
+            this.setAuth(res.data.tokens, res.data.user);
+          }
+        }),
+      );
+  }
+
+  googleSignIn(
+    idToken: string,
+    role: "CUSTOMER" | "BEAUTICIAN" = "CUSTOMER",
+    beauticianDetails?: {
+      worksOnCampus?: boolean;
+      campusName?: string;
+      hostelName?: string;
+      residencyStatus?: "RESIDENT" | "NON_RESIDENT" | "NOT_APPLICABLE";
+      employmentType?: "SELF_EMPLOYED" | "EMPLOYED" | "SALON_OWNER";
+      offersHomeService?: boolean;
+    },
+  ): Observable<any> {
+    return this.api.post("/auth/google", { idToken, role, beauticianDetails }).pipe(
       tap((res: any) => {
         if (res?.data?.tokens && res?.data?.user) {
           this.setAuth(res.data.tokens, res.data.user);

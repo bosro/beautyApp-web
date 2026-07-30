@@ -1,14 +1,9 @@
-// beautician-register.component.ts
-// Fix: same issue and same fix as register.component.ts — the Google button
-// now redirects straight to the OAuth consent screen (with role='BEAUTICIAN'
-// passed through as the `state` param) instead of relying on One Tap's
-// prompt()/dismissal callbacks, which are unreliable under FedCM.
-
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-beautician-register',
@@ -33,20 +28,13 @@ import { ToastService } from '../../../core/services/toast.service';
       </div>
 
       <!-- ── Google Sign-Up ── -->
-      <button
-        type="button"
-        (click)="onGoogleSignIn()"
-        class="google-btn w-full mb-4"
-        [disabled]="googleLoading"
-      >
-        <span class="spinner" *ngIf="googleLoading"></span>
+      <button type="button" (click)="openGoogleDetailsModal()" class="google-btn w-full mb-4">
         <img
-          *ngIf="!googleLoading"
           src="https://www.svgrepo.com/show/355037/google.svg"
           alt="Google"
           class="w-5 h-5"
         />
-        <span>{{ googleLoading ? 'Redirecting…' : 'Sign up with Google' }}</span>
+        <span>Sign up with Google</span>
       </button>
 
       <!-- Divider -->
@@ -214,49 +202,112 @@ import { ToastService } from '../../../core/services/toast.service';
         <a routerLink="/auth/login" class="font-semibold ml-1" style="color: var(--color-primary)">Sign in</a>
       </p>
     </div>
+
+    <!-- ── Google signup: optional "tell us about your business" popup ──
+         Shown once, right before the actual Google prompt appears, since
+         the Google button sits above these fields on the form and would
+         otherwise skip collecting them entirely. -->
+    <div
+      *ngIf="showGoogleDetailsModal"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+    >
+      <div class="absolute inset-0 bg-black/50" (click)="skipGoogleDetails()"></div>
+      <div
+        class="relative w-full lg:max-w-md max-h-[85vh] overflow-y-auto rounded-t-3xl lg:rounded-3xl p-5 space-y-4"
+        style="background-color: var(--color-bg-primary)"
+      >
+        <div>
+          <h3 class="text-lg font-bold" style="color: var(--color-text-primary)">Tell us about your business</h3>
+          <p class="text-sm mt-1" style="color: var(--color-text-secondary)">
+            Optional — you can also fill these in later from your profile.
+          </p>
+        </div>
+
+        <label class="flex items-center justify-between p-3.5 rounded-xl cursor-pointer"
+          style="background-color: var(--color-bg-secondary)">
+          <span class="text-sm font-medium" style="color: var(--color-text-primary)">
+            I'm a student entrepreneur working on campus
+          </span>
+          <input type="checkbox" [(ngModel)]="googleDetails.worksOnCampus" [ngModelOptions]="{standalone: true}"
+            class="accent-primary w-5 h-5 rounded flex-shrink-0 ml-3"/>
+        </label>
+
+        <ng-container *ngIf="googleDetails.worksOnCampus">
+          <div>
+            <label class="form-label">School / Campus</label>
+            <input [(ngModel)]="googleDetails.campusName" [ngModelOptions]="{standalone: true}" type="text"
+              placeholder="e.g., University of Ghana, Legon" class="form-input"/>
+          </div>
+          <div>
+            <label class="form-label">Hostel (optional)</label>
+            <input [(ngModel)]="googleDetails.hostelName" [ngModelOptions]="{standalone: true}" type="text"
+              placeholder="e.g., Jean Nelson Aka Hall" class="form-input"/>
+          </div>
+          <div>
+            <label class="form-label">Residency status</label>
+            <select [(ngModel)]="googleDetails.residencyStatus" [ngModelOptions]="{standalone: true}" class="form-input">
+              <option value="">Select one</option>
+              <option value="RESIDENT">Resident (I live in a hostel/dorm)</option>
+              <option value="NON_RESIDENT">Non-resident (I commute)</option>
+              <option value="NOT_APPLICABLE">Not applicable</option>
+            </select>
+          </div>
+        </ng-container>
+
+        <div *ngIf="!googleDetails.worksOnCampus">
+          <label class="form-label">Which best describes you?</label>
+          <select [(ngModel)]="googleDetails.employmentType" [ngModelOptions]="{standalone: true}" class="form-input">
+            <option value="">Select one</option>
+            <option value="SELF_EMPLOYED">Self-employed / freelance</option>
+            <option value="SALON_OWNER">Salon owner</option>
+            <option value="EMPLOYED">Employed at a salon/spa</option>
+          </select>
+        </div>
+
+        <label class="flex items-center justify-between p-3.5 rounded-xl cursor-pointer"
+          style="background-color: var(--color-bg-secondary)">
+          <span class="text-sm font-medium" style="color: var(--color-text-primary)">
+            I offer home service (I travel to clients)
+          </span>
+          <input type="checkbox" [(ngModel)]="googleDetails.offersHomeService" [ngModelOptions]="{standalone: true}"
+            class="accent-primary w-5 h-5 rounded flex-shrink-0 ml-3"/>
+        </label>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" (click)="skipGoogleDetails()"
+            class="flex-1 py-3 rounded-xl font-semibold text-sm"
+            style="background-color: var(--color-bg-secondary); color: var(--color-text-secondary)">
+            Skip for now
+          </button>
+          <button type="button" (click)="continueWithGoogle()"
+            class="flex-1 py-3 rounded-xl font-semibold text-sm text-white"
+            style="background-color: var(--color-primary)">
+            Continue with Google
+          </button>
+        </div>
+      </div>
+    </div>
   `,
-  styles: [`
-    .google-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      background: var(--color-bg-secondary);
-      border: 1.5px solid var(--color-border-light);
-      border-radius: 50px;
-      padding: 13px 24px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--color-text-primary);
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s, opacity 0.2s;
-    }
-    .google-btn:hover:not(:disabled) {
-      border-color: var(--color-primary);
-      background: var(--color-bg-primary);
-    }
-    .google-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    .google-btn .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid currentColor;
-      border-top-color: transparent;
-      border-radius: 50%;
-      animation: spin 0.65s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  `],
 })
 export class BeauticianRegisterComponent implements OnInit {
   form!: FormGroup;
   loading = false;
-  googleLoading = false;
   submitted = false;
   showPwd = false;
+
+  // ── Google signup "tell us about your business" popup ──────────────────
+  // Shown once, right when they tap "Sign up with Google", before Google's
+  // own prompt appears. All fields optional — "Skip for now" proceeds with
+  // defaults, same as leaving these blank on the normal form below.
+  showGoogleDetailsModal = false;
+  googleDetails = {
+    worksOnCampus: false,
+    campusName: '',
+    hostelName: '',
+    residencyStatus: '',
+    employmentType: '',
+    offersHomeService: false,
+  };
 
   benefits = [
     'Professional profile to showcase your work',
@@ -292,24 +343,95 @@ export class BeauticianRegisterComponent implements OnInit {
           g.get('password')?.value === g.get('confirmPassword')?.value ? null : { mismatch: true }
       }
     );
+
+    // Initialize Google SDK for this page specifically — the callback
+    // must know this is a BEAUTICIAN signup, which the shared
+    // login/register pages' Google buttons never did.
+    const google = (window as any).google;
+    if (google) {
+      google.accounts.id.initialize({
+        client_id: environment.googleClientId,
+        callback: (response: any) => this.handleGoogleCredential(response),
+      });
+    }
   }
 
-  // ── Google Sign-Up ──
-  // Redirects straight to the OAuth consent screen, explicitly requesting
-  // the BEAUTICIAN role (round-tripped through the `state` param) so the
-  // account isn't created as a CUSTOMER by default.
+  openGoogleDetailsModal(): void {
+    this.showGoogleDetailsModal = true;
+  }
+
+  skipGoogleDetails(): void {
+    this.googleDetails = {
+      worksOnCampus: false,
+      campusName: '',
+      hostelName: '',
+      residencyStatus: '',
+      employmentType: '',
+      offersHomeService: false,
+    };
+    this.continueWithGoogle();
+  }
+
+  continueWithGoogle(): void {
+    this.showGoogleDetailsModal = false;
+    this.onGoogleSignIn();
+  }
+
   onGoogleSignIn(): void {
-    if (this.googleLoading) return;
-    this.googleLoading = true;
-    this.auth.getGoogleAuthUrl('BEAUTICIAN').subscribe({
-      next: (res) => {
-        window.location.href = res.url;
-      },
-      error: () => {
-        this.googleLoading = false;
-        this.toast.error('Google Sign-In is not available right now.');
-      },
+    const google = (window as any).google;
+    if (!google) {
+      this.toast.error('Google Sign-In is not available.');
+      return;
+    }
+    google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        google.accounts.id.cancel();
+        // One Tap blocked/dismissed — fall back to a full redirect,
+        // explicitly requesting the BEAUTICIAN role so the account isn't
+        // created as a CUSTOMER by default. Note: the categorization
+        // details collected in the popup above can't survive this
+        // particular round trip (Google's redirect only carries `state`
+        // back to our backend, not arbitrary form data) — they can still
+        // fill these in afterwards from their profile.
+        this.auth.getGoogleAuthUrl('BEAUTICIAN').subscribe({
+          next: (res) => {
+            window.location.href = res.url;
+          },
+          error: () => {
+            this.toast.error('Google Sign-In is not available right now.');
+          },
+        });
+      }
     });
+  }
+
+  private handleGoogleCredential(response: { credential: string }): void {
+    this.loading = true;
+    const { worksOnCampus, campusName, hostelName, residencyStatus, employmentType, offersHomeService } =
+      this.googleDetails;
+
+    this.auth
+      .googleSignIn(response.credential, 'BEAUTICIAN', {
+        worksOnCampus: !!worksOnCampus,
+        campusName: worksOnCampus && campusName ? campusName : undefined,
+        hostelName: worksOnCampus && hostelName ? hostelName : undefined,
+        residencyStatus: worksOnCampus && residencyStatus ? (residencyStatus as any) : undefined,
+        employmentType: !worksOnCampus && employmentType ? (employmentType as any) : undefined,
+        offersHomeService: !!offersHomeService,
+      })
+      .subscribe({
+        next: (res: any) => {
+          const isNewUser = res?.data?.isNewUser ?? res?.isNewUser;
+          this.toast.success(
+            isNewUser ? 'Welcome to Bigluxx!' : 'You already have an account — signed you in.',
+          );
+          this.router.navigate([this.auth.getDashboardRoute()]);
+        },
+        error: (err) => {
+          this.loading = false;
+          this.toast.error(err?.error?.message || 'Google sign-up failed');
+        },
+      });
   }
 
   get f() { return this.form.controls; }
@@ -348,3 +470,5 @@ export class BeauticianRegisterComponent implements OnInit {
     });
   }
 }
+
+

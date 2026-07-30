@@ -12,6 +12,8 @@ import { AuthService } from "../../../core/services/auth.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { ThemeService } from "../../../core/services/theme.service";
 import { environment } from "@environments/environment";
+import { firstValueFrom } from "rxjs";
+import { startAuthentication } from "@simplewebauthn/browser";
 
 @Component({
   selector: "app-login",
@@ -336,6 +338,17 @@ import { environment } from "@environments/environment";
               class="google-icon"
             />
             <span>Continue with Google</span>
+          </button>
+
+          <!-- Passkey Sign-In -->
+          <button
+            type="button"
+            (click)="signInWithPasskey()"
+            class="google-btn mt-2"
+            [disabled]="passkeyLoading"
+          >
+            <i class="ri-fingerprint-line text-lg" style="color: var(--color-primary)"></i>
+            <span>{{ passkeyLoading ? 'Waiting for passkey…' : 'Sign in with a passkey' }}</span>
           </button>
 
           <!-- Footer links -->
@@ -924,6 +937,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = false;
   submitted = false;
   showPassword = false;
+  passkeyLoading = false;
 
   private rafId: number | null = null;
   private cols: { el: HTMLElement; speed: number; y: number; dir: number }[] =
@@ -1056,6 +1070,38 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
         this.toast.error(err?.error?.message || "Google sign-in failed");
       },
     });
+  }
+
+  async signInWithPasskey(): Promise<void> {
+    this.passkeyLoading = true;
+    try {
+      // No email passed — lets the browser show any discoverable passkey
+      // for this site rather than asking who's signing in first.
+      const { options, challengeId } = await firstValueFrom(
+        this.auth.getPasskeyAuthOptions(),
+      );
+
+      const authResp = await startAuthentication({ optionsJSON: options });
+
+      const res: any = await firstValueFrom(
+        this.auth.verifyPasskeyAuthentication(challengeId, authResp),
+      );
+
+      this.toast.success("Welcome back!");
+      this.router.navigate([this.auth.getDashboardRoute()]);
+    } catch (err: any) {
+      if (err?.name === "NotAllowedError") {
+        // User cancelled the prompt — nothing to show.
+      } else if (err?.name === "InvalidStateError" || err?.status === 400) {
+        this.toast.error(
+          err?.error?.message || "No passkey found for this device. Try signing in with your password instead.",
+        );
+      } else {
+        this.toast.error(err?.error?.message || "Passkey sign-in failed");
+      }
+    } finally {
+      this.passkeyLoading = false;
+    }
   }
 }
 

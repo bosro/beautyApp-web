@@ -316,6 +316,10 @@ export class NotificationPreferencesComponent implements OnInit {
         },
       ],
     },
+    /* Payments section commented out for now — no payment/payout
+       implementation yet. The backend still has these preference fields
+       (paymentReceived, payoutProcessed) ready to go; uncomment this block
+       once payments ship.
     {
       label: "Payments",
       events: [
@@ -333,6 +337,7 @@ export class NotificationPreferencesComponent implements OnInit {
         },
       ],
     },
+    */
     {
       label: "Account",
       events: [

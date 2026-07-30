@@ -6,7 +6,11 @@
 // cookies). In that case we send the user to Google's full consent screen
 // with a redirect_uri that points at OUR BACKEND (/auth/google/callback).
 // The backend exchanges the code for tokens and redirects here with the
-// tokens (and whether this was a new signup) in the query string.
+// tokens (and whether this was a new signup) in the query string — or, if
+// something went wrong (including the cross-provider guard: this email is
+// already registered with a password), redirects to /auth/google/error
+// with an error code + message instead. Both routes point at this same
+// component; ngOnInit branches on which query params are present.
 //
 // This page's only job is to pick those up, fetch the user's profile, and
 // store the session — then route to the right dashboard.
@@ -38,6 +42,27 @@ export class GoogleSuccessComponent implements OnInit {
 
   ngOnInit(): void {
     const params = this.route.snapshot.queryParamMap;
+
+    // ── Error path (e.g. /auth/google/error?error=account_exists_with_password&message=...) ──
+    const error = params.get('error');
+    if (error) {
+      const message =
+        params.get('message') ||
+        'Google sign-in failed. Please try again.';
+
+      if (error === 'account_exists_with_password') {
+        // Give them a clear, actionable message and send them to login
+        // with their email pre-filled isn't possible here (we don't have
+        // it), but the toast explains exactly what to do next.
+        this.toast.error(message, 6000);
+      } else {
+        this.toast.error(message);
+      }
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    // ── Success path ──
     const accessToken = params.get('accessToken');
     const refreshToken = params.get('refreshToken');
     const isNewUser = params.get('isNewUser') === 'true';

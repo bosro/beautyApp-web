@@ -26,6 +26,7 @@ const routes: Routes = [
       { path: 'beautician-register', component: BeauticianRegisterComponent },
       { path: 'beautician-verify', component: BeauticianVerificationComponent },
       { path: 'google/success', component: GoogleSuccessComponent },
+      { path: 'google/error', component: GoogleSuccessComponent },
     ],
   },
 ];
