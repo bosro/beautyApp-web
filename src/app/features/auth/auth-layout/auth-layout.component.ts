@@ -12,21 +12,15 @@ import { filter } from 'rxjs/operators';
   selector: 'app-auth-layout',
   template: `
     <div
-      class="flex"
-      [class.h-screen]="isLoginRoute"
-      [class.overflow-hidden]="isLoginRoute"
-      [class.min-h-screen]="!isLoginRoute"
+      class="flex h-screen overflow-hidden"
       style="background-color: var(--color-background)"
     >
       <!-- RIGHT / FULL-WIDTH PANEL -->
-      <div
-        class="flex-1 flex flex-col min-w-0"
-        [class.min-h-0]="isLoginRoute"
-      >
+      <div class="flex-1 flex flex-col min-w-0 min-h-0">
 
         <!-- Top bar — only on non-login routes -->
         <ng-container *ngIf="!isLoginRoute">
-          <div class="flex items-center justify-between px-6 pt-6 lg:justify-end lg:px-10 lg:pt-8">
+          <div class="flex items-center justify-between px-6 pt-6 lg:justify-end lg:px-10 lg:pt-8 flex-shrink-0">
             <div class="flex items-center gap-2 lg:hidden">
               <img src="assets/images/logo.png" alt="Bigluxx" class="logo-light h-8 w-auto object-contain" />
               <img src="assets/images/logo-dark.png" alt="Bigluxx" class="logo-dark h-8 w-auto object-contain" />
@@ -50,9 +44,9 @@ import { filter } from 'rxjs/operators';
         <div
           [class]="isLoginRoute
             ? 'flex-1 flex items-center justify-center min-h-0 p-0 overflow-hidden'
-            : 'flex-1 flex items-start justify-center overflow-y-auto px-6 py-8 lg:px-12 xl:px-16'"
+            : 'flex-1 min-h-0 overflow-y-auto px-6 py-8 lg:px-12 xl:px-16'"
         >
-          <div [ngClass]="isLoginRoute ? 'w-full h-full' : 'w-full max-w-md'">
+          <div [ngClass]="isLoginRoute ? 'w-full h-full' : 'w-full max-w-md mx-auto'">
             <router-outlet></router-outlet>
           </div>
         </div>
@@ -67,7 +61,7 @@ export class AuthLayoutComponent implements OnInit {
   constructor(
     public themeService: ThemeService,
     private router: Router,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.checkRoute(this.router.url);

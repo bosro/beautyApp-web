@@ -288,6 +288,27 @@ import { environment } from '@environments/environment';
       </div>
     </div>
   `,
+  styles: [`
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: var(--color-bg-secondary);
+      border: 1.5px solid var(--color-border-light);
+      border-radius: 50px;
+      padding: 13px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .google-btn:hover {
+      border-color: var(--color-primary);
+      background: var(--color-bg-primary);
+    }
+  `],
 })
 export class BeauticianRegisterComponent implements OnInit {
   form!: FormGroup;
