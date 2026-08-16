@@ -1,11 +1,4 @@
 // public-home.component.ts
-//
-// Public landing page — no auth required. Lets a visitor get a feel for
-// the app (browse categories, see real salons) before committing to an
-// account. Any action that actually requires a session (booking,
-// favoriting, messaging, viewing full contact details) is gated behind
-// login via requireAuth(), which sends them to /auth/login with a toast
-// explaining why, and remembers where to send them back afterward.
 
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
@@ -37,7 +30,7 @@ interface PublicCategory {
 @Component({
   selector: 'app-public-home',
   template: `
-    <div style="background-color: var(--color-background); min-height: 100vh;">
+    <div class="public-home-root">
       <!-- Header -->
       <header
         class="sticky top-0 z-20 flex items-center justify-between px-4 lg:px-8 py-3"
@@ -93,7 +86,7 @@ interface PublicCategory {
       </section>
 
       <!-- Featured salons -->
-      <section class="px-4 lg:px-8 pb-24">
+      <section class="px-4 lg:px-8 pb-28">
         <h2 class="text-lg font-bold mb-3" style="color: var(--color-text-primary)">
           Popular right now
         </h2>
@@ -164,6 +157,18 @@ interface PublicCategory {
       </div>
     </div>
   `,
+  styles: [`
+    /* Own scroll container — independent of whatever html/body overflow
+       rules other routes (e.g. the auth layout) may set globally. */
+    .public-home-root {
+      display: block;
+      height: 100vh;
+      height: 100dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background-color: var(--color-background);
+    }
+  `],
 })
 export class PublicHomeComponent implements OnInit {
   salons: PublicSalon[] = [];
@@ -175,7 +180,7 @@ export class PublicHomeComponent implements OnInit {
     public router: Router,
     private toast: ToastService,
     public auth: AuthService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // Wait for AuthService to finish hydrating (including any silent
