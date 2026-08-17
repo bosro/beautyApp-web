@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Block authenticated / gated app areas from indexing
+Disallow: /auth/
+Disallow: /client/
+Disallow: /beautician/
+Disallow: /settings/
+
+# Explicitly allow public marketing + salon profile pages
+Allow: /
+Allow: /salon/
+
+Sitemap: https://bigluxx.com/sitemap.xml

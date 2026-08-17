@@ -127,14 +127,35 @@ export class NewPasswordComponent implements OnInit {
     this.loading = true;
 
     const { otp, password } = this.form.value;
-    this.auth.resetPassword(this.email, otp, password).subscribe({
-      next: () => {
-        this.toast.success('Password reset successfully!');
-        this.router.navigate(['/auth/login']);
+
+    // The backend's /reset-password expects a short-lived resetToken that is
+    // only minted by /verify-reset-otp — it does NOT accept the raw OTP.
+    // Previously this component skipped straight to resetPassword() with the
+    // raw otp value, which the backend compares against a token that was
+    // never issued, so it always came back 401 Unauthorized. Verify the OTP
+    // first, then use the resetToken it returns.
+    this.auth.verifyResetOTP(this.email, otp).subscribe({
+      next: (res: any) => {
+        const resetToken = res?.resetToken ?? res?.data?.resetToken;
+        if (!resetToken) {
+          this.loading = false;
+          this.toast.error('Could not verify code. Please try again.');
+          return;
+        }
+        this.auth.resetPassword(this.email, resetToken, password).subscribe({
+          next: () => {
+            this.toast.success('Password reset successfully!');
+            this.router.navigate(['/auth/login']);
+          },
+          error: (err) => {
+            this.loading = false;
+            this.toast.error(err?.error?.message || 'Failed to reset password');
+          },
+        });
       },
       error: (err) => {
         this.loading = false;
-        this.toast.error(err?.error?.message || 'Failed to reset password');
+        this.toast.error(err?.error?.message || 'Invalid or expired code');
       },
     });
   }
