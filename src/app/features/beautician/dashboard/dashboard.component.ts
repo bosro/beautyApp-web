@@ -243,7 +243,7 @@ type Period = "today" | "week" | "month";
                 </div>
               </div>
 
-              <!-- Big number -->
+              [Section: Big number]
               <div class="chart-hero">
                 <span class="chart-hero__currency">GH₵</span>
                 <span class="chart-hero__amount">{{
@@ -265,12 +265,12 @@ type Period = "today" | "week" | "month";
                 </span>
               </div>
 
-              <!-- Canvas chart -->
+              [Section: Canvas chart]
               <div class="chart-canvas-wrap">
                 <canvas #chartCanvas class="chart-canvas"></canvas>
               </div>
 
-              <!-- Day labels -->
+              [Section: Day labels]
               <div class="chart-labels">
                 <span *ngFor="let d of chartDayLabels" class="chart-label">{{
                   d
