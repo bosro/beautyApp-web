@@ -9,6 +9,7 @@ import { SpinnerComponent } from "./components/spinner/spinner.component";
 import { StarRatingComponent } from "./components/star-rating/star-rating.component";
 import { EmptyStateComponent } from "./components/empty-state/empty-state.component";
 import { AiUpgradePromptComponent } from './components/ai-upgrade-prompt/ai-upgrade-prompt.component';
+import { ConnectivityBannerComponent } from './components/connectivity-banner/connectivity-banner.component';
 
 
 
@@ -21,6 +22,7 @@ import { AiUpgradePromptComponent } from './components/ai-upgrade-prompt/ai-upgr
     StarRatingComponent,
     EmptyStateComponent,
     AiUpgradePromptComponent,
+    ConnectivityBannerComponent,
   ],
   imports: [
     CommonModule,
@@ -38,7 +40,8 @@ import { AiUpgradePromptComponent } from './components/ai-upgrade-prompt/ai-upgr
     SpinnerComponent,
     StarRatingComponent,
     EmptyStateComponent,
-    AiUpgradePromptComponent
+    AiUpgradePromptComponent,
+    ConnectivityBannerComponent
   ],
 })
 export class SharedModule {}

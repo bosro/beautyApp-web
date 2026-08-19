@@ -52,6 +52,7 @@ export const routeAnimations = trigger("routeAnimations", [
     <div [@routeAnimations]="getRouteState(outlet)" class="min-h-screen">
       <router-outlet #outlet="outlet"></router-outlet>
     </div>
+    <app-connectivity-banner></app-connectivity-banner>
     <app-toast></app-toast>
   `,
   animations: [routeAnimations],

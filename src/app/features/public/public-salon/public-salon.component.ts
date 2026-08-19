@@ -6,9 +6,10 @@
 // which sends the visitor to login with a clear reason and brings them
 // back here afterward via returnUrl.
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { Meta, Title } from '@angular/platform-browser';
 import { environment } from '../../../../environments/environment';
 import { ToastService } from '../../../core/services/toast.service';
 
@@ -104,15 +105,18 @@ import { ToastService } from '../../../core/services/toast.service';
     </div>
   `,
 })
-export class PublicSalonComponent implements OnInit {
+export class PublicSalonComponent implements OnInit, OnDestroy {
   salon: any = null;
   loading = true;
+  private jsonLdScript?: HTMLScriptElement;
 
   constructor(
     private route: ActivatedRoute,
     public router: Router,
     private http: HttpClient,
     private toast: ToastService,
+    private titleService: Title,
+    private metaService: Meta,
   ) {}
 
   ngOnInit(): void {
@@ -125,11 +129,110 @@ export class PublicSalonComponent implements OnInit {
       next: (res) => {
         this.salon = res?.data?.beautician || res?.data || null;
         this.loading = false;
+        if (this.salon) this.setSeoTags(this.salon);
       },
       error: () => {
         this.loading = false;
       },
     });
+  }
+
+  ngOnDestroy(): void {
+    // Reset to the site-wide defaults from index.html so navigating away
+    // (e.g. back to the public home) doesn't leave a stale salon title/meta
+    // behind on a page that never sets its own.
+    this.titleService.setTitle(
+      "Bigluxx — Discover, Book, and Experience Luxury Beauty in Ghana",
+    );
+    this.metaService.updateTag({
+      name: 'description',
+      content:
+        "Bigluxx connects you with Ghana's top-rated hair, nail, spa and makeup professionals. Browse verified beauticians, compare reviews, and book your next appointment in minutes.",
+    });
+    this.jsonLdScript?.remove();
+  }
+
+  private setSeoTags(salon: any): void {
+    const name = salon.businessName || 'Beauty professional';
+    const location = [salon.city, salon.region].filter(Boolean).join(', ');
+    const category = salon.businessCategory || 'Beauty services';
+    const description = salon.bio
+      ? this.truncate(salon.bio, 155)
+      : `Book ${name} on Bigluxx — ${category}${location ? ` in ${location}` : ''}. Compare reviews and book your appointment in minutes.`;
+    const image =
+      salon.profileImage ||
+      salon.coverImage ||
+      `${this.siteUrl()}/assets/icons/icon-512x512.png`;
+    const pageTitle = `${name} — ${category}${location ? ` in ${location}` : ''} | Bigluxx`;
+    const pageUrl = `${this.siteUrl()}${this.router.url}`;
+
+    this.titleService.setTitle(pageTitle);
+    this.metaService.updateTag({ name: 'description', content: description });
+    this.metaService.updateTag({ property: 'og:type', content: 'business.business' });
+    this.metaService.updateTag({ property: 'og:title', content: pageTitle });
+    this.metaService.updateTag({ property: 'og:description', content: description });
+    this.metaService.updateTag({ property: 'og:image', content: image });
+    this.metaService.updateTag({ property: 'og:url', content: pageUrl });
+    this.metaService.updateTag({ name: 'twitter:title', content: pageTitle });
+    this.metaService.updateTag({ name: 'twitter:description', content: description });
+    this.metaService.updateTag({ name: 'twitter:image', content: image });
+
+    this.injectJsonLd(salon, name, description, image, pageUrl);
+  }
+
+  /** Structured data so search engines can render a rich result (name,
+   * rating, address) for this salon directly in search — this only helps
+   * crawlers that execute JS (Googlebot does); it doesn't affect what
+   * link-preview scrapers like WhatsApp/Facebook show, since those read the
+   * raw HTML without running JS. A proper fix for social-preview cards
+   * would need server-side rendering or prerendering per salon, which is a
+   * bigger change than this component can do on its own. */
+  private injectJsonLd(
+    salon: any,
+    name: string,
+    description: string,
+    image: string,
+    pageUrl: string,
+  ): void {
+    this.jsonLdScript?.remove();
+
+    const data: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      name,
+      description,
+      image,
+      url: pageUrl,
+    };
+    if (salon.city || salon.region) {
+      data['address'] = {
+        '@type': 'PostalAddress',
+        addressLocality: salon.city,
+        addressRegion: salon.region,
+        addressCountry: 'GH',
+      };
+    }
+    if (salon.rating) {
+      data['aggregateRating'] = {
+        '@type': 'AggregateRating',
+        ratingValue: salon.rating,
+        reviewCount: salon.totalReviews || 0,
+      };
+    }
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify(data);
+    document.head.appendChild(script);
+    this.jsonLdScript = script;
+  }
+
+  private truncate(text: string, max: number): string {
+    return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
+  }
+
+  private siteUrl(): string {
+    return typeof window !== 'undefined' ? window.location.origin : 'https://bigluxx.com';
   }
 
   requireAuth(): void {
