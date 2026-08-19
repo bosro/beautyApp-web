@@ -300,12 +300,13 @@ type DocKey = "ghana_card_front" | "ghana_card_back" | "selfie_with_id";
               ></i>
               Ghana Card — both front and back clearly visible
             </li>
-            <li class="flex items-start gap-2">
+            <!-- Selfie requirement disabled for now, matches steps array above -->
+            <!-- <li class="flex items-start gap-2">
               <i
                 class="ri-checkbox-circle-line mt-0.5 flex-shrink-0 text-sm"
               ></i>
               Selfie holding your Ghana Card next to your face
-            </li>
+            </li> -->
             <li class="flex items-start gap-2">
               <i
                 class="ri-checkbox-circle-line mt-0.5 flex-shrink-0 text-sm"
@@ -372,12 +373,14 @@ export class BeauticianVerificationComponent implements OnInit {
       shortLabel: "Back",
       hint: "Clear photo of the back of your Ghana National ID",
     },
-    {
-      docType: "selfie_with_id",
-      label: "Selfie with Ghana Card",
-      shortLabel: "Selfie",
-      hint: "Hold your Ghana Card next to your face clearly",
-    },
+    // Selfie step disabled for now — optional on the backend, so it's
+    // commented out here rather than deleted. Uncomment to bring it back.
+    // {
+    //   docType: "selfie_with_id",
+    //   label: "Selfie with Ghana Card",
+    //   shortLabel: "Selfie",
+    //   hint: "Hold your Ghana Card next to your face clearly",
+    // },
   ];
 
   constructor(

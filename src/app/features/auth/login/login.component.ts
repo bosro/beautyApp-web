@@ -1091,7 +1091,15 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       this.router.navigate([this.auth.getDashboardRoute()]);
     } catch (err: any) {
       if (err?.name === "NotAllowedError") {
-        // User cancelled the prompt — nothing to show.
+        // The browser throws this both when the user manually cancels the
+        // prompt AND when there's no matching passkey on this device at all
+        // (e.g. someone without an account, or on a new browser/device) —
+        // there's no way to tell these apart from the error alone. A soft,
+        // non-alarming nudge covers both cases without being annoying to
+        // someone who just changed their mind.
+        this.toast.info(
+          "No passkey found. Sign in with your email and password, or create an account if you're new here.",
+        );
       } else if (err?.name === "InvalidStateError" || err?.status === 400) {
         this.toast.error(
           err?.error?.message || "No passkey found for this device. Try signing in with your password instead.",

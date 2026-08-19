@@ -93,7 +93,7 @@ type Period = "today" | "week" | "month";
           </h3>
           <p class="text-sm mt-2 leading-relaxed" style="color: var(--color-text-secondary)">
             Before clients can find and book you, we need to verify your identity.
-            Upload your Ghana Card and a quick selfie — it only takes a couple of minutes,
+            Upload your Ghana Card — it only takes a couple of minutes,
             and our team will review it shortly after.
           </p>
           <div class="flex flex-col gap-2 mt-5">
@@ -224,7 +224,7 @@ type Period = "today" | "week" | "month";
           <div class="dash-col-main">
             <!-- ════════════════════════════════
                  EARNINGS & BOOKINGS CHART CARD
-            ════════════════════════════════ -->
+        
             <div class="chart-card">
               <div class="chart-card__header">
                 <div>
@@ -277,6 +277,7 @@ type Period = "today" | "week" | "month";
                 }}</span>
               </div>
             </div>
+            -->
 
             <!-- ════════════════════════════════
                  TODAY'S SCHEDULE
@@ -1209,8 +1210,7 @@ type Period = "today" | "week" | "month";
   ],
 })
 export class BeauticianDashboardComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("chartCanvas") chartCanvasRef!: ElementRef<HTMLCanvasElement>;
 
   stats: any = null;
@@ -1265,7 +1265,7 @@ export class BeauticianDashboardComponent
     private auth: AuthService,
     private toast: ToastService,
     private ngZone: NgZone,
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.auth.user$.subscribe((u) => {
@@ -1498,7 +1498,7 @@ export class BeauticianDashboardComponent
         this.verificationStatus = res?.data?.verificationStatus ?? null;
         this.maybeShowFirstVerificationModal();
       },
-      error: () => {},
+      error: () => { },
     });
   }
 
