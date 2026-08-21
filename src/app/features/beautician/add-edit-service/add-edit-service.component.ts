@@ -290,6 +290,87 @@ import { ToastService } from "@core/services/toast.service";
           </label>
         </div>
 
+        <!-- Sub-options / pricing types — e.g. Lash Lift: Classic / Hybrid /
+             Volume, each its own price. Entirely optional; only shown once
+             the service has been saved, since variants belong to a real
+             service id. -->
+        <div *ngIf="isEdit" class="card rounded-2xl p-5 space-y-3">
+          <div>
+            <h3
+              class="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider opacity-60"
+            >
+              Sub-options (optional)
+            </h3>
+            <p class="text-xs text-[var(--color-text-muted)] mt-1">
+              Add different types or tiers of this service, each with its own price — e.g. "Classic", "Hybrid", "Volume".
+            </p>
+          </div>
+
+          <div *ngIf="loadingVariants" class="space-y-2">
+            <div class="skeleton h-12 rounded-xl"></div>
+          </div>
+
+          <div *ngIf="!loadingVariants && variants.length > 0" class="space-y-2">
+            <div
+              *ngFor="let v of variants"
+              class="flex items-center justify-between gap-2 p-3 rounded-xl bg-[var(--color-background)] border border-[var(--color-border)]"
+            >
+              <div class="min-w-0">
+                <p class="text-sm font-semibold text-[var(--color-text-primary)] truncate">
+                  {{ v.name }}
+                </p>
+                <p class="text-xs text-[var(--color-text-muted)]">
+                  GH₵ {{ v.price | number: "1.2-2" }}
+                  <span *ngIf="v.durationMinutes"> · {{ v.durationMinutes }} mins</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                (click)="removeVariant(v)"
+                class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 transition-colors flex-shrink-0"
+                title="Remove"
+              >
+                <i class="ri-delete-bin-line text-red-500 text-sm"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Add-variant mini form -->
+          <div class="flex items-end gap-2 pt-1">
+            <div class="flex-1 min-w-0">
+              <label class="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1">Name</label>
+              <input
+                [(ngModel)]="newVariantName"
+                [ngModelOptions]="{ standalone: true }"
+                type="text"
+                placeholder="e.g. Hybrid"
+                class="form-input rounded-xl text-sm"
+              />
+            </div>
+            <div class="w-28 flex-shrink-0">
+              <label class="block text-xs font-semibold text-[var(--color-text-secondary)] mb-1">Price (GH₵)</label>
+              <input
+                [(ngModel)]="newVariantPrice"
+                [ngModelOptions]="{ standalone: true }"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                class="form-input rounded-xl text-sm"
+              />
+            </div>
+            <button
+              type="button"
+              (click)="addVariant()"
+              [disabled]="addingVariant || !newVariantName || !newVariantPrice"
+              class="btn-primary text-sm px-3 py-2.5 rounded-xl flex-shrink-0 disabled:opacity-50"
+            >
+              <i class="ri-add-line" *ngIf="!addingVariant"></i>
+              <i class="ri-loader-4-line animate-spin" *ngIf="addingVariant"></i>
+            </button>
+          </div>
+        </div>
+
         <!-- Submit — in flow -->
         <div class="pt-2 pb-6">
           <button
@@ -321,6 +402,13 @@ export class AddEditServiceComponent implements OnInit {
   saving = false;
   selectedFile: File | null = null;
   previewUrl: string | null = null;
+
+  // Sub-options (variants)
+  variants: any[] = [];
+  loadingVariants = false;
+  addingVariant = false;
+  newVariantName = "";
+  newVariantPrice: number | null = null;
 
   categoryTabs = [
     { label: "Hair", value: "hair" },
@@ -383,10 +471,60 @@ export class AddEditServiceComponent implements OnInit {
             });
             this.previewUrl = s.image || null;
             this.loadingService = false;
+            this.variants = s.variants || [];
           },
           error: () => (this.loadingService = false),
         });
     }
+  }
+
+  loadVariants() {
+    if (!this.serviceId) return;
+    this.loadingVariants = true;
+    this.http
+      .get<any>(`${environment.apiUrl}/services/${this.serviceId}/variants`)
+      .subscribe({
+        next: (res) => {
+          this.variants = res.data?.variants || [];
+          this.loadingVariants = false;
+        },
+        error: () => (this.loadingVariants = false),
+      });
+  }
+
+  addVariant() {
+    if (!this.serviceId || !this.newVariantName || !this.newVariantPrice) return;
+    this.addingVariant = true;
+    this.http
+      .post<any>(`${environment.apiUrl}/services/${this.serviceId}/variants`, {
+        name: this.newVariantName,
+        price: Number(this.newVariantPrice),
+      })
+      .subscribe({
+        next: (res) => {
+          this.variants = [...this.variants, res.data.variant];
+          this.newVariantName = "";
+          this.newVariantPrice = null;
+          this.addingVariant = false;
+          this.toast.success("Sub-option added");
+        },
+        error: (err) => {
+          this.addingVariant = false;
+          this.toast.error(err.error?.message || "Failed to add sub-option");
+        },
+      });
+  }
+
+  removeVariant(v: any) {
+    this.http
+      .delete(`${environment.apiUrl}/services/variants/${v.id}`)
+      .subscribe({
+        next: () => {
+          this.variants = this.variants.filter((x) => x.id !== v.id);
+          this.toast.success("Sub-option removed");
+        },
+        error: () => this.toast.error("Failed to remove sub-option"),
+      });
   }
 
   toggle(field: string) {
@@ -427,20 +565,21 @@ export class AddEditServiceComponent implements OnInit {
     req.subscribe({
       next: (res) => {
         const serviceId = res.data?.service?.id || this.serviceId;
+        const wasCreate = !this.isEdit;
         if (this.selectedFile && serviceId) {
           const fd = new FormData();
           fd.append("image", this.selectedFile);
           this.http
             .post(`${environment.apiUrl}/services/${serviceId}/image`, fd)
             .subscribe({
-              next: () => this.finishSave(),
+              next: () => this.finishSave(serviceId, wasCreate),
               error: () => {
                 this.toast.error("Service saved but image upload failed");
-                this.finishSave();
+                this.finishSave(serviceId, wasCreate);
               },
             });
         } else {
-          this.finishSave();
+          this.finishSave(serviceId, wasCreate);
         }
       },
       error: (err) => {
@@ -450,10 +589,17 @@ export class AddEditServiceComponent implements OnInit {
     });
   }
 
-  private finishSave() {
+  private finishSave(serviceId?: string, wasCreate?: boolean) {
     this.saving = false;
     this.toast.success(this.isEdit ? "Service updated!" : "Service added!");
-    this.router.navigate(["/beautician/services"]);
+    // After creating a brand-new service, drop straight into its edit page
+    // (instead of back to the list) so sub-options can be added right away
+    // without an extra click to find and reopen it.
+    if (wasCreate && serviceId) {
+      this.router.navigate(["/beautician/services/edit", serviceId]);
+    } else {
+      this.router.navigate(["/beautician/services"]);
+    }
   }
 
   goBack() {

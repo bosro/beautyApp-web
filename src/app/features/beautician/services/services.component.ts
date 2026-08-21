@@ -164,9 +164,16 @@ import { ToastService } from "@core/services/toast.service";
 
           <!-- Details row: price + bookings -->
           <div class="flex items-center gap-4 mb-3 text-xs text-[var(--color-text-secondary)]">
-            <span class="flex items-center gap-1">
+            <span class="flex items-center gap-1" *ngIf="!service.variants?.length">
               <i class="ri-money-dollar-circle-line text-[var(--color-primary)]"></i>
               <span class="font-bold text-[var(--color-primary)] text-sm">GH₵ {{ service.price | number: "1.2-2" }}</span>
+            </span>
+            <span class="flex items-center gap-1" *ngIf="service.variants?.length">
+              <i class="ri-money-dollar-circle-line text-[var(--color-primary)]"></i>
+              <span class="font-bold text-[var(--color-primary)] text-sm">
+                GH₵ {{ minVariantPrice(service) | number: "1.2-2" }} – {{ maxVariantPrice(service) | number: "1.2-2" }}
+              </span>
+              <span class="text-[var(--color-text-muted)]">({{ service.variants.length }} options)</span>
             </span>
             <span *ngIf="service.totalBookings !== undefined" class="flex items-center gap-1">
               <i class="ri-calendar-check-line text-[var(--color-primary)]"></i>
@@ -250,6 +257,14 @@ export class BeauticianServicesComponent implements OnInit {
       (sum, s) => sum + (s.totalBookings ?? s.bookingCount ?? 0),
       0,
     );
+  }
+
+  minVariantPrice(service: any): number {
+    return Math.min(...service.variants.map((v: any) => v.price));
+  }
+
+  maxVariantPrice(service: any): number {
+    return Math.max(...service.variants.map((v: any) => v.price));
   }
 
   constructor(

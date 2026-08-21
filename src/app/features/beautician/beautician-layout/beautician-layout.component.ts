@@ -463,6 +463,13 @@ export class BeauticianLayoutComponent implements OnInit, OnDestroy {
       badge: null as string | null,
     },
     {
+      path: "/beautician/gallery",
+      label: "Gallery",
+      icon: "ri-gallery-line",
+      activeIcon: "ri-gallery-fill",
+      badge: null as string | null,
+    },
+    {
       path: "/beautician/clients",
       label: "Clients",
       icon: "ri-group-line",

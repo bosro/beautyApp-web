@@ -68,6 +68,16 @@ export interface BeauticianProfile {
 }
 
 // ========== Service ==========
+export interface ServiceVariant {
+  id: string;
+  serviceId: string;
+  name: string;
+  price: number;
+  durationMinutes?: number;
+  isActive: boolean;
+  order: number;
+}
+
 export interface BeautyService {
   id: string;
   beauticianId: string;
@@ -83,6 +93,7 @@ export interface BeautyService {
   totalBookings: number;
   createdAt: string;
   updatedAt: string;
+  variants?: ServiceVariant[];
   beautician?: {
     id: string;
     businessName: string;

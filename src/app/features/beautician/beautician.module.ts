@@ -23,6 +23,7 @@ import { BeauticianSettingsComponent } from "./beautician-settings/beautician-se
 import { NotificationsComponent } from "./notifications/notifications.component";
 import { ManageProductsComponent } from "./manage-products/manage-products.component";
 import { ManageCoursesComponent } from "./manage-courses/manage-courses.component";
+import { BeauticianGalleryComponent } from "./gallery/gallery.component";
 
 const routes: Routes = [
   {
@@ -42,6 +43,7 @@ const routes: Routes = [
       { path: "verification", component: BeauticianVerificationComponent },
       { path: "products", component: ManageProductsComponent },
       { path: "courses", component: ManageCoursesComponent },
+      { path: "gallery", component: BeauticianGalleryComponent },
       { path: "privacy-policy", component: PrivacyPolicyComponent },
       { path: "terms", component: TermsConditionsComponent },
       { path: "support", component: CustomerServiceComponent },
@@ -78,6 +80,7 @@ const routes: Routes = [
     NotificationsComponent,
     ManageProductsComponent,
     ManageCoursesComponent,
+    BeauticianGalleryComponent,
   ],
   imports: [SharedModule, RouterModule.forChild(routes)],
 })

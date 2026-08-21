@@ -71,6 +71,9 @@ interface DayOption {
             style="color: var(--color-text-primary)"
           >
             {{ service.name }}
+            <span *ngIf="selectedVariant" style="color: var(--color-text-secondary)">
+              — {{ selectedVariant.name }}
+            </span>
           </p>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-1">
@@ -83,10 +86,11 @@ interface DayOption {
             </div>
             <div class="text-right">
               <p class="font-bold text-sm" style="color: var(--color-primary)">
-                GHS {{ service.price.toFixed(2) }}
+                GHS {{ effectivePrice.toFixed(2) }}
               </p>
               <p class="text-xs" style="color: var(--color-text-secondary)">
-                {{ service.duration }} mins
+                {{ selectedVariant?.durationMinutes || service.duration }}
+                <span *ngIf="selectedVariant?.durationMinutes">mins</span>
               </p>
             </div>
           </div>
@@ -515,6 +519,8 @@ interface DayOption {
 export class BookAppointmentComponent implements OnInit {
   salonId = "";
   serviceId = "";
+  variantId = "";
+  selectedVariant: any = null;
   service: any = null;
   beautician: any = null;
   loadingService = true;
@@ -562,6 +568,10 @@ export class BookAppointmentComponent implements OnInit {
     });
   }
 
+  get effectivePrice(): number {
+    return this.selectedVariant?.price ?? this.service?.price ?? 0;
+  }
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -573,6 +583,7 @@ export class BookAppointmentComponent implements OnInit {
     this.salonId = this.route.snapshot.paramMap.get("id") || "";
     this.serviceId =
       this.route.snapshot.queryParamMap.get("services")?.split(",")[0] || "";
+    this.variantId = this.route.snapshot.queryParamMap.get("variantId") || "";
     this.buildDayOptions();
     this.loadData();
     this.checkExistingBooking();
@@ -715,6 +726,10 @@ export class BookAppointmentComponent implements OnInit {
         next: (res) => {
           this.service = res?.data?.service || null;
           this.loadingService = false;
+          if (this.variantId && this.service?.variants?.length) {
+            this.selectedVariant =
+              this.service.variants.find((v: any) => v.id === this.variantId) || null;
+          }
         },
         error: () => {
           this.loadingService = false;
@@ -840,6 +855,7 @@ export class BookAppointmentComponent implements OnInit {
       .post<any>(`${environment.apiUrl}/bookings`, {
         beauticianId: this.salonId,
         serviceId: this.serviceId,
+        variantId: this.selectedVariant?.id || undefined,
         date: this.selectedDate,
         time: this.selectedTime,
         note: this.note || undefined,

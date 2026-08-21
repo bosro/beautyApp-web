@@ -14,11 +14,12 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { ToastService } from "../../../core/services/toast.service";
+import { AuthService } from "../../../core/services/auth.service";
 import { BeauticianProfile, BeautyService, Review } from "../../../core/models";
 import { environment } from "../../../../environments/environment";
 import { NgZone } from "@angular/core";
 
-type TabType = "services" | "about" | "reviews" | "products" | "courses";
+type TabType = "services" | "about" | "reviews" | "products" | "courses" | "gallery";
 
 @Component({
   selector: "app-salon-details",
@@ -211,8 +212,8 @@ type TabType = "services" | "about" | "reviews" | "products" | "courses";
 
                 <div class="px-4 lg:px-0">
                   <div class="flex flex-col gap-3">
+                    <div *ngFor="let svc of services">
                     <div
-                      *ngFor="let svc of services"
                       (click)="selectService(svc)"
                       class="relative flex items-center gap-3 rounded-2xl overflow-hidden cursor-pointer p-3"
                       [style.background-color]="
@@ -260,9 +261,23 @@ type TabType = "services" | "about" | "reviews" | "products" | "courses";
                         </div>
                         <div class="flex items-center gap-3 mt-2">
                           <span
+                            *ngIf="!hasVariants(svc)"
                             class="text-sm font-bold"
                             style="color:var(--color-primary)"
                             >GHS {{ svc.price.toFixed(2) }}</span
+                          >
+                          <span
+                            *ngIf="hasVariants(svc) && !isSelected(svc.id)"
+                            class="text-sm font-bold flex items-center gap-1"
+                            style="color:var(--color-primary)"
+                          >
+                            GHS {{ variantPriceRange(svc)!.min.toFixed(0) }}–{{ variantPriceRange(svc)!.max.toFixed(0) }}
+                          </span>
+                          <span
+                            *ngIf="hasVariants(svc) && isSelected(svc.id)"
+                            class="text-sm font-bold"
+                            style="color:var(--color-primary)"
+                            >GHS {{ effectivePrice(svc).toFixed(2) }}</span
                           >
                           <span
                             class="text-xs flex items-center gap-1"
@@ -270,6 +285,21 @@ type TabType = "services" | "about" | "reviews" | "products" | "courses";
                           >
                             <i class="ri-time-line"></i>{{ svc.duration }}
                           </span>
+                          <button
+                            *ngIf="hasVariants(svc)"
+                            (click)="toggleExpand(svc, $event)"
+                            class="ml-auto flex items-center gap-1 text-xs font-semibold flex-shrink-0"
+                            style="color:var(--color-text-secondary)"
+                          >
+                            {{ svc.variants?.length }} types
+                            <i
+                              [class]="
+                                expandedServiceId === svc.id
+                                  ? 'ri-arrow-up-s-line'
+                                  : 'ri-arrow-down-s-line'
+                              "
+                            ></i>
+                          </button>
                         </div>
                       </div>
                       <div
@@ -295,8 +325,69 @@ type TabType = "services" | "about" | "reviews" | "products" | "courses";
                         ></i>
                       </div>
                     </div>
+
+                    <!-- Expanded sub-options (variants) — e.g. Classic /
+                         Hybrid / Volume, each its own price. -->
+                    <div
+                      *ngIf="hasVariants(svc) && expandedServiceId === svc.id"
+                      class="mt-1.5 ml-3 rounded-xl overflow-hidden"
+                      style="background:var(--color-bg-secondary)"
+                    >
+                      <div
+                        *ngFor="let v of svc.variants"
+                        (click)="selectVariant(svc, v, $event)"
+                        class="flex items-center justify-between gap-2 px-3 py-2.5 cursor-pointer border-b last:border-b-0"
+                        style="border-color:var(--color-border-light)"
+                        [style.background-color]="
+                          selectedVariants[svc.id] === v.id
+                            ? 'color-mix(in srgb,var(--color-primary) 12%,transparent)'
+                            : 'transparent'
+                        "
+                      >
+                        <div class="flex items-center gap-2 min-w-0">
+                          <div
+                            class="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center"
+                            [style.border]="
+                              selectedVariants[svc.id] === v.id
+                                ? 'none'
+                                : '1.5px solid var(--color-border-light)'
+                            "
+                            [style.background-color]="
+                              selectedVariants[svc.id] === v.id
+                                ? 'var(--color-primary)'
+                                : 'transparent'
+                            "
+                          >
+                            <i
+                              *ngIf="selectedVariants[svc.id] === v.id"
+                              class="ri-check-line text-white"
+                              style="font-size: 10px"
+                            ></i>
+                          </div>
+                          <span
+                            class="text-sm font-medium truncate"
+                            style="color:var(--color-text-primary)"
+                            >{{ v.name }}</span
+                          >
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                          <span
+                            *ngIf="v.durationMinutes"
+                            class="text-xs"
+                            style="color:var(--color-text-secondary)"
+                            >{{ v.durationMinutes }} mins</span
+                          >
+                          <span
+                            class="text-sm font-bold"
+                            style="color:var(--color-primary)"
+                            >GHS {{ v.price.toFixed(2) }}</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                    </div>
                   </div>
-                  <app-empty-state
+                <app-empty-state
                     *ngIf="!loadingServices && services.length === 0"
                     icon="ri-scissors-2-line"
                     title="No services"
@@ -1017,6 +1108,58 @@ type TabType = "services" | "about" | "reviews" | "products" | "courses";
                   </div>
                 </div>
               </div>
+
+              <!-- ===== GALLERY TAB ===== -->
+              <!-- Entirely optional on the beautician's side — this tab only
+                   ever appears (see visibleTabs) once they've added at least
+                   one photo. -->
+              <div
+                *ngIf="activeTab === 'gallery'"
+                class="px-4 lg:px-0 pb-36"
+              >
+                <div *ngIf="loadingGallery" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div
+                    *ngFor="let i of [1, 2, 3, 4, 5, 6]"
+                    class="aspect-square rounded-xl animate-pulse"
+                    style="background:var(--color-bg-primary)"
+                  ></div>
+                </div>
+
+                <div
+                  *ngIf="!loadingGallery && galleryImages.length > 0"
+                  class="grid grid-cols-2 md:grid-cols-3 gap-3"
+                >
+                  <div
+                    *ngFor="let img of galleryImages"
+                    class="relative rounded-xl overflow-hidden aspect-square"
+                    style="background:var(--color-bg-primary)"
+                  >
+                    <img
+                      [src]="img.imageUrl"
+                      [alt]="img.caption || 'Gallery photo'"
+                      class="w-full h-full object-cover"
+                    />
+                    <div
+                      *ngIf="img.caption"
+                      class="absolute bottom-0 left-0 right-0 px-2 py-1.5 text-xs text-white"
+                      style="background:linear-gradient(to top, rgba(0,0,0,0.6), transparent)"
+                    >
+                      {{ img.caption }}
+                    </div>
+                    <button
+                      (click)="toggleLike(img)"
+                      class="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold"
+                      style="background:rgba(0,0,0,0.5);color:white"
+                    >
+                      <i
+                        [class]="img.likedByMe ? 'ri-heart-3-fill' : 'ri-heart-3-line'"
+                        [style.color]="img.likedByMe ? 'var(--color-primary)' : 'white'"
+                      ></i>
+                      {{ img.likesCount || 0 }}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
             <!-- /lg:col-span-8 -->
 
@@ -1228,6 +1371,8 @@ export class SalonDetailsComponent implements OnInit {
   loadingServices = false;
   loadingReviews = false;
   selectedServices: string[] = [];
+  expandedServiceId: string | null = null;
+  selectedVariants: Record<string, string> = {}; // serviceId -> variantId
   fabOpen = false;
 
   // Products
@@ -1239,6 +1384,11 @@ export class SalonDetailsComponent implements OnInit {
   courses: any[] = [];
   loadingCourses = false;
   purchasingCourse: Record<string, boolean> = {};
+
+  // Gallery — optional portfolio photos the beautician has chosen to add
+  galleryImages: any[] = [];
+  loadingGallery = false;
+  likingImage: Record<string, boolean> = {};
 
   // Directions
   directionsMode: "none" | "preview" | "navigating" = "none";
@@ -1259,16 +1409,21 @@ export class SalonDetailsComponent implements OnInit {
   tabList = [
     { label: "Services", value: "services" as TabType },
     { label: "About", value: "about" as TabType },
+    { label: "Gallery", value: "gallery" as TabType },
     { label: "Reviews", value: "reviews" as TabType },
     { label: "Products", value: "products" as TabType },
     { label: "Courses", value: "courses" as TabType },
   ];
 
-  /** Courses tab hidden until beautician has at least one published course */
+  /** Courses tab hidden until beautician has at least one published course.
+   *  Gallery tab hidden until the beautician has actually added a photo —
+   *  it's entirely optional, so most profiles won't show it at all. */
   get visibleTabs() {
     return this.tabList.filter((t) => {
       if (t.value === "courses")
         return this.courses.length > 0 || this.loadingCourses;
+      if (t.value === "gallery")
+        return this.galleryImages.length > 0 || this.loadingGallery;
       return true;
     });
   }
@@ -1291,13 +1446,16 @@ export class SalonDetailsComponent implements OnInit {
     private toast: ToastService,
     private sanitizer: DomSanitizer,
     private ngZone: NgZone,
+    private auth: AuthService,
   ) {}
 
   ngOnInit(): void {
     this.salonId = this.route.snapshot.paramMap.get("id") || "";
     this.loadSalon();
-    // Pre-fetch courses so visibleTabs can decide whether to show the tab
+    // Pre-fetch courses and gallery so visibleTabs can decide whether to
+    // show each tab before the visitor manually clicks it
     this.loadCourses();
+    this.loadGallery();
   }
 
   // ── Data loading ────────────────────────────────────────────────────────────
@@ -1387,10 +1545,58 @@ export class SalonDetailsComponent implements OnInit {
       });
   }
 
+  loadGallery(): void {
+    if (this.galleryImages.length || this.loadingGallery) return;
+    this.loadingGallery = true;
+    this.http
+      .get<any>(`${environment.apiUrl}/gallery/${this.salonId}`)
+      .subscribe({
+        next: (res) => {
+          this.galleryImages = res?.data?.images || [];
+          this.loadingGallery = false;
+        },
+        error: () => {
+          this.loadingGallery = false;
+        },
+      });
+  }
+
+  toggleLike(img: any): void {
+    if (!this.auth.isAuthenticated) {
+      this.router.navigate(["/auth/login"]);
+      return;
+    }
+    if (this.likingImage[img.id]) return;
+    this.likingImage[img.id] = true;
+
+    // Optimistic update — flip immediately, reconcile with the server's
+    // actual count once it responds so a slow network doesn't feel laggy.
+    const wasLiked = img.likedByMe;
+    img.likedByMe = !wasLiked;
+    img.likesCount = (img.likesCount || 0) + (wasLiked ? -1 : 1);
+
+    this.http
+      .post<any>(`${environment.apiUrl}/gallery/${img.id}/like`, {})
+      .subscribe({
+        next: (res) => {
+          img.likedByMe = res.data.liked;
+          img.likesCount = res.data.likesCount;
+          this.likingImage[img.id] = false;
+        },
+        error: () => {
+          // Revert the optimistic update on failure
+          img.likedByMe = wasLiked;
+          img.likesCount = (img.likesCount || 0) + (wasLiked ? 1 : -1);
+          this.likingImage[img.id] = false;
+        },
+      });
+  }
+
   setTab(tab: TabType): void {
     this.activeTab = tab;
     if (tab === "products") this.loadProducts();
     if (tab === "courses") this.loadCourses();
+    if (tab === "gallery") this.loadGallery();
   }
 
   // ── Product cart ─────────────────────────────────────────────────────────────
@@ -1509,16 +1715,56 @@ export class SalonDetailsComponent implements OnInit {
     return this.selectedServices.includes(id);
   }
 
+  hasVariants(svc: BeautyService): boolean {
+    return !!(svc as any).variants?.length;
+  }
+
+  toggleExpand(svc: BeautyService, event: Event): void {
+    event.stopPropagation();
+    this.expandedServiceId = this.expandedServiceId === svc.id ? null : svc.id;
+  }
+
+  selectVariant(svc: BeautyService, variant: any, event: Event): void {
+    event.stopPropagation();
+    this.selectedVariants[svc.id] = variant.id;
+    if (!this.isSelected(svc.id)) {
+      this.selectedServices = [...this.selectedServices, svc.id];
+    }
+  }
+
+  effectivePrice(svc: any): number {
+    const variantId = this.selectedVariants[svc.id];
+    const variant = variantId && svc.variants?.find((v: any) => v.id === variantId);
+    return variant ? variant.price : svc.price;
+  }
+
+  variantPriceRange(svc: any): { min: number; max: number } | null {
+    if (!svc.variants?.length) return null;
+    const prices = svc.variants.map((v: any) => v.price);
+    return { min: Math.min(...prices), max: Math.max(...prices) };
+  }
+
   selectService(svc: BeautyService): void {
-    this.selectedServices = this.isSelected(svc.id)
-      ? this.selectedServices.filter((s) => s !== svc.id)
-      : [...this.selectedServices, svc.id];
+    // A service with sub-options can't be added with just one tap — it
+    // needs a specific option picked first (matches the flow in the
+    // screenshot: expand, then choose a priced type). Tapping the card
+    // expands it instead of toggling selection.
+    if (this.hasVariants(svc) && !this.isSelected(svc.id)) {
+      this.expandedServiceId = svc.id;
+      return;
+    }
+    if (this.isSelected(svc.id)) {
+      this.selectedServices = this.selectedServices.filter((s) => s !== svc.id);
+      delete this.selectedVariants[svc.id];
+    } else {
+      this.selectedServices = [...this.selectedServices, svc.id];
+    }
   }
 
   get totalPrice(): number {
     return this.services
       .filter((s) => this.selectedServices.includes(s.id))
-      .reduce((sum, s) => sum + s.price, 0);
+      .reduce((sum, s) => sum + this.effectivePrice(s), 0);
   }
 
   getSelectedServiceObjects(): BeautyService[] {
@@ -1735,8 +1981,13 @@ export class SalonDetailsComponent implements OnInit {
       this.toast.warning("Please select at least one service");
       return;
     }
+    const firstServiceId = this.selectedServices[0];
+    const variantId = this.selectedVariants[firstServiceId];
     this.router.navigate(["/client/book-appointment", this.salonId], {
-      queryParams: { services: this.selectedServices.join(",") },
+      queryParams: {
+        services: this.selectedServices.join(","),
+        ...(variantId ? { variantId } : {}),
+      },
     });
   }
 
