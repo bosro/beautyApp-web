@@ -32,13 +32,15 @@ import { environment } from '@environments/environment';
       </div>
 
       <!-- ── Google Sign-Up ── -->
-      <button type="button" (click)="onGoogleSignIn()" class="google-btn w-full mb-4">
+      <button type="button" (click)="onGoogleSignIn()" class="google-btn w-full mb-4" [disabled]="googleLoading">
         <img
+          *ngIf="!googleLoading"
           src="https://www.svgrepo.com/show/355037/google.svg"
           alt="Google"
           class="w-5 h-5"
         />
-        <span>Sign up with Google</span>
+        <i *ngIf="googleLoading" class="ri-loader-4-line animate-spin w-5 h-5"></i>
+        <span>{{ googleLoading ? 'Opening Google…' : 'Sign up with Google' }}</span>
       </button>
 
       <!-- Divider -->
@@ -165,6 +167,7 @@ export class RegisterComponent implements OnInit {
   form!: FormGroup;
   loading = false;
   submitted = false;
+  googleLoading = false;
   showPwd = false;
   showConfirmPwd = false;
 
@@ -193,6 +196,7 @@ export class RegisterComponent implements OnInit {
       google.accounts.id.initialize({
         client_id: environment.googleClientId,
         callback: (response: any) => this.handleGoogleCredential(response),
+        use_fedcm_for_prompt: true,
       });
     }
   }
@@ -214,17 +218,27 @@ export class RegisterComponent implements OnInit {
       this.toast.error('Google Sign-In is not available.');
       return;
     }
+    if (this.googleLoading) return;
+
+    this.googleLoading = true;
+    const stopLoading = () => (this.googleLoading = false);
+    const safetyTimeout = setTimeout(stopLoading, 6000);
+
     google.accounts.id.prompt((notification: any) => {
+      clearTimeout(safetyTimeout);
+      stopLoading();
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
         google.accounts.id.cancel();
         // One Tap blocked/dismissed — fall back to a full redirect through
         // Google's consent screen. Ask the backend for the URL since it
         // owns the client secret and the correctly-registered redirect_uri.
+        this.googleLoading = true;
         this.auth.getGoogleAuthUrl().subscribe({
           next: (res) => {
             window.location.href = res.url;
           },
           error: () => {
+            this.googleLoading = false;
             this.toast.error('Google Sign-In is not available right now.');
           },
         });

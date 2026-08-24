@@ -429,6 +429,9 @@ export class BusinessProfileComponent implements OnInit {
             offersHomeService: !!b.offersHomeService,
           });
           this.coverPreview = b.coverImage || null;
+          this.instagram = b.instagramUrl || "";
+          this.facebook = b.facebookUrl || "";
+          this.whatsapp = b.whatsappNumber || "";
           this.loading = false;
         },
         error: () => (this.loading = false),
@@ -468,6 +471,13 @@ export class BusinessProfileComponent implements OnInit {
       residencyStatus: worksOnCampus && residencyStatus ? residencyStatus : undefined,
       employmentType: !worksOnCampus && employmentType ? employmentType : undefined,
       offersHomeService: !!offersHomeService,
+      // instagram/facebook/whatsapp are plain component properties (bound
+      // via ngModel), not reactive form controls, so they don't come
+      // through in `...rest` — has to be added explicitly, or they silently
+      // never reach the backend (which is what was happening before).
+      instagramUrl: this.instagram || "",
+      facebookUrl: this.facebook || "",
+      whatsappNumber: this.whatsapp || "",
     };
 
     this.http

@@ -16,7 +16,9 @@ export interface User {
   latitude?: number;
   longitude?: number;
   beautician?: BeauticianProfile;
-  phoneVerified?: boolean
+  phoneVerified?: boolean;
+  /** True once the user has swiped through the first-run 2-screen intro. */
+  hasCompletedOnboarding?: boolean;
 }
 
 export interface AuthTokens {

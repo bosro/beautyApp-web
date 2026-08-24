@@ -105,7 +105,7 @@ import { ToastService } from "@core/services/toast.service";
             class="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full"
             style="background: rgba(255,255,255,0.92);"
           >
-            <i class="ri-verified-badge-fill text-blue-500 text-xs"></i>
+            <i class="ri-verified-badge-fill text-xs" style="color:#D4AF37; filter: drop-shadow(0 0 2px rgba(212,175,55,0.5))"></i>
             <span class="text-xs font-semibold" style="color: #1D4ED8;"
               >Verified</span
             >

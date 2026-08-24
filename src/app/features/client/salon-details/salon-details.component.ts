@@ -127,7 +127,8 @@ type TabType = "services" | "about" | "reviews" | "products" | "courses" | "gall
                     </p>
                     <i
                       *ngIf="salon?.verificationStatus === 'APPROVED'"
-                      class="ri-verified-badge-fill text-blue-500 text-sm flex-shrink-0"
+                      class="ri-verified-badge-fill text-sm flex-shrink-0"
+                      style="color:#D4AF37; filter: drop-shadow(0 0 2px rgba(212,175,55,0.5))"
                     ></i>
                   </div>
                   <p
@@ -798,6 +799,7 @@ type TabType = "services" | "about" | "reviews" | "products" | "courses" | "gall
                   <div
                     (click)="placeProductOrder()"
                     class="flex items-center justify-between px-4 py-3 cursor-pointer rounded-2xl"
+                    [class.cart-pulse]="cartBarPulse"
                     style="background-color:#1a1a1a"
                   >
                     <div class="flex items-center gap-3">
@@ -1357,6 +1359,23 @@ type TabType = "services" | "about" | "reviews" | "products" | "courses" | "gall
         -ms-overflow-style: none;
         scrollbar-width: none;
       }
+      .cart-pulse {
+        animation: cartPulse 0.5s ease-out;
+      }
+      @keyframes cartPulse {
+        0% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(222, 57, 57, 0.55);
+        }
+        30% {
+          transform: scale(1.03);
+          box-shadow: 0 0 0 6px rgba(222, 57, 57, 0);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(222, 57, 57, 0);
+        }
+      }
     `,
   ],
 })
@@ -1379,6 +1398,7 @@ export class SalonDetailsComponent implements OnInit {
   products: any[] = [];
   loadingProducts = false;
   productCart: { productId: string; quantity: number }[] = [];
+  cartBarPulse = false;
 
   // Courses
   courses: any[] = [];
@@ -1614,6 +1634,12 @@ export class SalonDetailsComponent implements OnInit {
     } else {
       this.productCart = [...this.productCart, { productId, quantity: 1 }];
     }
+    const p = this.products.find((p) => p.id === productId);
+    this.toast.success(`${p?.name || "Item"} added to cart`);
+    // Bottom cart bar just appeared/updated — pulse it once so it's
+    // obvious *something* happened instead of a silent state change.
+    this.cartBarPulse = true;
+    setTimeout(() => (this.cartBarPulse = false), 500);
   }
 
   removeFromCart(productId: string): void {
@@ -1645,7 +1671,7 @@ export class SalonDetailsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.toast.success(
-            "Order placed! The beautician will confirm shortly.",
+            "Order placed! We've notified the beautician — they'll confirm shortly.",
           );
           this.productCart = [];
         },

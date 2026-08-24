@@ -55,10 +55,13 @@ export class ClientGuard implements CanActivate {
     return settled(this.auth).pipe(
       map(() => {
         if (this.auth.isAuthenticated && this.auth.user?.role === 'CUSTOMER') {
+          if (!this.auth.user.hasCompletedOnboarding) {
+            return this.router.createUrlTree(['/onboarding']);
+          }
           return true;
         }
         if (this.auth.isAuthenticated && this.auth.user?.role === 'BEAUTICIAN') {
-          return this.router.createUrlTree(['/beautician/dashboard']);
+          return this.router.createUrlTree([this.auth.getDashboardRoute()]);
         }
         return this.router.createUrlTree(['/auth/login']);
       }),
@@ -74,12 +77,39 @@ export class BeauticianGuard implements CanActivate {
     return settled(this.auth).pipe(
       map(() => {
         if (this.auth.isAuthenticated && this.auth.user?.role === 'BEAUTICIAN') {
+          if (!this.auth.user.hasCompletedOnboarding) {
+            return this.router.createUrlTree(['/onboarding']);
+          }
           return true;
         }
         if (this.auth.isAuthenticated && this.auth.user?.role === 'CUSTOMER') {
-          return this.router.createUrlTree(['/client/home']);
+          return this.router.createUrlTree([this.auth.getDashboardRoute()]);
         }
         return this.router.createUrlTree(['/auth/login']);
+      }),
+    );
+  }
+}
+
+/**
+ * OnboardingGuard — requires an authenticated user (either role), same as
+ * SettingsGuard. If they've already completed onboarding, bounce them
+ * straight to their dashboard instead of showing the intro again.
+ */
+@Injectable({ providedIn: 'root' })
+export class OnboardingGuard implements CanActivate {
+  constructor(private auth: AuthService, private router: Router) {}
+
+  canActivate(): Observable<boolean | UrlTree> {
+    return settled(this.auth).pipe(
+      map(() => {
+        if (!this.auth.isAuthenticated) {
+          return this.router.createUrlTree(['/auth/login']);
+        }
+        if (this.auth.user?.hasCompletedOnboarding) {
+          return this.router.createUrlTree([this.auth.getDashboardRoute()]);
+        }
+        return true;
       }),
     );
   }

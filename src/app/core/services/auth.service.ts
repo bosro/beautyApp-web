@@ -10,7 +10,6 @@ const ACCESS_TOKEN_KEY = "@access_token";
 const REFRESH_TOKEN_KEY = "@refresh_token";
 const USER_KEY = "@user_data";
 const USER_ROLE_KEY = "@user_role";
-const ONBOARDING_KEY = "@has_seen_onboarding";
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
@@ -383,15 +382,36 @@ export class AuthService {
     );
   }
 
-  hasSeenOnboarding(): boolean {
-    return localStorage.getItem(ONBOARDING_KEY) === "true";
+  /**
+   * Persists onboarding completion server-side (so it follows the account
+   * across devices/reinstalls) and updates local state immediately so
+   * getDashboardRoute() stops redirecting to /onboarding without waiting
+   * on the network round-trip.
+   */
+  completeOnboarding(): Observable<unknown> {
+    if (this.user) {
+      this.setUser({ ...this.user, hasCompletedOnboarding: true });
+    }
+    return this.api.post("/auth/complete-onboarding", {}).pipe(
+      tap((res: any) => {
+        if (res?.data?.user && this.user) {
+          this.setUser({ ...this.user, ...res.data.user });
+        }
+      }),
+    );
   }
 
-  markOnboardingComplete(): void {
-    localStorage.setItem(ONBOARDING_KEY, "true");
-  }
-
+  /**
+   * Where an authenticated user should land right now. Any freshly
+   * authenticated user (first login/register/verify/passkey/Google) who
+   * hasn't seen the 2-screen intro yet is routed there first; guards and
+   * every post-auth navigate([...]) call in the app funnel through this
+   * one method, so onboarding only needs to be handled here.
+   */
   getDashboardRoute(): string {
+    if (this.user && !this.user.hasCompletedOnboarding) {
+      return "/onboarding";
+    }
     return this.user?.role === "BEAUTICIAN"
       ? "/beautician/dashboard"
       : "/client/home";

@@ -331,13 +331,15 @@ import { startAuthentication } from "@simplewebauthn/browser";
           </div>
 
           <!-- Google Sign-In -->
-          <button type="button" (click)="onGoogleSignIn()" class="google-btn">
+          <button type="button" (click)="onGoogleSignIn()" class="google-btn" [disabled]="googleLoading">
             <img
+              *ngIf="!googleLoading"
               src="https://www.svgrepo.com/show/355037/google.svg"
               alt="Google"
               class="google-icon"
             />
-            <span>Continue with Google</span>
+            <i *ngIf="googleLoading" class="ri-loader-4-line animate-spin google-icon"></i>
+            <span>{{ googleLoading ? 'Opening Google…' : 'Continue with Google' }}</span>
           </button>
 
           <!-- Passkey Sign-In -->
@@ -938,6 +940,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   submitted = false;
   showPassword = false;
   passkeyLoading = false;
+  googleLoading = false;
 
   private rafId: number | null = null;
   private cols: { el: HTMLElement; speed: number; y: number; dir: number }[] =
@@ -962,6 +965,12 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       google.accounts.id.initialize({
         client_id: environment.googleClientId,
         callback: (response: any) => this.handleGoogleCredential(response),
+        // Google made FedCM mandatory for the Sign-In library in Aug 2025;
+        // this just makes it explicit instead of relying on their default
+        // rollout, which silences the "may stop functioning" console
+        // warning. isNotDisplayed()/isSkippedMoment() below still work
+        // the same way under FedCM.
+        use_fedcm_for_prompt: true,
       });
     }
   }
@@ -1033,7 +1042,18 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       this.toast.error("Google Sign-In is not available.");
       return;
     }
+    if (this.googleLoading) return; // guard against double-clicks while we're already waiting
+
+    // Real gap — sometimes over a second — between the click and Google's
+    // popup actually rendering, with zero feedback in between. That's what
+    // was causing double-clicks to land on an error page.
+    this.googleLoading = true;
+    const stopLoading = () => (this.googleLoading = false);
+    const safetyTimeout = setTimeout(stopLoading, 6000);
+
     google.accounts.id.prompt((notification: any) => {
+      clearTimeout(safetyTimeout);
+      stopLoading();
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
         google.accounts.id.cancel();
         // One Tap was blocked/dismissed (common on Safari/Firefox or with
@@ -1041,11 +1061,13 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
         // consent screen. The redirect_uri must point at our backend (it
         // holds the client secret needed to exchange the code), so we ask
         // the backend for the URL rather than building it here.
+        this.googleLoading = true; // stays true through the redirect itself
         this.auth.getGoogleAuthUrl().subscribe({
           next: (res) => {
             window.location.href = res.url;
           },
           error: () => {
+            this.googleLoading = false;
             this.toast.error("Google Sign-In is not available right now.");
           },
         });

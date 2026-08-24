@@ -27,6 +27,17 @@ const routes: Routes = [
     canActivate: [GuestGuard],
   },
 
+  // First-run intro — shown once right after first signup/login. Guarded
+  // in the module itself (OnboardingGuard) rather than here, so a
+  // not-yet-authenticated hit still resolves to a clean login redirect.
+  {
+    path: 'onboarding',
+    loadChildren: () =>
+      import('./features/onboarding/onboarding.module').then(
+        (m) => m.OnboardingModule,
+      ),
+  },
+
   // Client section
   {
     path: 'client',

@@ -70,18 +70,18 @@ import { HttpClient } from "@angular/common/http";
             <!-- Avatar -->
             <div class="relative flex-shrink-0">
               <img
-                *ngIf="user?.avatar || user?.profileImage"
-                [src]="user?.avatar || user?.profileImage"
+                *ngIf="user?.avatar || user?.beautician?.profileImage"
+                [src]="user?.avatar || user?.beautician?.profileImage"
                 alt="Business"
                 class="w-11 h-11 rounded-xl object-cover"
               />
               <div
-                *ngIf="!user?.avatar && !user?.profileImage"
+                *ngIf="!user?.avatar && !user?.beautician?.profileImage"
                 class="w-11 h-11 rounded-xl flex items-center justify-center text-white font-black text-lg"
                 style="background: var(--color-primary)"
               >
                 {{
-                  (user?.businessName || user?.firstName || user?.name || "B")
+                  (user?.beautician?.businessName || user?.name || "B")
                     .charAt(0)
                     .toUpperCase()
                 }}
@@ -254,17 +254,17 @@ import { HttpClient } from "@angular/common/http";
             class="flex items-center flex-shrink-0"
           >
             <img
-              *ngIf="user?.avatar || user?.profileImage"
-              [src]="user?.avatar || user?.profileImage"
+              *ngIf="user?.avatar || user?.beautician?.profileImage"
+              [src]="user?.avatar || user?.beautician?.profileImage"
               class="w-9 h-9 rounded-xl object-cover"
             />
             <div
-              *ngIf="!user?.avatar && !user?.profileImage"
+              *ngIf="!user?.avatar && !user?.beautician?.profileImage"
               class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black"
               style="background: var(--color-primary)"
             >
               {{
-                (user?.businessName || user?.name || "B")
+                (user?.beautician?.businessName || user?.name || "B")
                   .charAt(0)
                   .toUpperCase()
               }}

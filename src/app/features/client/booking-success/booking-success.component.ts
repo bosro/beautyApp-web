@@ -98,7 +98,10 @@ import { ActivatedRoute, Router } from "@angular/router";
         <div class="rounded-xl p-3 mb-6 flex items-center gap-2"
           style="background-color: rgba(100,210,255,0.12)">
           <i class="ri-information-line flex-shrink-0" style="color: #64D2FF"></i>
-          <p class="text-xs" style="color: #64D2FF">A confirmation has been sent to {{ contact }}</p>
+          <p class="text-xs" style="color: #64D2FF">
+            We've notified {{ salonName || "the beautician" }} — you'll be alerted as soon as they confirm.
+            A confirmation has also been sent to {{ contact }}.
+          </p>
         </div>
 
       </div>

@@ -274,15 +274,16 @@ import { environment } from '@environments/environment';
         </label>
 
         <div class="flex gap-3 pt-2">
-          <button type="button" (click)="skipGoogleDetails()"
-            class="flex-1 py-3 rounded-xl font-semibold text-sm"
+          <button type="button" (click)="skipGoogleDetails()" [disabled]="googleLoading"
+            class="flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-50"
             style="background-color: var(--color-bg-secondary); color: var(--color-text-secondary)">
             Skip for now
           </button>
-          <button type="button" (click)="continueWithGoogle()"
-            class="flex-1 py-3 rounded-xl font-semibold text-sm text-white"
+          <button type="button" (click)="continueWithGoogle()" [disabled]="googleLoading"
+            class="flex-1 py-3 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-70"
             style="background-color: var(--color-primary)">
-            Continue with Google
+            <i *ngIf="googleLoading" class="ri-loader-4-line animate-spin"></i>
+            {{ googleLoading ? 'Opening Google…' : 'Continue with Google' }}
           </button>
         </div>
       </div>
@@ -315,6 +316,7 @@ export class BeauticianRegisterComponent implements OnInit {
   loading = false;
   submitted = false;
   showPwd = false;
+  googleLoading = false;
 
   // ── Google signup "tell us about your business" popup ──────────────────
   // Shown once, right when they tap "Sign up with Google", before Google's
@@ -373,6 +375,7 @@ export class BeauticianRegisterComponent implements OnInit {
       google.accounts.id.initialize({
         client_id: environment.googleClientId,
         callback: (response: any) => this.handleGoogleCredential(response),
+        use_fedcm_for_prompt: true,
       });
     }
   }
@@ -394,7 +397,10 @@ export class BeauticianRegisterComponent implements OnInit {
   }
 
   continueWithGoogle(): void {
-    this.showGoogleDetailsModal = false;
+    // Deliberately NOT closing the modal here — it now stays open showing
+    // the loading state (see template) until Google's popup actually
+    // responds, since closing it immediately left a blank gap with zero
+    // feedback right when people were most likely to click again.
     this.onGoogleSignIn();
   }
 
@@ -404,7 +410,24 @@ export class BeauticianRegisterComponent implements OnInit {
       this.toast.error('Google Sign-In is not available.');
       return;
     }
+    if (this.googleLoading) return; // guard against double-clicks while we're already waiting
+
+    // There's a real gap — sometimes a second or more — between the click
+    // and Google's popup actually rendering. With no feedback in that gap
+    // people tend to click again, which was landing on an error page.
+    // This flag disables the button and shows a spinner until Google
+    // tells us anything (displayed, skipped, or dismissed), with a hard
+    // timeout as a safety net in case that callback never fires.
+    this.googleLoading = true;
+    const stopLoading = () => {
+      this.googleLoading = false;
+      this.showGoogleDetailsModal = false;
+    };
+    const safetyTimeout = setTimeout(stopLoading, 6000);
+
     google.accounts.id.prompt((notification: any) => {
+      clearTimeout(safetyTimeout);
+      stopLoading();
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
         google.accounts.id.cancel();
         // One Tap blocked/dismissed — fall back to a full redirect,
@@ -414,11 +437,13 @@ export class BeauticianRegisterComponent implements OnInit {
         // particular round trip (Google's redirect only carries `state`
         // back to our backend, not arbitrary form data) — they can still
         // fill these in afterwards from their profile.
+        this.googleLoading = true; // stays true through the redirect itself
         this.auth.getGoogleAuthUrl('BEAUTICIAN').subscribe({
           next: (res) => {
             window.location.href = res.url;
           },
           error: () => {
+            this.googleLoading = false;
             this.toast.error('Google Sign-In is not available right now.');
           },
         });

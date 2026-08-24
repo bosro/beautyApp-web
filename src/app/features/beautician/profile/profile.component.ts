@@ -580,7 +580,7 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
   // GPS detection
   // ─────────────────────────────────────────────
 
-  detectLocation() {
+  detectLocation(retryWithLowAccuracy = false) {
     if (!navigator.geolocation) {
       this.toast.error('Geolocation is not supported by your browser');
       return;
@@ -611,11 +611,49 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
         });
       },
       (err) => {
+        // Desktops/laptops have no GPS chip — they resolve location from
+        // Wi-Fi/IP data via the OS location service (CoreLocation on
+        // macOS). Asking for enableHighAccuracy on that path fairly often
+        // returns kCLErrorLocationUnknown (err.code 2) even when a normal-
+        // accuracy request would have worked. One silent retry without it
+        // recovers most of these before we bother the user with an error.
+        if (!retryWithLowAccuracy && err.code === 2) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              this.ngZone.run(() => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                this.latitude = lat;
+                this.longitude = lng;
+                this.hasLocation = true;
+                this.detectingLocation = false;
+                if (this.map) {
+                  this.map.setCenter({ lat, lng });
+                  this.map.setZoom(16);
+                }
+                this.placeMarker({ lat, lng });
+                this.reverseGeocode(lat, lng);
+                this.toast.success('Location detected successfully');
+              });
+            },
+            () => {
+              this.ngZone.run(() => {
+                this.detectingLocation = false;
+                this.toast.error(
+                  "Couldn't detect your location. Make sure Location Services is turned on for your browser in your system's privacy settings, or drag the pin on the map to set it manually.",
+                );
+              });
+            },
+            { timeout: 10000, enableHighAccuracy: false },
+          );
+          return;
+        }
+
         this.ngZone.run(() => {
           this.detectingLocation = false;
           const messages: Record<number, string> = {
             1: 'Location permission denied. Please allow location access in your browser settings.',
-            2: 'Location unavailable. Please try again.',
+            2: "Couldn't detect your location. Make sure Location Services is turned on for your browser in your system's privacy settings, or drag the pin on the map to set it manually.",
             3: 'Location request timed out. Please try again.',
           };
           this.toast.error(messages[err.code] || 'Could not detect location');
@@ -723,8 +761,21 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
     fd.append('profileImage', this.selectedFile);
     this.http.post<any>(`${environment.apiUrl}/users/beautician/images`, fd).subscribe({
       next: (res) => {
-        if (res.data?.beautician?.profileImage && this.beautician) {
-          this.beautician.profileImage = res.data.beautician.profileImage;
+        const newPhoto = res.data?.beautician?.profileImage;
+        if (newPhoto && this.beautician) {
+          this.beautician.profileImage = newPhoto;
+        }
+        // The sidebar/top-bar avatar reads from AuthService's cached user
+        // (user.beautician.profileImage), not from this page's local
+        // `beautician` object — without this it kept showing the old
+        // photo (or initials) until the next full login/reload.
+        if (newPhoto && this.auth.user) {
+          this.auth.setUser({
+            ...this.auth.user,
+            beautician: this.auth.user.beautician
+              ? { ...this.auth.user.beautician, profileImage: newPhoto }
+              : this.auth.user.beautician,
+          });
         }
         this.uploading = false;
         this.selectedFile = null;

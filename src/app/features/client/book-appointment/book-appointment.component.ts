@@ -864,6 +864,9 @@ export class BookAppointmentComponent implements OnInit {
         next: (res) => {
           const booking = res?.data?.booking;
           this.booking = false;
+          this.toast.success(
+            `Booking requested! We've notified ${this.beautician?.businessName || "the beautician"}.`,
+          );
           this.router.navigate(["/client/booking-success"], {
             queryParams: {
               bookingId: booking.id,

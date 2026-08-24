@@ -266,13 +266,20 @@ type DocKey = "ghana_card_front" | "ghana_card_back" | "selfie_with_id";
           class="card rounded-2xl p-8 text-center space-y-4"
         >
           <div
-            class="w-20 h-20 rounded-3xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto"
+            class="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto"
+            style="background: radial-gradient(circle, rgba(212,175,55,0.18), rgba(212,175,55,0.06))"
           >
-            <i class="ri-shield-check-fill text-4xl text-green-500"></i>
+            <i class="ri-verified-badge-fill text-4xl" style="color:#D4AF37; filter: drop-shadow(0 0 4px rgba(212,175,55,0.5))"></i>
           </div>
           <div>
             <h3 class="font-bold text-xl text-[var(--color-text-primary)]">
-              Fully Verified ✓
+              Verified
+              <span
+                class="inline-flex items-center gap-1 align-middle ml-1 px-2 py-0.5 rounded-full text-xs font-bold"
+                style="background: linear-gradient(135deg, #D4AF37, #F4E5A1); color: #4a3a00"
+              >
+                <i class="ri-verified-badge-fill text-xs"></i> Gold
+              </span>
             </h3>
             <p
               class="text-sm text-[var(--color-text-secondary)] mt-2 leading-relaxed"

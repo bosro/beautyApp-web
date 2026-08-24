@@ -4,7 +4,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEventType } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '@environments/environment';
 import { ToastService } from '@core/services/toast.service';
@@ -119,23 +119,41 @@ type CourseType = 'VIDEO' | 'EBOOK' | 'AUDIO';
 
             <!-- File upload indicator -->
             <div class="flex-1">
-              <span *ngIf="!c.fileUrl"
+              <span *ngIf="!c.fileUrl && uploadingFile[c.id] === undefined"
                 class="text-[11px] font-semibold text-amber-600 flex items-center gap-1">
                 <i class="ri-upload-cloud-line"></i> Upload file to publish
               </span>
-              <span *ngIf="c.fileUrl"
+              <span *ngIf="c.fileUrl && uploadingFile[c.id] === undefined"
                 class="text-[11px] font-semibold text-green-600 flex items-center gap-1">
                 <i class="ri-checkbox-circle-line"></i> File uploaded
               </span>
+              <!-- Subtle progress bar while a course file is uploading -->
+              <div *ngIf="uploadingFile[c.id] !== undefined" class="w-full">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[11px] font-semibold" style="color: var(--color-primary)">
+                    Uploading… {{ uploadingFile[c.id] }}%
+                  </span>
+                </div>
+                <div class="h-1.5 w-full rounded-full overflow-hidden" style="background: var(--color-border)">
+                  <div class="h-full rounded-full transition-all duration-200 ease-out"
+                    style="background: var(--color-primary)"
+                    [style.width.%]="uploadingFile[c.id]"></div>
+                </div>
+              </div>
             </div>
 
             <!-- Upload file button -->
             <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold
                           cursor-pointer transition-colors"
+              [class.pointer-events-none]="uploadingFile[c.id] !== undefined"
+              [class.opacity-50]="uploadingFile[c.id] !== undefined"
               style="background: color-mix(in srgb, var(--color-primary) 10%, transparent);
                      color: var(--color-primary)">
-              <i class="ri-upload-2-line"></i> Upload
+              <i class="ri-upload-2-line" *ngIf="uploadingFile[c.id] === undefined"></i>
+              <i class="ri-loader-4-line animate-spin" *ngIf="uploadingFile[c.id] !== undefined"></i>
+              {{ uploadingFile[c.id] !== undefined ? 'Uploading' : 'Upload' }}
               <input type="file" class="hidden"
+                [disabled]="uploadingFile[c.id] !== undefined"
                 [accept]="fileAccept(c.type)"
                 (change)="uploadFile(c, $event)"/>
             </label>
@@ -452,18 +470,39 @@ export class ManageCoursesComponent implements OnInit {
     this.loadCourses();
   }
 
+  uploadingFile: Record<string, number> = {}; // courseId -> percent (0-100), key absent = not uploading
+
   uploadFile(course: any, event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     const fd = new FormData();
     fd.append('file', file);
-    this.http.post(`${environment.apiUrl}/courses/${course.id}/file`, fd).subscribe({
-      next: () => {
-        course.fileUrl = 'uploaded';
-        this.toast.success('File uploaded successfully!');
-      },
-      error: (err) => this.toast.error(err.error?.message || 'Upload failed'),
-    });
+
+    this.uploadingFile = { ...this.uploadingFile, [course.id]: 0 };
+
+    this.http
+      .post(`${environment.apiUrl}/courses/${course.id}/file`, fd, {
+        reportProgress: true,
+        observe: 'events',
+      })
+      .subscribe({
+        next: (event) => {
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            const pct = Math.round((event.loaded / event.total) * 100);
+            this.uploadingFile = { ...this.uploadingFile, [course.id]: pct };
+          } else if (event.type === HttpEventType.Response) {
+            course.fileUrl = 'uploaded';
+            const { [course.id]: _, ...rest } = this.uploadingFile;
+            this.uploadingFile = rest;
+            this.toast.success('File uploaded successfully!');
+          }
+        },
+        error: (err) => {
+          const { [course.id]: _, ...rest } = this.uploadingFile;
+          this.uploadingFile = rest;
+          this.toast.error(err.error?.message || 'Upload failed');
+        },
+      });
   }
 
   togglePublish(course: any) {
