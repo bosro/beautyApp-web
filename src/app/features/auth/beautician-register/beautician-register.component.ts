@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -15,7 +15,6 @@ import { environment } from '@environments/environment';
         <i class="ri-arrow-left-line"></i> Back
       </button>
 
-      <!-- Header -->
       <div class="flex items-center gap-4 mb-7">
         <div class="w-14 h-14 rounded-2xl flex items-center justify-center"
           style="background-color: color-mix(in srgb, var(--color-primary) 15%, transparent)">
@@ -27,17 +26,11 @@ import { environment } from '@environments/environment';
         </div>
       </div>
 
-      <!-- ── Google Sign-Up ── -->
       <button type="button" (click)="openGoogleDetailsModal()" class="google-btn w-full mb-4">
-        <img
-          src="https://www.svgrepo.com/show/355037/google.svg"
-          alt="Google"
-          class="w-5 h-5"
-        />
+        <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" class="w-5 h-5" />
         <span>Sign up with Google</span>
       </button>
 
-      <!-- Divider -->
       <div class="flex items-center gap-3 mb-4">
         <div class="flex-1 h-px" style="background-color: var(--color-border-light)"></div>
         <span class="text-xs font-medium" style="color: var(--color-text-secondary)">OR</span>
@@ -51,9 +44,12 @@ import { environment } from '@environments/environment';
             <i class="ri-store-2-line absolute left-3.5 top-1/2 -translate-y-1/2" style="color: var(--color-primary)"></i>
             <input formControlName="name" type="text" placeholder="e.g., Glam Beauty Salon"
               class="form-input pl-10"
-              [class.border-red-500]="submitted && f['name'].errors"/>
+              [class.border-red-500]="submitted && f['name'].invalid"/>
           </div>
-          <p *ngIf="submitted && f['name'].errors" class="text-xs text-red-500 mt-1">Business name is required</p>
+          <p class="field-hint" [class.hint-error]="submitted && f['name'].invalid" [class.hint-ok]="nameOk">
+            <i [class]="(submitted && f['name'].invalid) ? 'ri-error-warning-line' : nameOk ? 'ri-checkbox-circle-fill' : 'ri-information-line'"></i>
+            {{ (submitted && f['name'].errors?.['required']) ? 'Business name is required' : 'At least 2 characters, can be your salon or personal brand name' }}
+          </p>
         </div>
 
         <div>
@@ -62,9 +58,12 @@ import { environment } from '@environments/environment';
             <i class="ri-mail-line absolute left-3.5 top-1/2 -translate-y-1/2" style="color: var(--color-primary)"></i>
             <input formControlName="email" type="email" placeholder="your@email.com"
               class="form-input pl-10"
-              [class.border-red-500]="submitted && f['email'].errors"/>
+              [class.border-red-500]="submitted && f['email'].invalid"/>
           </div>
-          <p *ngIf="submitted && f['email'].errors" class="text-xs text-red-500 mt-1">Valid email required</p>
+          <p class="field-hint" [class.hint-error]="submitted && f['email'].invalid" [class.hint-ok]="emailOk">
+            <i [class]="(submitted && f['email'].invalid) ? 'ri-error-warning-line' : emailOk ? 'ri-checkbox-circle-fill' : 'ri-information-line'"></i>
+            {{ (submitted && f['email'].errors?.['required']) ? 'Email is required' : (submitted && f['email'].errors?.['email']) ? 'Enter a valid email' : "We'll send booking notifications here" }}
+          </p>
         </div>
 
         <div>
@@ -73,9 +72,12 @@ import { environment } from '@environments/environment';
             <i class="ri-phone-line absolute left-3.5 top-1/2 -translate-y-1/2" style="color: var(--color-primary)"></i>
             <input formControlName="phone" type="tel" placeholder="+233 50 123 4567"
               class="form-input pl-10"
-              [class.border-red-500]="submitted && f['phone'].errors"/>
+              [class.border-red-500]="submitted && f['phone'].invalid"/>
           </div>
-          <p *ngIf="submitted && f['phone'].errors" class="text-xs text-red-500 mt-1">Phone is required</p>
+          <p class="field-hint" [class.hint-error]="submitted && f['phone'].invalid" [class.hint-ok]="phoneOk">
+            <i [class]="(submitted && f['phone'].invalid) ? 'ri-error-warning-line' : phoneOk ? 'ri-checkbox-circle-fill' : 'ri-information-line'"></i>
+            {{ (submitted && f['phone'].errors?.['required']) ? 'Phone number is required' : (submitted && f['phone'].errors?.['invalidPhone']) ? 'Enter a valid phone number' : 'Clients use this to reach you — 9–15 digits' }}
+          </p>
         </div>
 
         <div>
@@ -83,13 +85,17 @@ import { environment } from '@environments/environment';
           <div class="relative">
             <i class="ri-lock-line absolute left-3.5 top-1/2 -translate-y-1/2" style="color: var(--color-primary)"></i>
             <input formControlName="password" [type]="showPwd ? 'text' : 'password'"
-              placeholder="Minimum 8 characters" class="form-input pl-10 pr-10"
-              [class.border-red-500]="submitted && f['password'].errors"/>
+              placeholder="Minimum 6 characters" class="form-input pl-10 pr-10"
+              [class.border-red-500]="submitted && f['password'].invalid"/>
             <button type="button" (click)="showPwd = !showPwd"
               class="absolute right-3.5 top-1/2 -translate-y-1/2" style="color: var(--color-text-secondary)">
               <i [class]="showPwd ? 'ri-eye-off-line' : 'ri-eye-line'" class="text-base"></i>
             </button>
           </div>
+          <p class="field-hint" [class.hint-error]="submitted && f['password'].invalid" [class.hint-ok]="passwordOk">
+            <i [class]="(submitted && f['password'].invalid) ? 'ri-error-warning-line' : passwordOk ? 'ri-checkbox-circle-fill' : 'ri-information-line'"></i>
+            {{ (submitted && f['password'].errors?.['required']) ? 'Password is required' : (submitted && f['password'].errors?.['minlength']) ? 'Minimum 6 characters' : 'At least 6 characters' }}
+          </p>
         </div>
 
         <div>
@@ -97,51 +103,42 @@ import { environment } from '@environments/environment';
           <input formControlName="confirmPassword" [type]="showPwd ? 'text' : 'password'"
             placeholder="Re-enter password" class="form-input"
             [class.border-red-500]="submitted && form.errors?.['mismatch']"/>
-          <p *ngIf="submitted && form.errors?.['mismatch']" class="text-xs text-red-500 mt-1">Passwords don't match</p>
+          <p class="field-hint" [class.hint-error]="submitted && form.errors?.['mismatch']" [class.hint-ok]="confirmOk">
+            <i [class]="(submitted && form.errors?.['mismatch']) ? 'ri-error-warning-line' : confirmOk ? 'ri-checkbox-circle-fill' : 'ri-information-line'"></i>
+            {{ (submitted && form.errors?.['mismatch']) ? "Passwords don't match" : 'Must match the password above' }}
+          </p>
         </div>
 
         <!-- ── Tell us more about your business (all optional) ── -->
         <div class="pt-2 pb-1">
-          <p class="text-sm font-semibold" style="color: var(--color-text-primary)">
-            Tell us about your business
-          </p>
-          <p class="text-xs" style="color: var(--color-text-secondary)">
-            Optional — helps us match you with the right clients
-          </p>
+          <p class="text-sm font-semibold" style="color: var(--color-text-primary)">Tell us about your business</p>
+          <p class="text-xs" style="color: var(--color-text-secondary)">Optional — helps us match you with the right clients</p>
         </div>
 
-        <!-- Campus toggle -->
         <label class="flex items-center justify-between p-3.5 rounded-xl cursor-pointer"
           style="background-color: var(--color-bg-secondary)">
-          <span class="text-sm font-medium" style="color: var(--color-text-primary)">
-            I'm a student entrepreneur working on campus
-          </span>
+          <span class="text-sm font-medium" style="color: var(--color-text-primary)">I'm a student entrepreneur working on campus</span>
           <input type="checkbox" formControlName="worksOnCampus" class="accent-primary w-5 h-5 rounded flex-shrink-0 ml-3"/>
         </label>
 
-        <!-- Campus fields (shown only when worksOnCampus is checked) -->
         <ng-container *ngIf="form.value.worksOnCampus">
           <div>
             <label class="form-label">School / Campus</label>
             <div class="relative">
               <i class="ri-building-4-line absolute left-3.5 top-1/2 -translate-y-1/2" style="color: var(--color-primary)"></i>
-              <input formControlName="campusName" type="text" placeholder="e.g., University of Ghana, Legon"
-                class="form-input pl-10"/>
+              <input formControlName="campusName" type="text" placeholder="e.g., University of Ghana, Legon" class="form-input pl-10"/>
             </div>
           </div>
-
           <div>
             <label class="form-label">Hostel (optional)</label>
             <div class="relative">
               <i class="ri-home-4-line absolute left-3.5 top-1/2 -translate-y-1/2" style="color: var(--color-primary)"></i>
-              <input formControlName="hostelName" type="text" placeholder="e.g., Jean Nelson Aka Hall"
-                class="form-input pl-10"/>
+              <input formControlName="hostelName" type="text" placeholder="e.g., Jean Nelson Aka Hall" class="form-input pl-10"/>
             </div>
           </div>
-
           <div>
             <label class="form-label">Residency status</label>
-            <select formControlName="residencyStatus" class="form-input">
+                        <select formControlName="residencyStatus" class="form-input">
               <option value="">Select one</option>
               <option value="RESIDENT">Resident (I live in a hostel/dorm)</option>
               <option value="NON_RESIDENT">Non-resident (I commute)</option>
@@ -150,7 +147,6 @@ import { environment } from '@environments/environment';
           </div>
         </ng-container>
 
-        <!-- Employment type (shown only when NOT on campus) -->
         <div *ngIf="!form.value.worksOnCampus">
           <label class="form-label">Which best describes you?</label>
           <select formControlName="employmentType" class="form-input">
@@ -161,16 +157,12 @@ import { environment } from '@environments/environment';
           </select>
         </div>
 
-        <!-- Home service toggle — always shown, independent of the above -->
         <label class="flex items-center justify-between p-3.5 rounded-xl cursor-pointer"
           style="background-color: var(--color-bg-secondary)">
-          <span class="text-sm font-medium" style="color: var(--color-text-primary)">
-            I offer home service (I travel to clients)
-          </span>
+          <span class="text-sm font-medium" style="color: var(--color-text-primary)">I offer home service (I travel to clients)</span>
           <input type="checkbox" formControlName="offersHomeService" class="accent-primary w-5 h-5 rounded flex-shrink-0 ml-3"/>
         </label>
 
-        <!-- Terms -->
         <label class="flex items-start gap-3 cursor-pointer">
           <input type="checkbox" formControlName="terms" class="mt-0.5 accent-primary rounded"/>
           <span class="text-xs leading-relaxed" style="color: var(--color-text-secondary)">
@@ -182,7 +174,6 @@ import { environment } from '@environments/environment';
         </label>
         <p *ngIf="submitted && f['terms'].errors" class="text-xs text-red-500">Please accept the terms</p>
 
-        <!-- Benefits -->
         <div class="p-4 rounded-xl space-y-2" style="background-color: var(--color-bg-secondary)">
           <p class="text-xs font-semibold mb-2" style="color: var(--color-text-primary)">What you'll get:</p>
           <div *ngFor="let benefit of benefits" class="flex items-center gap-2 text-xs">
@@ -201,92 +192,6 @@ import { environment } from '@environments/environment';
         Already have an account?
         <a routerLink="/auth/login" class="font-semibold ml-1" style="color: var(--color-primary)">Sign in</a>
       </p>
-    </div>
-
-    <!-- ── Google signup: optional "tell us about your business" popup ──
-         Shown once, right before the actual Google prompt appears, since
-         the Google button sits above these fields on the form and would
-         otherwise skip collecting them entirely. -->
-    <div
-      *ngIf="showGoogleDetailsModal"
-      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
-    >
-      <div class="absolute inset-0 bg-black/50" (click)="skipGoogleDetails()"></div>
-      <div
-        class="relative w-full lg:max-w-md max-h-[85vh] overflow-y-auto rounded-t-3xl lg:rounded-3xl p-5 space-y-4"
-        style="background-color: var(--color-bg-primary)"
-      >
-        <div>
-          <h3 class="text-lg font-bold" style="color: var(--color-text-primary)">Tell us about your business</h3>
-          <p class="text-sm mt-1" style="color: var(--color-text-secondary)">
-            Optional — you can also fill these in later from your profile.
-          </p>
-        </div>
-
-        <label class="flex items-center justify-between p-3.5 rounded-xl cursor-pointer"
-          style="background-color: var(--color-bg-secondary)">
-          <span class="text-sm font-medium" style="color: var(--color-text-primary)">
-            I'm a student entrepreneur working on campus
-          </span>
-          <input type="checkbox" [(ngModel)]="googleDetails.worksOnCampus" [ngModelOptions]="{standalone: true}"
-            class="accent-primary w-5 h-5 rounded flex-shrink-0 ml-3"/>
-        </label>
-
-        <ng-container *ngIf="googleDetails.worksOnCampus">
-          <div>
-            <label class="form-label">School / Campus</label>
-            <input [(ngModel)]="googleDetails.campusName" [ngModelOptions]="{standalone: true}" type="text"
-              placeholder="e.g., University of Ghana, Legon" class="form-input"/>
-          </div>
-          <div>
-            <label class="form-label">Hostel (optional)</label>
-            <input [(ngModel)]="googleDetails.hostelName" [ngModelOptions]="{standalone: true}" type="text"
-              placeholder="e.g., Jean Nelson Aka Hall" class="form-input"/>
-          </div>
-          <div>
-            <label class="form-label">Residency status</label>
-            <select [(ngModel)]="googleDetails.residencyStatus" [ngModelOptions]="{standalone: true}" class="form-input">
-              <option value="">Select one</option>
-              <option value="RESIDENT">Resident (I live in a hostel/dorm)</option>
-              <option value="NON_RESIDENT">Non-resident (I commute)</option>
-              <option value="NOT_APPLICABLE">Not applicable</option>
-            </select>
-          </div>
-        </ng-container>
-
-        <div *ngIf="!googleDetails.worksOnCampus">
-          <label class="form-label">Which best describes you?</label>
-          <select [(ngModel)]="googleDetails.employmentType" [ngModelOptions]="{standalone: true}" class="form-input">
-            <option value="">Select one</option>
-            <option value="SELF_EMPLOYED">Self-employed / freelance</option>
-            <option value="SALON_OWNER">Salon owner</option>
-            <option value="EMPLOYED">Employed at a salon/spa</option>
-          </select>
-        </div>
-
-        <label class="flex items-center justify-between p-3.5 rounded-xl cursor-pointer"
-          style="background-color: var(--color-bg-secondary)">
-          <span class="text-sm font-medium" style="color: var(--color-text-primary)">
-            I offer home service (I travel to clients)
-          </span>
-          <input type="checkbox" [(ngModel)]="googleDetails.offersHomeService" [ngModelOptions]="{standalone: true}"
-            class="accent-primary w-5 h-5 rounded flex-shrink-0 ml-3"/>
-        </label>
-
-        <div class="flex gap-3 pt-2">
-          <button type="button" (click)="skipGoogleDetails()" [disabled]="googleLoading"
-            class="flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-50"
-            style="background-color: var(--color-bg-secondary); color: var(--color-text-secondary)">
-            Skip for now
-          </button>
-          <button type="button" (click)="continueWithGoogle()" [disabled]="googleLoading"
-            class="flex-1 py-3 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-70"
-            style="background-color: var(--color-primary)">
-            <i *ngIf="googleLoading" class="ri-loader-4-line animate-spin"></i>
-            {{ googleLoading ? 'Opening Google…' : 'Continue with Google' }}
-          </button>
-        </div>
-      </div>
     </div>
   `,
   styles: [`
@@ -309,6 +214,16 @@ import { environment } from '@environments/environment';
       border-color: var(--color-primary);
       background: var(--color-bg-primary);
     }
+    .field-hint {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      margin-top: 5px;
+      color: var(--color-text-secondary);
+    }
+    .field-hint.hint-error { color: #ef4444; }
+    .field-hint.hint-ok { color: #22c55e; }
   `],
 })
 export class BeauticianRegisterComponent implements OnInit {
@@ -318,10 +233,6 @@ export class BeauticianRegisterComponent implements OnInit {
   showPwd = false;
   googleLoading = false;
 
-  // ── Google signup "tell us about your business" popup ──────────────────
-  // Shown once, right when they tap "Sign up with Google", before Google's
-  // own prompt appears. All fields optional — "Skip for now" proceeds with
-  // defaults, same as leaving these blank on the normal form below.
   showGoogleDetailsModal = false;
   googleDetails = {
     worksOnCampus: false,
@@ -343,18 +254,26 @@ export class BeauticianRegisterComponent implements OnInit {
     private auth: AuthService,
     private toast: ToastService,
     public router: Router
-  ) {}
+  ) { }
+
+  // Loose 9–15 digit check — allows spaces, dashes, parens, leading '+',
+  // so we don't block real numbers on formatting alone.
+  private phoneValidator(control: AbstractControl): ValidationErrors | null {
+    const value = (control.value || '').toString().trim();
+    if (!value) return null; // required handles empty
+    const digitsOnly = value.replace(/[^\d]/g, '');
+    return digitsOnly.length >= 9 && digitsOnly.length <= 15 ? null : { invalidPhone: true };
+  }
 
   ngOnInit(): void {
     this.form = this.fb.group(
       {
-        name: ['', Validators.required],
+        name: ['', [Validators.required, Validators.minLength(2)]],
         email: ['', [Validators.required, Validators.email]],
-        phone: ['', Validators.required],
-        password: ['', [Validators.required, Validators.minLength(8)]],
+        phone: ['', [Validators.required, this.phoneValidator]],
+        password: ['', [Validators.required, Validators.minLength(6)]],
         confirmPassword: ['', Validators.required],
         terms: [false, Validators.requiredTrue],
-        // ── All optional — categorization only, never blocks signup ──
         worksOnCampus: [false],
         campusName: [''],
         hostelName: [''],
@@ -362,14 +281,12 @@ export class BeauticianRegisterComponent implements OnInit {
         employmentType: [''],
         offersHomeService: [false],
       },
-      { validators: (g: FormGroup) =>
+      {
+        validators: (g: FormGroup) =>
           g.get('password')?.value === g.get('confirmPassword')?.value ? null : { mismatch: true }
       }
     );
 
-    // Initialize Google SDK for this page specifically — the callback
-    // must know this is a BEAUTICIAN signup, which the shared
-    // login/register pages' Google buttons never did.
     const google = (window as any).google;
     if (google) {
       google.accounts.id.initialize({
@@ -378,6 +295,30 @@ export class BeauticianRegisterComponent implements OnInit {
         use_fedcm_for_prompt: true,
       });
     }
+  }
+
+  // ── Live hint helpers — flip to "ok" state once the field is valid,
+  // independent of whether the form has been submitted yet ──
+  get nameOk(): boolean {
+    const c = this.form?.get('name');
+    return !!c && c.valid && !!c.value;
+  }
+  get emailOk(): boolean {
+    const c = this.form?.get('email');
+    return !!c && c.valid && !!c.value;
+  }
+  get phoneOk(): boolean {
+    const c = this.form?.get('phone');
+    return !!c && c.valid && !!c.value;
+  }
+  get passwordOk(): boolean {
+    const c = this.form?.get('password');
+    return !!c && c.valid && !!c.value;
+  }
+  get confirmOk(): boolean {
+    const pwd = this.form?.get('password')?.value;
+    const confirm = this.form?.get('confirmPassword')?.value;
+    return !!confirm && pwd === confirm;
   }
 
   openGoogleDetailsModal(): void {
@@ -397,10 +338,6 @@ export class BeauticianRegisterComponent implements OnInit {
   }
 
   continueWithGoogle(): void {
-    // Deliberately NOT closing the modal here — it now stays open showing
-    // the loading state (see template) until Google's popup actually
-    // responds, since closing it immediately left a blank gap with zero
-    // feedback right when people were most likely to click again.
     this.onGoogleSignIn();
   }
 
@@ -410,14 +347,8 @@ export class BeauticianRegisterComponent implements OnInit {
       this.toast.error('Google Sign-In is not available.');
       return;
     }
-    if (this.googleLoading) return; // guard against double-clicks while we're already waiting
+    if (this.googleLoading) return;
 
-    // There's a real gap — sometimes a second or more — between the click
-    // and Google's popup actually rendering. With no feedback in that gap
-    // people tend to click again, which was landing on an error page.
-    // This flag disables the button and shows a spinner until Google
-    // tells us anything (displayed, skipped, or dismissed), with a hard
-    // timeout as a safety net in case that callback never fires.
     this.googleLoading = true;
     const stopLoading = () => {
       this.googleLoading = false;
@@ -430,14 +361,7 @@ export class BeauticianRegisterComponent implements OnInit {
       stopLoading();
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
         google.accounts.id.cancel();
-        // One Tap blocked/dismissed — fall back to a full redirect,
-        // explicitly requesting the BEAUTICIAN role so the account isn't
-        // created as a CUSTOMER by default. Note: the categorization
-        // details collected in the popup above can't survive this
-        // particular round trip (Google's redirect only carries `state`
-        // back to our backend, not arbitrary form data) — they can still
-        // fill these in afterwards from their profile.
-        this.googleLoading = true; // stays true through the redirect itself
+        this.googleLoading = true;
         this.auth.getGoogleAuthUrl('BEAUTICIAN').subscribe({
           next: (res) => {
             window.location.href = res.url;
@@ -497,9 +421,6 @@ export class BeauticianRegisterComponent implements OnInit {
       name, email, phone, password,
       role: 'BEAUTICIAN',
       worksOnCampus: !!worksOnCampus,
-      // Only send campus-specific fields when actually on campus, and
-      // only send employmentType when not — keeps the payload clean and
-      // avoids storing stale values from a toggle the user flipped back.
       campusName: worksOnCampus && campusName ? campusName : undefined,
       hostelName: worksOnCampus && hostelName ? hostelName : undefined,
       residencyStatus: worksOnCampus && residencyStatus ? residencyStatus : undefined,
@@ -516,5 +437,3 @@ export class BeauticianRegisterComponent implements OnInit {
     });
   }
 }
-
-

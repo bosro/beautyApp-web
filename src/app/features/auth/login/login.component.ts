@@ -354,18 +354,19 @@ import { startAuthentication } from "@simplewebauthn/browser";
           </button>
 
           <!-- Footer links -->
-          <div class="auth-footer">
-            <p class="footer-line">
-              Don't have an account?
-              <a routerLink="/auth/register" class="footer-link">Sign up</a>
-            </p>
-            <p class="footer-line muted">
-              Are you a beautician?
-              <a routerLink="/auth/beautician-register" class="footer-link"
-                >Join as beautician</a
-              >
-            </p>
-          </div>
+          <!-- Footer links -->
+<div class="auth-footer">
+  <p class="footer-line">
+    Don't have an account?
+    <a routerLink="/auth/register" class="footer-link">Sign up</a>
+  </p>
+
+  <a routerLink="/auth/beautician-register" class="beautician-cta">
+    <i class="ri-scissors-2-line"></i>
+    <span>Are you a beautician? Join as a pro</span>
+    <i class="ri-arrow-right-line beautician-cta-arrow"></i>
+  </a>
+</div>
         </div>
       </div>
     </div>
@@ -790,10 +791,37 @@ import { startAuthentication } from "@simplewebauthn/browser";
         font-size: 14px;
         color: var(--color-text-secondary);
       }
-      .footer-line.muted {
-        font-size: 12px;
-        color: var(--color-text-muted);
-      }
+      .beautician-cta {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 50px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+.beautician-cta:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  transform: translateY(-1px);
+}
+.beautician-cta i {
+  font-size: 15px;
+  color: var(--color-primary);
+}
+.beautician-cta-arrow {
+  color: var(--color-text-secondary) !important;
+  font-size: 13px !important;
+  margin-left: -2px;
+}
       .footer-link {
         font-weight: 700;
         color: var(--color-primary);
@@ -952,7 +980,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private toast: ToastService,
     public themeService: ThemeService,
     private router: Router,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -1134,5 +1162,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 }
+
+
 
 

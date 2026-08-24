@@ -1,5 +1,3 @@
-// public-home.component.ts
-
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -42,14 +40,14 @@ interface PublicCategory {
         </div>
         <div class="flex items-center gap-2">
           <button
-            (click)="router.navigate(['/auth/login'])"
+            (click)="openRoleModal('login')"
             class="px-4 py-2 text-sm font-semibold rounded-xl transition-colors"
             style="color: var(--color-text-primary)"
           >
             Sign in
           </button>
           <button
-            (click)="router.navigate(['/auth/register'])"
+            (click)="openRoleModal('register')"
             class="px-4 py-2 text-sm font-semibold rounded-xl text-white transition-transform active:scale-95"
             style="background-color: var(--color-primary)"
           >
@@ -60,10 +58,7 @@ interface PublicCategory {
 
       <!-- Hero -->
       <section class="px-4 lg:px-8 pt-8 pb-6 text-center">
-        <h1
-          class="text-2xl lg:text-4xl font-bold leading-tight mb-2"
-          style="color: var(--color-text-primary)"
-        >
+        <h1 class="text-2xl lg:text-4xl font-bold leading-tight mb-2" style="color: var(--color-text-primary)">
           Discover, book, and experience luxury
         </h1>
         <p class="text-sm lg:text-base max-w-md mx-auto" style="color: var(--color-text-secondary)">
@@ -148,18 +143,50 @@ interface PublicCategory {
           Ready to book your first appointment?
         </p>
         <button
-          (click)="router.navigate(['/auth/register'])"
+          (click)="openRoleModal('register')"
           class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white active:scale-95 transition-transform"
           style="background-color: var(--color-primary)"
         >
           Get started
         </button>
       </div>
+
+      <!-- Role selection modal -->
+      <div class="role-modal-overlay" *ngIf="showRoleModal" (click)="closeRoleModal()">
+        <div class="role-modal-card" (click)="$event.stopPropagation()">
+          <button class="role-modal-close" (click)="closeRoleModal()" aria-label="Close">
+            <i class="ri-close-line"></i>
+          </button>
+
+          <h3 class="role-modal-title">
+            {{ pendingAction === 'register' ? 'Create your account' : 'Welcome back' }}
+          </h3>
+          <p class="role-modal-sub">Tell us who you are so we can take you to the right place</p>
+
+          <div class="role-modal-options">
+            <button class="role-option" (click)="selectRole('client')">
+              <div class="role-option-icon"><i class="ri-user-3-line"></i></div>
+              <div class="role-option-text">
+                <span class="role-option-title">I'm a client</span>
+                <span class="role-option-sub">Book appointments with top beauty pros</span>
+              </div>
+              <i class="ri-arrow-right-s-line role-option-arrow"></i>
+            </button>
+
+            <button class="role-option" (click)="selectRole('beautician')">
+              <div class="role-option-icon"><i class="ri-scissors-cut-line"></i></div>
+              <div class="role-option-text">
+                <span class="role-option-title">I'm a beautician</span>
+                <span class="role-option-sub">List your services and get bookings</span>
+              </div>
+              <i class="ri-arrow-right-s-line role-option-arrow"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
-    /* Own scroll container — independent of whatever html/body overflow
-       rules other routes (e.g. the auth layout) may set globally. */
     .public-home-root {
       display: block;
       height: 100vh;
@@ -168,12 +195,137 @@ interface PublicCategory {
       -webkit-overflow-scrolling: touch;
       background-color: var(--color-background);
     }
+
+    /* ── Role picker modal ── */
+    .role-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      animation: fadeIn 0.15s ease-out;
+    }
+    @media (min-width: 640px) {
+      .role-modal-overlay { align-items: center; padding: 20px; }
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .role-modal-card {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      background: var(--color-background);
+      border-radius: 24px 24px 0 0;
+      padding: 28px 20px 24px;
+      animation: slideUp 0.2s ease-out;
+    }
+    @media (min-width: 640px) {
+      .role-modal-card { border-radius: 24px; padding: 28px 24px; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(24px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .role-modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      border: none;
+      background: var(--color-bg-secondary);
+      color: var(--color-text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .role-modal-close:hover { color: var(--color-text-primary); }
+
+    .role-modal-title {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--color-text-primary);
+      margin-bottom: 4px;
+      padding-right: 32px;
+    }
+    .role-modal-sub {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .role-modal-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .role-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1.5px solid var(--color-border-light);
+      background: var(--color-surface, var(--color-background));
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    }
+    .role-option:hover {
+      border-color: var(--color-primary);
+      background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+    }
+    .role-option:active { transform: scale(0.98); }
+
+    .role-option-icon {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+      color: var(--color-primary);
+    }
+    .role-option-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+    }
+    .role-option-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+    .role-option-sub {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+    .role-option-arrow {
+      flex-shrink: 0;
+      font-size: 18px;
+      color: var(--color-text-muted);
+    }
   `],
 })
 export class PublicHomeComponent implements OnInit {
   salons: PublicSalon[] = [];
   categories: PublicCategory[] = [];
   loading = true;
+
+  showRoleModal = false;
+  pendingAction: 'login' | 'register' = 'login';
 
   constructor(
     private http: HttpClient,
@@ -183,10 +335,6 @@ export class PublicHomeComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Wait for AuthService to finish hydrating (including any silent
-    // refresh of an expired-but-refreshable token) before deciding —
-    // otherwise a genuinely logged-in user with a stale access token could
-    // flash the guest homepage before the refresh resolves.
     this.auth.state$
       .pipe(
         filter((s) => !s.isLoading),
@@ -204,12 +352,8 @@ export class PublicHomeComponent implements OnInit {
 
   private loadCategories(): void {
     this.http.get<any>(`${environment.apiUrl}/categories`).subscribe({
-      next: (res) => {
-        this.categories = res?.data?.categories || res?.data || [];
-      },
-      error: () => {
-        // Non-critical — homepage still works without the category chips.
-      },
+      next: (res) => { this.categories = res?.data?.categories || res?.data || []; },
+      error: () => { /* Non-critical — homepage still works without the category chips. */ },
     });
   }
 
@@ -221,7 +365,6 @@ export class PublicHomeComponent implements OnInit {
           this.salons = featured;
           this.loading = false;
         } else {
-          // Fall back to a general listing if nothing is currently featured.
           this.loadAllSalons();
         }
       },
@@ -237,9 +380,7 @@ export class PublicHomeComponent implements OnInit {
           this.salons = res?.data?.beauticians || [];
           this.loading = false;
         },
-        error: () => {
-          this.loading = false;
-        },
+        error: () => { this.loading = false; },
       });
   }
 
@@ -248,10 +389,34 @@ export class PublicHomeComponent implements OnInit {
   }
 
   browseCategory(cat: PublicCategory): void {
-    // Category filtering lives in the full Discover experience, which
-    // requires an account — send them to sign up with the category
-    // preselected via query param so it's not a dead end.
     this.toast.info('Sign up to filter and book by category');
     this.router.navigate(['/auth/register'], { queryParams: { category: cat.id } });
+  }
+
+  // ── Role modal ──
+  openRoleModal(action: 'login' | 'register'): void {
+    this.pendingAction = action;
+    this.showRoleModal = true;
+  }
+
+  closeRoleModal(): void {
+    this.showRoleModal = false;
+  }
+
+  selectRole(role: 'client' | 'beautician'): void {
+    this.showRoleModal = false;
+
+    if (this.pendingAction === 'register') {
+      this.router.navigate([role === 'beautician' ? '/auth/beautician-register' : '/auth/register']);
+      return;
+    }
+
+    // Sign-in is a single unified endpoint for both roles — the backend
+    // resolves the dashboard from the account's role. "as=beautician" is
+    // just a hint the login page can use for friendlier copy.
+    this.router.navigate(
+      ['/auth/login'],
+      role === 'beautician' ? { queryParams: { as: 'beautician' } } : undefined,
+    );
   }
 }
