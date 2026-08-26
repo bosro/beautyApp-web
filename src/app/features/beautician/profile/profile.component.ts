@@ -167,73 +167,6 @@ declare const google: any;
           </div>
         </div>
 
-        <!-- ── Manage Business (mobile-reachable versions of sidebar-only links) ── -->
-<div class="rounded-2xl p-5" style="background-color: var(--color-surface)">
-  <p class="text-[11px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-3">
-    Manage Your Business
-  </p>
-  <div class="grid grid-cols-2 gap-3">
-    <button
-      (click)="router.navigate(['/beautician/gallery'])"
-      class="flex flex-col items-start gap-2 p-3.5 rounded-xl text-left active:scale-95 transition-transform"
-      style="background-color: var(--color-background)"
-    >
-      <div class="w-9 h-9 rounded-xl flex items-center justify-center"
-        style="background: color-mix(in srgb, var(--color-primary) 12%, transparent)">
-        <i class="ri-gallery-line text-base" style="color: var(--color-primary)"></i>
-      </div>
-      <span class="text-sm font-semibold" style="color: var(--color-text-primary)">Gallery</span>
-      <span class="text-[11px]" style="color: var(--color-text-muted)">Showcase your work</span>
-    </button>
-
-    <button
-      (click)="router.navigate(['/beautician/clients'])"
-      class="flex flex-col items-start gap-2 p-3.5 rounded-xl text-left active:scale-95 transition-transform"
-      style="background-color: var(--color-background)"
-    >
-      <div class="w-9 h-9 rounded-xl flex items-center justify-center"
-        style="background: color-mix(in srgb, var(--color-primary) 12%, transparent)">
-        <i class="ri-group-line text-base" style="color: var(--color-primary)"></i>
-      </div>
-      <span class="text-sm font-semibold" style="color: var(--color-text-primary)">Clients</span>
-      <span class="text-[11px]" style="color: var(--color-text-muted)">Your client list</span>
-    </button>
-
-    <button
-      (click)="router.navigate(['/beautician/reviews'])"
-      class="flex flex-col items-start gap-2 p-3.5 rounded-xl text-left active:scale-95 transition-transform"
-      style="background-color: var(--color-background)"
-    >
-      <div class="w-9 h-9 rounded-xl flex items-center justify-center"
-        style="background: color-mix(in srgb, var(--color-primary) 12%, transparent)">
-        <i class="ri-star-line text-base" style="color: var(--color-primary)"></i>
-      </div>
-      <span class="text-sm font-semibold" style="color: var(--color-text-primary)">Reviews</span>
-      <span class="text-[11px]" style="color: var(--color-text-muted)">{{ beautician?.totalReviews || 0 }} reviews</span>
-    </button>
-
-    <button
-      (click)="router.navigate(['/beautician/verification'])"
-      class="relative flex flex-col items-start gap-2 p-3.5 rounded-xl text-left active:scale-95 transition-transform"
-      style="background-color: var(--color-background)"
-    >
-      <span
-        *ngIf="beautician?.verificationStatus !== 'APPROVED'"
-        class="absolute top-3 right-3 w-2 h-2 rounded-full"
-        [style.background-color]="beautician?.verificationStatus === 'REJECTED' ? '#EF4444' : '#F59E0B'"
-      ></span>
-      <div class="w-9 h-9 rounded-xl flex items-center justify-center"
-        style="background: color-mix(in srgb, var(--color-primary) 12%, transparent)">
-        <i class="ri-shield-check-line text-base" style="color: var(--color-primary)"></i>
-      </div>
-      <span class="text-sm font-semibold" style="color: var(--color-text-primary)">Verification</span>
-      <span class="text-[11px]" style="color: var(--color-text-muted)">
-        {{ beautician?.verificationStatus === 'APPROVED' ? 'Approved' : 'Action needed' }}
-      </span>
-    </button>
-  </div>
-</div>
-
         <!-- ── Personal Info ── -->
         <div class="rounded-2xl p-5 space-y-4" style="background-color: var(--color-surface)">
           <p class="text-[11px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest">
@@ -261,8 +194,6 @@ declare const google: any;
             />
           </div>
         </div>
-
-        
 
         <!-- ── Location ── -->
         <div class="rounded-2xl p-5 space-y-4" style="background-color: var(--color-surface)">
@@ -474,7 +405,7 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
     private auth: AuthService,
     private toast: ToastService,
     private ngZone: NgZone,
-  ) { }
+  ) {}
 
   // ─────────────────────────────────────────────
   // Lifecycle
@@ -494,12 +425,12 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
         const b = res.data?.beautician;
         this.beautician = b;
         if (b) {
-          this.city = b.city || "";
-          this.region = b.region || "";
+          this.city            = b.city            || "";
+          this.region          = b.region          || "";
           this.businessAddress = b.businessAddress || "";
-          this.latitude = b.latitude ?? null;
-          this.longitude = b.longitude ?? null;
-          this.hasLocation = this.latitude !== null && this.longitude !== null;
+          this.latitude        = b.latitude  ?? null;
+          this.longitude       = b.longitude ?? null;
+          this.hasLocation     = this.latitude !== null && this.longitude !== null;
           if (this.hasLocation) {
             // Build initial locationName from existing address fields
             this.locationName = this.buildLocationName(this.latitude!, this.longitude!);
@@ -596,12 +527,12 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
         box-shadow: 0 2px 10px rgba(0,0,0,0.25);
       ">
         ${imageUrl
-        ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover" alt="Profile" />`
-        : `<div style="width:100%;height:100%;display:flex;align-items:center;
+          ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover" alt="Profile" />`
+          : `<div style="width:100%;height:100%;display:flex;align-items:center;
                justify-content:center;color:#fff;font-size:18px;font-weight:700">
                ${initial}
              </div>`
-      }
+        }
       </div>
       <div style="width:2px;height:10px;background:#E84A4A;"></div>
       <div style="width:6px;height:6px;border-radius:50%;background:#E84A4A;opacity:0.4;"></div>
@@ -637,8 +568,8 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────
 
   private onMapClick(lat: number, lng: number): void {
-    this.latitude = lat;
-    this.longitude = lng;
+    this.latitude   = lat;
+    this.longitude  = lng;
     this.hasLocation = true;
     this.placeMarker({ lat, lng });
     this.map.panTo({ lat, lng });
@@ -662,8 +593,8 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
 
-          this.latitude = lat;
-          this.longitude = lng;
+          this.latitude   = lat;
+          this.longitude  = lng;
           this.hasLocation = true;
           this.detectingLocation = false;
 
@@ -761,7 +692,7 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
             )?.long_name;
 
             // Auto-populate the city/region inputs if still empty
-            if (city && !this.city) this.city = city;
+            if (city   && !this.city)   this.city   = city;
             if (region && !this.region) this.region = region;
 
             // Build a nice human-readable label
@@ -788,8 +719,8 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────
 
   clearCoordinates() {
-    this.latitude = null;
-    this.longitude = null;
+    this.latitude    = null;
+    this.longitude   = null;
     this.hasLocation = false;
     this.locationName = "";
 
@@ -907,12 +838,16 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
 
     const personalReq = this.http.put<any>(`${environment.apiUrl}/users/profile`, {
       name: this.nameInput,
-      phone: this.phone,
+      // Omit phone entirely when blank — sending an empty string was
+      // writing '' to every blank-phone user's record, and since the
+      // column is unique, the second person to save with no phone set
+      // collided with the first and got a cryptic "already exists" error.
+      ...(this.phone?.trim() ? { phone: this.phone.trim() } : {}),
     });
 
     const locationReq = this.http.put<any>(`${environment.apiUrl}/users/beautician/profile`, {
-      city: this.city,
-      region: this.region,
+      city:            this.city,
+      region:          this.region,
       businessAddress: this.businessAddress,
       ...(this.latitude !== null && this.longitude !== null
         ? { latitude: this.latitude, longitude: this.longitude }
@@ -953,4 +888,3 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
     });
   }
 }
-

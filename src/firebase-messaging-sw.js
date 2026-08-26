@@ -1,3 +1,38 @@
+// Per Firebase's own docs: register notificationclick BEFORE importing the
+// FCM libraries below, or FCM's internal handling can override custom
+// click behavior. getNotifConfig() is a hoisted function declaration, so
+// it's safe to reference here even though it's defined further down.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const data = event.notification.data || {};
+  const type = data.type || 'general';
+  const config = getNotifConfig(type, data);
+
+  let url;
+  if (event.action && config.actionUrls[event.action] !== undefined) {
+    const resolver = config.actionUrls[event.action];
+    url = resolver ? resolver(data) : null;
+  } else {
+    url = config.resolveUrl(data);
+  }
+
+  if (!url) return;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.focus();
+          client.navigate(url);
+          return;
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});
+
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
@@ -97,10 +132,12 @@ function getNotifConfig(type, data) {
 }
 
 messaging.onBackgroundMessage((payload) => {
+  // Data-only payload (see notification.service.ts on the backend) — there
+  // is no payload.notification here by design, so title/body come from data.
   const type = payload.data?.type || 'general';
   const config = getNotifConfig(type, payload.data);
-  const title = payload.notification?.title ?? 'BigLuxx';
-  const body = payload.notification?.body ?? '';
+  const title = payload.data?.title ?? 'BigLuxx';
+  const body = payload.data?.body ?? '';
 
   self.registration.showNotification(title, {
     body,
@@ -114,35 +151,4 @@ messaging.onBackgroundMessage((payload) => {
     requireInteraction: config.requireInteraction,
     ...(payload.data?.imageUrl && { image: payload.data.imageUrl }),
   });
-});
-
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-
-  const data = event.notification.data || {};
-  const type = data.type || 'general';
-  const config = getNotifConfig(type, data);
-
-  let url;
-  if (event.action && config.actionUrls[event.action] !== undefined) {
-    const resolver = config.actionUrls[event.action];
-    url = resolver ? resolver(data) : null;
-  } else {
-    url = config.resolveUrl(data);
-  }
-
-  if (!url) return;
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
-          client.focus();
-          client.navigate(url);
-          return;
-        }
-      }
-      if (clients.openWindow) return clients.openWindow(url);
-    })
-  );
 });

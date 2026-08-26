@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { Router } from "@angular/router";
 import { environment } from "@environments/environment";
 import { ToastService } from "@core/services/toast.service";
 
@@ -10,33 +11,40 @@ import { ToastService } from "@core/services/toast.service";
     <div class="min-h-screen bg-[var(--color-background)] pb-24 lg:pb-8">
       <!-- Header -->
       <div
-        class="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 py-4 space-y-2"
-      >
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-lg font-semibold text-[var(--color-text-primary)]">
-              Gallery
-            </h1>
-            <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
-              Show off your work — completely optional. Clients browsing your profile can view and like these photos.
-            </p>
-          </div>
-          <label
-            class="btn-primary text-sm px-3 py-2 flex items-center gap-1.5 cursor-pointer flex-shrink-0"
-          >
-            <i *ngIf="!uploading" class="ri-add-line"></i>
-            <i *ngIf="uploading" class="ri-loader-4-line animate-spin"></i>
-            Add Photo
-            <input
-              type="file"
-              accept="image/*"
-              class="hidden"
-              (change)="onFile($event)"
-              [disabled]="uploading"
-            />
-          </label>
-        </div>
-      </div>
+  class="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 py-4 space-y-2"
+>
+  <button
+    (click)="router.navigate(['/beautician/dashboard'])"
+    class="flex items-center gap-1.5 text-sm text-[var(--color-text-secondary)] hover:opacity-70"
+  >
+    <i class="ri-arrow-left-line"></i> Back
+  </button>
+
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-lg font-semibold text-[var(--color-text-primary)]">
+        Gallery
+      </h1>
+      <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
+        Show off your work — completely optional. Clients browsing your profile can view and like these photos.
+      </p>
+    </div>
+    <label
+      class="btn-primary text-sm px-3 py-2 flex items-center gap-1.5 cursor-pointer flex-shrink-0"
+    >
+      <i *ngIf="!uploading" class="ri-add-line"></i>
+      <i *ngIf="uploading" class="ri-loader-4-line animate-spin"></i>
+      Add Photo
+      <input
+        type="file"
+        accept="image/*"
+        class="hidden"
+        (change)="onFile($event)"
+        [disabled]="uploading"
+      />
+    </label>
+  </div>
+</div>
 
       <div *ngIf="loading" class="p-4 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
         <div *ngFor="let i of [1, 2, 3, 4]" class="skeleton aspect-square rounded-xl"></div>
@@ -102,7 +110,8 @@ export class BeauticianGalleryComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private toast: ToastService,
-  ) {}
+    public router: Router,
+  ) { }
 
   ngOnInit() {
     this.loadGallery();

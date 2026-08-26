@@ -10,6 +10,7 @@ import { StarRatingComponent } from "./components/star-rating/star-rating.compon
 import { EmptyStateComponent } from "./components/empty-state/empty-state.component";
 import { AiUpgradePromptComponent } from './components/ai-upgrade-prompt/ai-upgrade-prompt.component';
 import { ConnectivityBannerComponent } from './components/connectivity-banner/connectivity-banner.component';
+import { InstallAppBadgeComponent } from './components/install-app-badge/install-app-badge.component';
 
 
 
@@ -23,6 +24,7 @@ import { ConnectivityBannerComponent } from './components/connectivity-banner/co
     EmptyStateComponent,
     AiUpgradePromptComponent,
     ConnectivityBannerComponent,
+    InstallAppBadgeComponent,
   ],
   imports: [
     CommonModule,
@@ -41,7 +43,8 @@ import { ConnectivityBannerComponent } from './components/connectivity-banner/co
     StarRatingComponent,
     EmptyStateComponent,
     AiUpgradePromptComponent,
-    ConnectivityBannerComponent
+    ConnectivityBannerComponent,
+    InstallAppBadgeComponent
   ],
 })
 export class SharedModule {}

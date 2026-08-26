@@ -11,7 +11,6 @@ import { Router } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { ThemeService } from "../../../core/services/theme.service";
-import { environment } from "@environments/environment";
 import { firstValueFrom } from "rxjs";
 import { startAuthentication } from "@simplewebauthn/browser";
 
@@ -987,20 +986,6 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       email: ["", [Validators.required, Validators.email]],
       password: ["", Validators.required],
     });
-
-    const google = (window as any).google;
-    if (google) {
-      google.accounts.id.initialize({
-        client_id: environment.googleClientId,
-        callback: (response: any) => this.handleGoogleCredential(response),
-        // Google made FedCM mandatory for the Sign-In library in Aug 2025;
-        // this just makes it explicit instead of relying on their default
-        // rollout, which silences the "may stop functioning" console
-        // warning. isNotDisplayed()/isSkippedMoment() below still work
-        // the same way under FedCM.
-        use_fedcm_for_prompt: true,
-      });
-    }
   }
 
   ngAfterViewInit(): void {
@@ -1065,59 +1050,22 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onGoogleSignIn(): void {
-    const google = (window as any).google;
-    if (!google) {
-      this.toast.error("Google Sign-In is not available.");
-      return;
-    }
     if (this.googleLoading) return; // guard against double-clicks while we're already waiting
 
-    // Real gap — sometimes over a second — between the click and Google's
-    // popup actually rendering, with zero feedback in between. That's what
-    // was causing double-clicks to land on an error page.
+    // Full-page redirect through Google's account chooser instead of the
+    // One Tap popup — see the auth.service.ts getGoogleAuthUrl()/
+    // completeGoogleRedirectAuth() doc comments for the full flow. The
+    // redirect_uri must point at OUR BACKEND (it holds the client secret
+    // needed to exchange the code), so we ask the backend for the URL
+    // rather than building it here.
     this.googleLoading = true;
-    const stopLoading = () => (this.googleLoading = false);
-    const safetyTimeout = setTimeout(stopLoading, 6000);
-
-    google.accounts.id.prompt((notification: any) => {
-      clearTimeout(safetyTimeout);
-      stopLoading();
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        google.accounts.id.cancel();
-        // One Tap was blocked/dismissed (common on Safari/Firefox or with
-        // ad blockers) — fall back to a full-page redirect through Google's
-        // consent screen. The redirect_uri must point at our backend (it
-        // holds the client secret needed to exchange the code), so we ask
-        // the backend for the URL rather than building it here.
-        this.googleLoading = true; // stays true through the redirect itself
-        this.auth.getGoogleAuthUrl().subscribe({
-          next: (res) => {
-            window.location.href = res.url;
-          },
-          error: () => {
-            this.googleLoading = false;
-            this.toast.error("Google Sign-In is not available right now.");
-          },
-        });
-      }
-    });
-  }
-
-  private handleGoogleCredential(response: { credential: string }): void {
-    this.loading = true;
-    this.auth.googleSignIn(response.credential).subscribe({
-      next: (res: any) => {
-        const isNewUser = res?.data?.isNewUser ?? res?.isNewUser;
-        this.toast.success(
-          isNewUser
-            ? "Account created — welcome to BigLuxx!"
-            : "Welcome back!",
-        );
-        this.router.navigate([this.auth.getDashboardRoute()]);
+    this.auth.getGoogleAuthUrl().subscribe({
+      next: (res) => {
+        window.location.href = res.url;
       },
-      error: (err) => {
-        this.loading = false;
-        this.toast.error(err?.error?.message || "Google sign-in failed");
+      error: () => {
+        this.googleLoading = false;
+        this.toast.error("Google Sign-In is not available right now.");
       },
     });
   }

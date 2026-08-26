@@ -2,6 +2,8 @@ import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
+import { HttpClient } from "@angular/common/http";
+import { environment } from "@environments/environment";
 
 interface FAQ {
   id: string;
@@ -80,9 +82,11 @@ interface ContactMethod {
                 placeholder="Describe your issue or question..."
                 rows="5"
               ></textarea>
-              <button class="cs-send-btn" (click)="handleSend()">
-                <i class="ri-send-plane-line"></i>
-                Send Message
+              <p *ngIf="toastError" class="cs-error-text">{{ toastError }}</p>
+              <button class="cs-send-btn" [disabled]="sending" (click)="handleSend()">
+                <i *ngIf="!sending" class="ri-send-plane-line"></i>
+                <i *ngIf="sending" class="ri-loader-4-line animate-spin"></i>
+                {{ sending ? 'Sending…' : 'Send Message' }}
               </button>
             </div>
           </section>
@@ -378,6 +382,11 @@ interface ContactMethod {
         opacity: 0.6;
       }
 
+      .cs-error-text {
+        color: #ef4444;
+        font-size: 12.5px;
+        margin: -4px 0 8px;
+      }
       .cs-send-btn {
         background-color: var(--color-primary);
         color: #fff;
@@ -611,6 +620,8 @@ interface ContactMethod {
 export class CustomerServiceComponent implements OnInit {
   activeTab: "contact" | "faq" = "contact";
   message = "";
+  sending = false;
+  toastError: string | null = null;
   expandedId: string | null = null;
   showToast = false;
 
@@ -674,30 +685,30 @@ export class CustomerServiceComponent implements OnInit {
     },
   ];
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private http: HttpClient) {}
 
   ngOnInit() {
     this.contactMethods = [
       {
         id: "1",
         title: "Call Us",
-        subtitle: "+233 50 123 4567",
+        subtitle: "0546 785 064 · 0575 540 404 · 0593 706 706",
         icon: "ri-phone-line",
-        action: () => window.open("tel:+233501234567"),
+        action: () => window.open("tel:+233546785064"),
       },
       {
         id: "2",
         title: "Email Us",
-        subtitle: "support@beautyapp.com",
+        subtitle: "biglux2026@gmail.com",
         icon: "ri-mail-line",
-        action: () => window.open("mailto:support@beautyapp.com"),
+        action: () => window.open("mailto:biglux2026@gmail.com"),
       },
       {
         id: "3",
         title: "WhatsApp",
         subtitle: "Chat with us",
         icon: "ri-whatsapp-line",
-        action: () => window.open("https://wa.me/233501234567"),
+        action: () => window.open("https://wa.me/233546785064"),
       },
       {
         id: "4",
@@ -714,10 +725,35 @@ export class CustomerServiceComponent implements OnInit {
   }
 
   handleSend() {
-    if (!this.message.trim()) return;
-    this.message = "";
-    this.showToast = true;
-    setTimeout(() => (this.showToast = false), 3500);
+    const text = this.message.trim();
+    if (!text || this.sending) return;
+
+    if (text.length < 10) {
+      this.toastError = "Please add a few more details so we can help.";
+      setTimeout(() => (this.toastError = null), 3000);
+      return;
+    }
+
+    this.sending = true;
+    this.http
+      .post(`${environment.apiUrl}/support`, {
+        subject: "Message from Contact Us",
+        description: text,
+        category: "general",
+      })
+      .subscribe({
+        next: () => {
+          this.sending = false;
+          this.message = "";
+          this.showToast = true;
+          setTimeout(() => (this.showToast = false), 3500);
+        },
+        error: () => {
+          this.sending = false;
+          this.toastError = "Couldn't send your message. Please try WhatsApp or call us instead.";
+          setTimeout(() => (this.toastError = null), 4000);
+        },
+      });
   }
 
   showInfoToast() {

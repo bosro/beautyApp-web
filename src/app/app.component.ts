@@ -53,6 +53,7 @@ export const routeAnimations = trigger("routeAnimations", [
       <router-outlet #outlet="outlet"></router-outlet>
     </div>
     <app-connectivity-banner></app-connectivity-banner>
+    <app-install-badge></app-install-badge>
     <app-toast></app-toast>
   `,
   animations: [routeAnimations],
@@ -66,7 +67,6 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadGoogleMaps();
-    this.loadGoogleIdentity();
     this.initAuth();
     // Only register a device token once we actually have a logged-in user —
     // calling this on public pages (login, forgot-password, etc.) hits the
@@ -91,21 +91,6 @@ export class AppComponent implements OnInit {
     script.async = true;
     script.defer = true;
     script.dataset["googleMaps"] = "true";
-    document.head.appendChild(script);
-  }
-
-  private loadGoogleIdentity(): void {
-    if (document.querySelector("script[data-google-identity]")) return;
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.dataset["googleIdentity"] = "true";
-    // Just load the script here. Each page that needs Google Sign-In
-    // (login, register) calls google.accounts.id.initialize() itself with
-    // its own callback — initializing it a second time here with no
-    // callback was harmless but triggered Google's "initialize() called
-    // multiple times" warning on every auth page.
     document.head.appendChild(script);
   }
 

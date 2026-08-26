@@ -45,7 +45,15 @@ export class FcmService {
 
       const registration = await navigator.serviceWorker.register(
         '/firebase-messaging-sw.js',
-        { scope: '/' }
+        // Deliberately NOT scope '/' — that's already claimed by Angular's
+        // own ngsw-worker.js (registered in app.module.ts). A page can only
+        // have one service worker registration per scope; registering a
+        // second script at the same scope doesn't let them coexist, it
+        // makes them fight for control depending on registration timing,
+        // which is exactly what was making push notifications unreliable.
+        // This scope name is also Firebase's own default when it
+        // auto-registers a SW, so it's the conventional choice here too.
+        { scope: '/firebase-cloud-messaging-push-scope' }
       );
 
       const token = await getToken(this.messaging, {
@@ -66,18 +74,22 @@ export class FcmService {
         error: (err) => console.error('[FCM] Failed to register token:', err),
       });
 
-      // Foreground messages — use SW showNotification so action buttons work
+      // Foreground messages — use SW showNotification so action buttons work.
+      // Data-only payload (see notification.service.ts on the backend): no
+      // payload.notification here by design — title/body live in payload.data
+      // so background delivery always goes through onBackgroundMessage()
+      // instead of the browser's own bare auto-display.
       onMessage(this.messaging, (payload) => {
-        if (!payload.notification) return;
+        if (!payload.data) return;
 
-        const type = (payload.data?.['type'] as NotifType) || 'general';
+        const type = (payload.data['type'] as NotifType) || 'general';
         const config = this.getNotifConfig(type, payload.data);
 
         navigator.serviceWorker.ready.then((reg) => {
           reg.showNotification(
-            payload.notification!.title ?? 'BigLuxx',
+            payload.data!['title'] ?? 'BigLuxx',
             {
-              body:               payload.notification!.body,
+              body:               payload.data!['body'],
               icon:               config.icon,
               badge:              '/assets/icons/badge-72x72.png',
               tag:                `bigluxx-${type}`,
@@ -85,7 +97,7 @@ export class FcmService {
               requireInteraction: config.requireInteraction,
               data:               payload.data,
               // Cast needed because TS lib typing omits these SW-only fields
-              ...({ vibrate: config.vibrate, actions: config.actions, image: payload.data?.['imageUrl'] } as any),
+              ...({ vibrate: config.vibrate, actions: config.actions, image: payload.data['imageUrl'] } as any),
             } as NotificationOptions
           );
         });

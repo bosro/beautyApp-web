@@ -157,11 +157,11 @@ import { Router } from '@angular/router';
             <div class="tc-contact-card">
               <div class="tc-contact-row">
                 <i class="ri-mail-line"></i>
-                <span>support&#64;beautyapp.com</span>
+                <span>biglux2026&#64;gmail.com</span>
               </div>
               <div class="tc-contact-row">
                 <i class="ri-phone-line"></i>
-                <span>+233 50 123 4567</span>
+                <span>0546 785 064</span>
               </div>
               <div class="tc-contact-row">
                 <i class="ri-map-pin-line"></i>

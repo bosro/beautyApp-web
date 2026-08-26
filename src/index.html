@@ -85,9 +85,28 @@
       href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css"
       crossorigin="anonymous"
     />
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <!-- <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script> -->
+
+    <!-- Captures `beforeinstallprompt` as early as possible, before the
+         Angular bundle has even downloaded/parsed. Chrome can fire this
+         event the instant it decides the page qualifies (manifest + an
+         active service worker), which — especially on a slower device or
+         a cold cache — can happen before PwaInstallService's constructor
+         ever runs and attaches its own listener. Once fired, the browser
+         doesn't replay it, so a listener attached "late" can miss it
+         forever and the custom install badge silently never appears,
+         even though Chrome's own address-bar install icon still shows
+         (that one doesn't depend on this event at all). Stashing it on
+         `window` here means PwaInstallService can pick up an
+         already-fired event on construction instead of only ever
+         listening for a future one. -->
+    <script>
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        window.__deferredInstallPrompt = e;
+      });
+    </script>
 
     <!-- Pretendard Variable (loaded via styles.scss CDN) -->
   </head>
