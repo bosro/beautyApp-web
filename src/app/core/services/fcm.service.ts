@@ -82,22 +82,27 @@ export class FcmService {
       onMessage(this.messaging, (payload) => {
         if (!payload.data) return;
 
-        const type = (payload.data['type'] as NotifType) || 'general';
-        const config = this.getNotifConfig(type, payload.data);
+        const data = payload.data;
+
+        const type = (data['type'] as NotifType) || 'general';
+        const config = this.getNotifConfig(type, data);
 
         navigator.serviceWorker.ready.then((reg) => {
           reg.showNotification(
-            payload.data!['title'] ?? 'BigLuxx',
+            data['title'] ?? 'BigLuxx',
             {
-              body:               payload.data!['body'],
-              icon:               config.icon,
-              badge:              '/assets/icons/badge-72x72.png',
-              tag:                `bigluxx-${type}`,
-              renotify:           true,
+              body: data['body'],
+              icon: config.icon,
+              badge: '/assets/icons/badge-72x72.png',
+              tag: `bigluxx-${type}`,
+              renotify: true,
               requireInteraction: config.requireInteraction,
-              data:               payload.data,
-              // Cast needed because TS lib typing omits these SW-only fields
-              ...({ vibrate: config.vibrate, actions: config.actions, image: payload.data['imageUrl'] } as any),
+              data,
+              ...({
+                vibrate: config.vibrate,
+                actions: config.actions,
+                image: data['imageUrl'],
+              } as any),
             } as NotificationOptions
           );
         });
@@ -117,54 +122,54 @@ export class FcmService {
 
     const configs: Record<NotifType, ReturnType<FcmService['getNotifConfig']>> = {
       booking: {
-        icon:               `${base}/icon-192x192.png`,
-        vibrate:            [200, 100, 200],
+        icon: `${base}/icon-192x192.png`,
+        vibrate: [200, 100, 200],
         requireInteraction: true,
         actions: [
           { action: 'view_booking', title: 'View Booking' },
-          { action: 'dismiss',      title: 'Dismiss'      },
+          { action: 'dismiss', title: 'Dismiss' },
         ],
       },
       payment: {
-        icon:               `${base}/icon-192x192.png`,
-        vibrate:            [300, 100, 300, 100, 300],
+        icon: `${base}/icon-192x192.png`,
+        vibrate: [300, 100, 300, 100, 300],
         requireInteraction: true,
         actions: [
           { action: 'view_payment', title: 'View Details' },
-          { action: 'dismiss',      title: 'Dismiss'      },
+          { action: 'dismiss', title: 'Dismiss' },
         ],
       },
       verification: {
-        icon:               `${base}/icon-192x192.png`,
-        vibrate:            [100, 50, 100, 50, 500],
+        icon: `${base}/icon-192x192.png`,
+        vibrate: [100, 50, 100, 50, 500],
         requireInteraction: false,
         actions: [
           { action: 'view_profile', title: 'View Profile' },
         ],
       },
       review: {
-        icon:               `${base}/icon-192x192.png`,
-        vibrate:            [200, 100, 200],
+        icon: `${base}/icon-192x192.png`,
+        vibrate: [200, 100, 200],
         requireInteraction: false,
         actions: [
           { action: 'view_review', title: 'See Review' },
-          { action: 'reply',       title: 'Reply'      },
+          { action: 'reply', title: 'Reply' },
         ],
       },
       message: {
-        icon:               `${base}/icon-192x192.png`,
-        vibrate:            [150, 75, 150],
+        icon: `${base}/icon-192x192.png`,
+        vibrate: [150, 75, 150],
         requireInteraction: false,
         actions: [
-          { action: 'reply',   title: 'Reply'   },
+          { action: 'reply', title: 'Reply' },
           { action: 'dismiss', title: 'Dismiss' },
         ],
       },
       general: {
-        icon:               `${base}/icon-192x192.png`,
-        vibrate:            [200],
+        icon: `${base}/icon-192x192.png`,
+        vibrate: [200],
         requireInteraction: false,
-        actions:            [],
+        actions: [],
       },
     };
 
