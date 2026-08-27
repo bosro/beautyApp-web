@@ -53,6 +53,7 @@ export const routeAnimations = trigger("routeAnimations", [
       <router-outlet #outlet="outlet"></router-outlet>
     </div>
     <app-connectivity-banner></app-connectivity-banner>
+    <app-verify-phone-banner></app-verify-phone-banner>
     <app-install-badge></app-install-badge>
     <app-toast></app-toast>
   `,

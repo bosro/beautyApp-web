@@ -11,6 +11,7 @@ import { EmptyStateComponent } from "./components/empty-state/empty-state.compon
 import { AiUpgradePromptComponent } from './components/ai-upgrade-prompt/ai-upgrade-prompt.component';
 import { ConnectivityBannerComponent } from './components/connectivity-banner/connectivity-banner.component';
 import { InstallAppBadgeComponent } from './components/install-app-badge/install-app-badge.component';
+import { VerifyPhoneBannerComponent } from './components/verify-phone-banner/verify-phone-banner.component';
 
 
 
@@ -25,6 +26,7 @@ import { InstallAppBadgeComponent } from './components/install-app-badge/install
     AiUpgradePromptComponent,
     ConnectivityBannerComponent,
     InstallAppBadgeComponent,
+    VerifyPhoneBannerComponent,
   ],
   imports: [
     CommonModule,
@@ -44,7 +46,8 @@ import { InstallAppBadgeComponent } from './components/install-app-badge/install
     EmptyStateComponent,
     AiUpgradePromptComponent,
     ConnectivityBannerComponent,
-    InstallAppBadgeComponent
+    InstallAppBadgeComponent,
+    VerifyPhoneBannerComponent
   ],
 })
 export class SharedModule {}
