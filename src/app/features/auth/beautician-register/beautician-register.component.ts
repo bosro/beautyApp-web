@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { getApiErrorMessage } from '@core/utils/api-error.util';
 
 @Component({
   selector: 'app-beautician-register',
@@ -465,7 +466,7 @@ export class BeauticianRegisterComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.toast.error(err?.error?.message || 'Registration failed');
+        this.toast.error(getApiErrorMessage(err, 'Registration failed'));
       },
     });
   }

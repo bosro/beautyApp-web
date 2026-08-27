@@ -7,8 +7,8 @@ import {
   HttpEvent,
   HttpErrorResponse,
 } from "@angular/common/http";
-import { Observable, throwError, BehaviorSubject, of } from "rxjs";
-import { catchError, filter, take, switchMap } from "rxjs/operators";
+import { Observable, throwError, BehaviorSubject, of, TimeoutError } from "rxjs";
+import { catchError, filter, take, switchMap, timeout } from "rxjs/operators";
 import { AuthService } from "../services/auth.service";
 import { Router } from "@angular/router";
 
@@ -87,6 +87,17 @@ export class AuthInterceptor implements HttpInterceptor {
     this.refreshDone$.next(null);
 
     return this.auth.refreshTokenRequest(refreshToken).pipe(
+      // Without this, a refresh call that never resolves — e.g. its
+      // underlying request got dropped by the OS while the app was
+      // backgrounded, which mobile browsers do fairly readily to
+      // installed PWAs — leaves isRefreshing stuck true forever. Every
+      // request made after that point (from any component, not just the
+      // one that triggered this) gets queued on refreshDone$ waiting for
+      // a value that will never arrive, so nothing ever reaches the
+      // network again until a full page reload recreates this
+      // interceptor. Bounding it guarantees isRefreshing always gets
+      // reset one way or another.
+      timeout(15000),
       switchMap((newToken: string) => {
         this.isRefreshing = false;
         this.refreshDone$.next(newToken);
@@ -95,6 +106,16 @@ export class AuthInterceptor implements HttpInterceptor {
       catchError((err) => {
         this.isRefreshing = false;
         this.refreshDone$.next(null);
+        // A timeout most likely means the refresh call got stuck due to
+        // the connection being suspended (backgrounded tab, network
+        // handoff, etc.) — not that the refresh token itself is invalid.
+        // Don't nuke the session over what's probably a transient network
+        // hiccup; just fail this one request so the calling code can show
+        // an error/let the user retry, now that isRefreshing is reset and
+        // the next attempt has a clean slate.
+        if (err instanceof TimeoutError) {
+          return throwError(() => err);
+        }
         this.forceLogout();
         return throwError(() => err);
       }),

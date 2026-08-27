@@ -288,6 +288,10 @@ import { ToastService } from "@core/services/toast.service";
               >GH₵{{ booking.beauticianEarnings | number: "1.2-2" }}</span
             >
           </div>
+          <!-- Platform Fee — commented out for now; we're not charging a
+               platform fee currently since the service is free. Re-enable
+               this block (and the border-b above "Your Earnings") once
+               fees are reintroduced.
           <div
             class="flex justify-between py-2.5 border-b border-[var(--color-border)]"
           >
@@ -298,6 +302,7 @@ import { ToastService } from "@core/services/toast.service";
               >GH₵{{ booking.commission | number: "1.2-2" }}</span
             >
           </div>
+          -->
           <div class="flex justify-between py-2.5">
             <span class="text-sm font-semibold text-[var(--color-text-primary)]"
               >Total Price</span
@@ -329,10 +334,16 @@ import { ToastService } from "@core/services/toast.service";
           </p>
         </div>
 
-        <!-- ── Action Buttons — in scroll flow ── -->
+        <!-- ── Action Buttons — in scroll flow ──
+             Extra bottom clearance here (beyond the layout's own pb-28)
+             because the fixed bottom tab bar doesn't reserve safe-area
+             space itself — without this, the buttons render but sit
+             partly underneath the tab bar on phones with a home
+             indicator (iPhone X and later). -->
         <div
           *ngIf="booking.status === 'PENDING' || booking.status === 'CONFIRMED'"
-          class="pt-2 pb-2"
+          class="pt-2"
+          style="padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));"
         >
           <!-- PENDING: Decline + Accept -->
           <div *ngIf="booking.status === 'PENDING'" class="flex gap-3">

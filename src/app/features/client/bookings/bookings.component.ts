@@ -545,8 +545,8 @@ export class BookingsComponent implements OnInit {
   }
 
   leaveReview(booking: Booking): void {
-    this.router.navigate(['/client/salon', booking.beauticianId], {
-      queryParams: { review: booking.id },
+    this.router.navigate(['/client/review', booking.id], {
+      queryParams: { salonId: booking.beauticianId },
     });
   }
 }

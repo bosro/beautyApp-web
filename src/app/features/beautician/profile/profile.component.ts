@@ -752,6 +752,13 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
       }
     };
     r.readAsDataURL(file);
+    // Upload immediately, same as the cover photo — previously this just
+    // set a local preview and left it to a separate "Update Photo" button
+    // below, which was easy to miss. If that button was never pressed,
+    // the preview looked right on this page but nothing was ever actually
+    // saved, so the header avatar (and everywhere else) kept showing the
+    // old photo/initials.
+    this.uploadPhoto();
   }
 
   uploadPhoto() {
@@ -768,7 +775,11 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
         // The sidebar/top-bar avatar reads from AuthService's cached user
         // (user.beautician.profileImage), not from this page's local
         // `beautician` object — without this it kept showing the old
-        // photo (or initials) until the next full login/reload.
+        // photo (or initials) until the next full login/reload. Do an
+        // optimistic local patch for an instant update, then also
+        // refetch /auth/me as the source of truth so any other cached
+        // field (or a shape mismatch we didn't anticipate here) can't
+        // leave things silently out of sync.
         if (newPhoto && this.auth.user) {
           this.auth.setUser({
             ...this.auth.user,
@@ -777,6 +788,7 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
               : this.auth.user.beautician,
           });
         }
+        this.auth.getMe().subscribe();
         this.uploading = false;
         this.selectedFile = null;
         this.previewUrl = null;
@@ -814,9 +826,22 @@ export class BeauticianProfileComponent implements OnInit, OnDestroy {
     fd.append('coverImage', this.selectedCoverFile);
     this.http.post<any>(`${environment.apiUrl}/users/beautician/images`, fd).subscribe({
       next: (res) => {
-        if (res.data?.beautician?.coverImage && this.beautician) {
-          this.beautician.coverImage = res.data.beautician.coverImage;
+        const newCover = res.data?.beautician?.coverImage;
+        if (newCover && this.beautician) {
+          this.beautician.coverImage = newCover;
         }
+        // Same sync as the profile photo above — cover image lives on
+        // beautician too, so anywhere reading it off the cached
+        // AuthService user needs this refreshed as well.
+        if (newCover && this.auth.user) {
+          this.auth.setUser({
+            ...this.auth.user,
+            beautician: this.auth.user.beautician
+              ? { ...this.auth.user.beautician, coverImage: newCover }
+              : this.auth.user.beautician,
+          });
+        }
+        this.auth.getMe().subscribe();
         this.uploadingCover = false;
         this.selectedCoverFile = null;
         this.coverPreviewUrl = null;

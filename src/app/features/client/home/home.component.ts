@@ -537,6 +537,13 @@ import { environment } from "../../../../environments/environment";
       [ngClass]="{ 'lg-fab': true }"
     >
       <ng-container *ngIf="aiFabOpen">
+        <!--
+        ============================================================
+        SMART SCHEDULE — TEMPORARILY DISABLED
+        Uncomment to bring this FAB option back once the feature
+        is ready to ship.
+        ============================================================
+
         <button
           (click)="
             router.navigate(['/client/ai-smart-schedule']); aiFabOpen = false
@@ -558,6 +565,14 @@ import { environment } from "../../../../environments/environment";
             >Smart Schedule</span
           >
         </button>
+        -->
+
+        <!--
+        ============================================================
+        VIRTUAL TRY-ON — TEMPORARILY DISABLED
+        Uncomment to bring this FAB option back once the feature
+        is ready to ship.
+        ============================================================
 
         <button
           (click)="
@@ -580,6 +595,7 @@ import { environment } from "../../../../environments/environment";
             >Virtual Try-On</span
           >
         </button>
+        -->
 
         <button
           (click)="router.navigate(['/client/ai-assistant']); aiFabOpen = false"
@@ -893,5 +909,3 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 }
-
-

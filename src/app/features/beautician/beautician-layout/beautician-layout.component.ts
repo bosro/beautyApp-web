@@ -367,7 +367,8 @@ import { HttpClient } from "@angular/common/http";
              MOBILE BOTTOM NAV — 4 direct tabs
         ══════════════════════════════════════ -->
         <nav
-          class="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-6 pb-5 pointer-events-none"
+          class="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-6 pointer-events-none"
+          style="padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));"
         >
           <div
             class="flex items-center justify-around rounded-[30px] h-[64px] px-2 pointer-events-auto"

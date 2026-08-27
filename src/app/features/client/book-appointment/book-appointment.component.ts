@@ -128,7 +128,14 @@ interface DayOption {
           </div>
         </div>
 
-        <!-- AI SMART SCHEDULE -->
+        <!--
+        ============================================================
+        AI SMART SCHEDULE — TEMPORARILY DISABLED
+        Re-enable by uncommenting this block (and the divider below,
+        if you want the "Or select manually" copy back) once the
+        Smart Schedule feature is ready to ship.
+        ============================================================
+
         <button
           (click)="openSmartSchedule()"
           class="w-full rounded-2xl p-4 mb-4 flex items-center gap-3 text-left transition-opacity hover:opacity-90"
@@ -154,7 +161,6 @@ interface DayOption {
           ></i>
         </button>
 
-        <!-- DIVIDER -->
         <div class="flex items-center gap-3 mb-5">
           <div
             class="flex-1 h-px"
@@ -170,6 +176,7 @@ interface DayOption {
             style="background-color: var(--color-border-light)"
           ></div>
         </div>
+        -->
 
         <!-- SELECT DATE -->
         <div class="mb-6">
@@ -374,14 +381,14 @@ interface DayOption {
 
       <!-- STICKY SLIDE-TO-BOOK -->
       <div
-        class="fixed bottom-0 left-0 right-0 px-4 pt-3 pb-[calc(104px+env(safe-area-inset-bottom,0px))] lg:pb-6 lg:px-6 z-50"
+        class="fixed bottom-0 left-0 right-0 px-4 pt-2 pb-[calc(20px+env(safe-area-inset-bottom,0px))] lg:pb-4 lg:px-6 z-50"
         style="background: linear-gradient(to top, var(--color-bg-primary) 80%, transparent)"
       >
         <div class="max-w-2xl mx-auto">
           <!-- Slider track -->
           <div
             #sliderTrack
-            class="relative h-16 rounded-2xl overflow-hidden flex items-center select-none"
+            class="relative h-12 rounded-2xl overflow-hidden flex items-center select-none"
             [style.background-color]="
               isFormComplete()
                 ? 'rgba(0,0,0,0.08)'
@@ -400,7 +407,7 @@ interface DayOption {
 
             <!-- Label -->
             <span
-              class="absolute inset-0 flex items-center justify-center text-sm font-bold pointer-events-none z-10"
+              class="absolute inset-0 flex items-center justify-center text-xs font-bold pointer-events-none z-10"
               [style.color]="
                 isFormComplete()
                   ? 'var(--color-text-primary)'
@@ -424,7 +431,7 @@ interface DayOption {
             <!-- Thumb -->
             <div
               *ngIf="!booking"
-              class="absolute top-2 bottom-2 aspect-square rounded-xl flex items-center justify-center z-20 cursor-grab active:cursor-grabbing shadow-md"
+              class="absolute top-1 bottom-1 aspect-square rounded-xl flex items-center justify-center z-20 cursor-grab active:cursor-grabbing shadow-md"
               [style.left.px]="sliderThumbLeft"
               [style.background-color]="
                 isFormComplete() ? 'var(--color-primary)' : '#ccc'
@@ -538,10 +545,10 @@ export class BookAppointmentComponent implements OnInit {
   // Slider state
   isDragging = false;
   sliderThumbLeft = 4;
-  sliderFillWidth = 60;
+  sliderFillWidth = 48;
   sliderProgress = 0;
   private sliderTrackWidth = 0;
-  private readonly THUMB_SIZE = 52;
+  private readonly THUMB_SIZE = 40;
   private readonly THUMB_PADDING = 4;
   private dragStartX = 0;
   private dragStartLeft = 4;
@@ -593,7 +600,7 @@ export class BookAppointmentComponent implements OnInit {
     setTimeout(() => {
       const track =
         (document.querySelector("[\\#sliderTrack]") as HTMLElement) ||
-        (document.querySelector(".relative.h-16.rounded-2xl") as HTMLElement);
+        (document.querySelector(".relative.h-12.rounded-2xl") as HTMLElement);
       if (track) this.sliderTrackWidth = track.offsetWidth;
     }, 300);
   }
@@ -656,7 +663,7 @@ export class BookAppointmentComponent implements OnInit {
     this.dragStartLeft = this.sliderThumbLeft;
     // Measure track width
     const track = (e.target as HTMLElement).closest(
-      ".relative.h-16",
+      ".relative.h-12",
     ) as HTMLElement;
     if (track) this.sliderTrackWidth = track.offsetWidth;
     e.preventDefault();
@@ -668,7 +675,7 @@ export class BookAppointmentComponent implements OnInit {
     this.dragStartX = e.touches[0].clientX;
     this.dragStartLeft = this.sliderThumbLeft;
     const track = (e.target as HTMLElement).closest(
-      ".relative.h-16",
+      ".relative.h-12",
     ) as HTMLElement;
     if (track) this.sliderTrackWidth = track.offsetWidth;
   }
@@ -894,9 +901,14 @@ export class BookAppointmentComponent implements OnInit {
   viewExistingBooking(): void {
     this.router.navigate(["/client/bookings", this.existingBooking.id]);
   }
+
+  // AI Smart Schedule feature is temporarily disabled — see the commented-out
+  // button in the template above. Keeping this method here (unused) so it's
+  // a one-line uncomment to wire back up later.
   openSmartSchedule(): void {
     this.toast.info("AI Smart Scheduling coming soon!");
   }
+
   toggleFavorite(): void {
     this.http
       .post<any>(`${environment.apiUrl}/favorites/toggle`, {
@@ -913,5 +925,3 @@ export class BookAppointmentComponent implements OnInit {
     this.router.navigate(["/client/salon", this.salonId]);
   }
 }
-
-

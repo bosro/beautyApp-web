@@ -170,7 +170,14 @@ export class LeaveReviewComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.bookingId = this.route.snapshot.queryParamMap.get("bookingId") || "";
+    // Booking id comes from the route's path param (route is
+    // "review/:id"); salonId is optional and only used for the back
+    // button, so it stays a query param. Also accept bookingId as a
+    // query param for backward compatibility with any old links.
+    this.bookingId =
+      this.route.snapshot.paramMap.get("id") ||
+      this.route.snapshot.queryParamMap.get("bookingId") ||
+      "";
     this.salonId = this.route.snapshot.queryParamMap.get("salonId") || "";
     if (this.bookingId) {
       this.loadBooking();

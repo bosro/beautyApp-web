@@ -188,7 +188,8 @@ import { User } from "../../../core/models";
         <!-- ===== MOBILE BOTTOM TAB BAR — Pill style ===== -->
         <nav
           *ngIf="!hideNav"
-          class="lg:hidden fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 px-8 pb-5"
+          class="lg:hidden fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 px-8"
+          style="padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));"
           [ngClass]="navHidden ? 'translate-y-full' : 'translate-y-0'"
         >
           <div
